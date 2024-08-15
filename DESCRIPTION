@@ -1,8 +1,8 @@
 Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
-Version: 0.1.0
-Date: 2024-08-14
+Version: 0.1.1
+Date: 2024-08-15
 Author: Roozbeh Valavi, el al.
 Maintainer: <roozbeh.valavi@csiro.au>
 Description: More about what it does (maybe more than one line)
@@ -11,11 +11,11 @@ License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 Depends:
-  R (>= 3.5.0)
+  R (>= 4.1.0)
 Imports:
   Rcpp (>= 1.0.2)
 Suggests:
-  terra (>= 1.6-41),
+  terra (>= 1.7.71),
   ggplot2 (>= 3.3.6),
   shiny (>= 1.7),
   methods,
