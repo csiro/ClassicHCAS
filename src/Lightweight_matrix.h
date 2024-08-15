@@ -1,5 +1,7 @@
-#ifndef _LW_MATRIX_H
-#define _LW_MATRIX_H
+#pragma once
+
+#ifndef IGHTWEIGHT_MATRIX_H
+#define IGHTWEIGHT_MATRIX_H
 
 /**
  * Defining a light-weight matrix class and methods. This is mostly to
@@ -78,44 +80,23 @@ private:
 };
 
 
-// convert to NumericMatrix
-Rcpp::NumericMatrix as_NumericMatrix(const Lightweight_matrix<double> &matrix)
-{
-    int nr = matrix.nrow();
-    int nc = matrix.ncol();
+// // convert to NumericMatrix
+// Rcpp::NumericMatrix as_NumericMatrix(const Lightweight_matrix<double> &matrix)
+// {
+//     int nr = matrix.nrow();
+//     int nc = matrix.ncol();
+//
+//     Rcpp::NumericMatrix rcpp_matrix(nr, nc);
+//
+//     for (int i = 0; i < nr; ++i)
+//     {
+//         for (int j = 0; j < nc; ++j)
+//         {
+//             rcpp_matrix(i, j) = matrix(i, j);
+//         }
+//     }
+//
+//     return rcpp_matrix;
+// }
 
-    Rcpp::NumericMatrix rcpp_matrix(nr, nc);
-
-    for (int i = 0; i < nr; ++i)
-    {
-        for (int j = 0; j < nc; ++j)
-        {
-            rcpp_matrix(i, j) = matrix(i, j);
-        }
-    }
-
-    return rcpp_matrix;
-}
-
-
-// get a subset matrix using a vector of indices
-Lightweight_matrix<double> filter_matrix(const Lightweight_matrix<double> &matrix,
-                                         const std::vector<int> &indices)
-{
-    int new_rows = indices.size();
-    int new_columns = matrix.ncol();
-    Lightweight_matrix<double> filtered_matrix(new_rows, new_columns);
-
-    for (int i = 0; i < new_rows; ++i)
-    {
-        int original_index = indices[i];
-        for (int j = 0; j < new_columns; ++j)
-        {
-            filtered_matrix(i, j) = matrix(original_index, j);
-        }
-    }
-
-    return filtered_matrix;
-}
-
-#endif // _LW_MATRIX_H
+#endif /* IGHTWEIGHT_MATRIX_H */

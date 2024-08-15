@@ -15,6 +15,7 @@
 
 using namespace Rcpp;
 
+
 // [[Rcpp::export]]
 Rcpp::NumericMatrix hcas_cpp(
     const Rcpp::NumericMatrix &rast_stack,  // a raster stack to read everything at once: x,y,rs,env
@@ -50,7 +51,7 @@ Rcpp::NumericMatrix hcas_cpp(
     // ncol MUST BE after adding xy_scaled
     const int nc = rast_stack.ncol();
     const int nr = rast_stack.nrow();
-    
+
     // output condition vector
     std::vector<condition> condition_vect(nr);
 

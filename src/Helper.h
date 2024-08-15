@@ -33,6 +33,27 @@ void add_xy_scaled(Lightweight_matrix<double> &matrix, const Rcpp::NumericVector
 }
 
 
+// get a subset matrix using a vector of indices
+Lightweight_matrix<double> filter_matrix(const Lightweight_matrix<double> &matrix,
+                                         const std::vector<int> &indices)
+{
+    int new_rows = indices.size();
+    int new_columns = matrix.ncol();
+    Lightweight_matrix<double> filtered_matrix(new_rows, new_columns);
+
+    for (int i = 0; i < new_rows; ++i)
+    {
+        int original_index = indices[i];
+        for (int j = 0; j < new_columns; ++j)
+        {
+            filtered_matrix(i, j) = matrix(original_index, j);
+        }
+    }
+
+    return filtered_matrix;
+}
+
+
 // HCAS Cauchy weighted condition using histogram values and env distances
 condition get_condition(
     const std::vector<double> &prob_values, // histo probability values

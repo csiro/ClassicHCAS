@@ -1,11 +1,28 @@
 Package: ClassicHCAS
 Type: Package
-Title: What the Package Does (Title Case)
+Title: The Classic Habitat Condition Assessment System (HCAS)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Date: 2024-08-14
+Author: Roozbeh Valavi, el al.
+Maintainer: <roozbeh.valavi@csiro.au>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Depends:
+  R (>= 3.5.0)
+Imports:
+  Rcpp (>= 1.0.2)
+Suggests:
+  terra (>= 1.6-41),
+  ggplot2 (>= 3.3.6),
+  shiny (>= 1.7),
+  methods,
+  rmarkdown,
+  tinytest
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+LinkingTo: 
+  Rcpp

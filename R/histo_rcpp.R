@@ -1,31 +1,34 @@
-# Author: Roozbeh Valavi
-# Email:  roozbeh.valavi@csiro.au
-# Date:   Feb-2024
-# Desc:   Translation of HCAS histogram calculation to R and C++ (Rcpp)
-
-
-# are sample points lat-log?
-is_lonlat <- function(x) {
-    terra::is.lonlat(
-        terra::vect(x),
-        perhaps = TRUE,
-        warn = FALSE
-    )
-}
-
-
+#' Histogram
+#'
+#' The HCAS histogram calcualtion based on pair-point densities.
+#'
+#' @param observed
+#' @param predicted
+#' @param samples
+#' @param within_km
+#' @param bin_width
+#' @param bin_num
+#' @param force_compile
+#' @param num_threads
+#' @param output_file
+#' @param source_code
+#'
+#' @return
+#' @export
+#'
+#' @examples
 histo_hcas <- function(
         observed,
         predicted,
         samples,
         within_km = 1000,
-        bin_width = 0.03,
+        bin_width = 0.05,
         bin_num = 650,
         force_compile = FALSE,
         num_threads = parallel::detectCores() - 1,
         output_file,
         source_code) {
-    
+
     # compile the C++ code
     cat("Compiling C++ code...\n")
     tryCatch(
@@ -35,18 +38,18 @@ histo_hcas <- function(
         error = function(cond) {
             stop("Compiling C++ file failed!\n")
         }
-    ) 
-    
+    )
+
     # check samples
     if (is(samples, "data.frame")) {
         samples <- as.matrix(samples)
     } else if (!is(samples, "matrix")) {
         stop("Samples must be a data.frame or matrix of the coordinate values.")
     }
-    
+
     # correction scale for long-lat CRS
-    correction <- ifelse(is_lonlat(samples), 100000, 1)
-    
+    correction <- ifelse(.is_lonlat(samples), 100000, 1)
+
     # check for predicted variables
     if(is(predicted, "data.frame")) {
         predicted <- as.matrix(predicted)
@@ -58,7 +61,7 @@ histo_hcas <- function(
     } else if(!is(predicted, "matrix")) {
         stop("'predicted' must be raster layers or a matrix of extracted ENV values.")
     }
-    
+
     # check for observed variables
     if(is(observed, "data.frame")) {
         observed <- as.matrix(observed)
@@ -71,33 +74,33 @@ histo_hcas <- function(
         stop("'observed' must be raster layers or a matrix of extracted RS values.")
     }
 
-    
+
     cat("\nRS data dimensions: ", dim(observed), "\n")
     cat("ENV data dimensions:", dim(predicted), "\n")
-    
+
     # some error checking
-    if(any(dim(predicted) != dim(observed))) 
+    if(any(dim(predicted) != dim(observed)))
         stop("Dimensions of RS and ENV datasets doesn't match!")
-    
-    if(nrow(predicted) != nrow(samples)) 
+
+    if(nrow(predicted) != nrow(samples))
         stop("Number of rows of rasters values and reference samples doesn't match!")
-    
+
     if(any(anyNA(predicted), anyNA(observed), anyNA(samples)))
         stop("There's NA in the extracted RS\\ENV or samples!")
-    
+
     if(any(colnames(predicted) != colnames(observed))) {
         cat("\nWARNING: The names\\order of OBS and MOD datasets doesn't match!\n")
         cat("Observed:", colnames(observed), "\n")
         cat("Modelled:", colnames(predicted), "\n")
     }
-    
+
     cat("\nCalculating histogram...\n")
     # run histo calculate in C++
     tryCatch(
         {
             out_table <- histo_cpp(
                 rs_vals = observed,
-                pr_vals = predicted, 
+                pr_vals = predicted,
                 samples_xy = samples,
                 within_km = within_km,
                 scale = correction,
@@ -111,12 +114,12 @@ histo_hcas <- function(
         }
     )
     cat("Histogram is calculated successfully!\n")
-    
+
     # write down the histogram
     tryCatch(
         {
             write.table(
-                out_table, 
+                out_table,
                 file = output_file,
                 sep = "\t",
                 row.names = FALSE,
@@ -128,9 +131,19 @@ histo_hcas <- function(
         }
     )
     cat("Histogram is written successfully!\n")
-    
+
     return(
         out_table
+    )
+}
+
+
+# are sample points lat-log?
+.is_lonlat <- function(x) {
+    terra::is.lonlat(
+        terra::vect(x),
+        perhaps = TRUE,
+        warn = FALSE
     )
 }
 
