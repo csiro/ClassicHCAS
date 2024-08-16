@@ -1,34 +1,34 @@
-#' Benchmarking
+#' Benchmarking target points
 #'
 #' The HCAS benchmarking function to calculate habitat condition based on observed and
 #' predicted remote sensing variables.
 #'
-#' @param observed The data.frame or matrix of observed remote sensing variables.
-#' @param predicted
-#' @param samples
-#' @param histogram
-#' @param xy_stats
-#' @param xy_penalty
-#' @param within_km
-#' @param k_env
-#' @param k_rs
-#' @param bin_width
-#' @param interpolate
-#' @param offset
-#' @param confidence
-#' @param lambda
-#' @param make_su
-#' @param force_compile
-#' @param num_threads
-#' @param filename
-#' @param overwrite
-#' @param source_code
+#' @param observed The data.frame, matrix or SpatRaster of observed remote sensing variables.
+#' @param predicted The data.frame, matrix or SpatRaster of observed remote sensing variables.
+#' @param samples Matrix or df. With the XY or XY and RS and ENV values.
+#' @param histogram A matrix of HCAS histogram.
+#' @param xy_stats Vector, mean and standard deviation of coordinates for centre and
+#' scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)
+#' @param xy_penalty Numeric. The penalty value the higher the value the more penalise the
+#' distant location will be. The value 0 means no penalty
+#' @param within_km Numeric. Search radius in kilometers for considering benchmark samples.
+#' @param k_env Integer. Number of nearest ENV/predicted RS samples to take.
+#' @param k_rs Integer. Number of nearest observed RS sample to takes.
+#' @param bin_width Numeric. The bin width of the histogram
+#' @param interpolate Logical. Should interpolate the histogram?
+#' @param offset Int. Number of histogram bins to ignore...
+#' @param confidence Numeric. The confidence value for LDC methods. See details below..
+#' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
+#' @param make_su Logical. To make the uncertainty map or not.
+#' @param num_threads Int. Number of CPU threads for processing...
+#' @param filename Char (optional). The output file name for raster outputs
+#' @param overwrite Logical. Whether to overwrite the output raster.
 #'
-#' @return data.frame or
+#' @return matrix or SpatRaster
 #' @export
 #'
 #' @examples
-benchmarking <- function(
+benchmark <- function(
         observed,
         predicted,
         samples,
@@ -38,28 +38,16 @@ benchmarking <- function(
         within_km = 200,
         k_env = 50,
         k_rs = 20,
-        bin_width = 0.03,
+        bin_width = 0.05,
         interpolate = TRUE,
         offset = 0,
         confidence = 0.5,
         lambda = 2.0,
+        exclude_slef = TRUE,
         make_su = FALSE,
-        force_compile = FALSE,
         num_threads = parallel::detectCores() - 1,
         filename = "",
-        overwrite = TRUE,
-        source_code) {
-
-    # compile the C++ code
-    # cat("Compiling C++ code...\n")
-    # tryCatch(
-    #     {
-    #         Rcpp::sourceCpp(source_code, rebuild = force_compile)
-    #     },
-    #     error = function(cond) {
-    #         stop("Compiling C++ file failed!\n", cond)
-    #     }
-    # )
+        overwrite = TRUE) {
 
     # get the raster layers
     observed <- get_rast(observed)
@@ -152,7 +140,6 @@ benchmarking <- function(
         }
     )
 
-
     # sample extraction if needed
     if (ncol(samples) == 2) {
         cat("Extracting sample values...\n")
@@ -192,8 +179,9 @@ benchmarking <- function(
                 k_rs = k_rs,
                 confidence = confidence,
                 lambda = lambda,
-                num_threads = num_threads,
+                exclude_slef = exclude_slef,
                 make_su = make_su,
+                num_threads = num_threads,
                 na.rm = FALSE,
                 filename = filename,
                 overwrite = overwrite,
@@ -237,7 +225,7 @@ predict.hcas <- function(object, newdata, make_su, ...){
     tryCatch(
         {
             # the HCAS C++ function
-            hcas_cond <- hcas_cpp(
+            hcas_cond <- bench_cpp(
                 rast_stack = dat,
                 sample_vals = as.matrix(object),
                 make_su = make_su,

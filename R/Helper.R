@@ -1,4 +1,14 @@
 
+# are sample points lat-log?
+.is_lonlat <- function(x) {
+    terra::is.lonlat(
+        terra::vect(x),
+        perhaps = TRUE,
+        warn = FALSE
+    )
+}
+
+
 # generate virtual tiles
 make_tiles <- function(x, n, rast = FALSE) {
     # x: a path to a raster for creating tiles
@@ -22,6 +32,7 @@ make_tiles <- function(x, n, rast = FALSE) {
         )
     }
 }
+
 
 # get raster files
 get_rast <- function(x) {

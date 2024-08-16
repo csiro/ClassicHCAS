@@ -17,7 +17,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix hcas_cpp(
+Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &rast_stack,  // a raster stack to read everything at once: x,y,rs,env
     const Rcpp::NumericMatrix &sample_vals, // extraction of values of rstack using smaples xy: x,y,RS,ENV
     const Rcpp::NumericMatrix &histogram,   // cleaned histogram

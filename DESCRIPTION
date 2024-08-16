@@ -19,6 +19,7 @@ Suggests:
   ggplot2 (>= 3.3.6),
   shiny (>= 1.7),
   methods,
+  knitr,
   rmarkdown,
   tinytest
 RoxygenNote: 7.3.2

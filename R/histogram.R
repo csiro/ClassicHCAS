@@ -1,44 +1,30 @@
-#' Histogram
+#' The HCAS histogram
 #'
-#' The HCAS histogram calcualtion based on pair-point densities.
+#' The HCAS histogram calculation based on pair-point densities.
 #'
-#' @param observed
-#' @param predicted
-#' @param samples
-#' @param within_km
-#' @param bin_width
-#' @param bin_num
-#' @param force_compile
-#' @param num_threads
-#' @param output_file
-#' @param source_code
+#' @param observed The data.frame or matrix of observed remote sensing variables.
+#' @param predicted The data.frame or matrix of predicted remote sensing variables.
+#' @param samples Matrix or df. With the XY or XY and RS and ENV values.
+#' @param within_km Numeric. Search radius in kilometers considering samples.
+#' @param bin_width Numeric. The bin width of the histogram
+#' @param bin_num Int. Number of bin for histogram. Keep it at the default 650..
+#' @param num_threads Int. Number of CPU threads for processing...
+#' @param filename Char (optional). The output file name for the .text file.
 #'
-#' @return
+#' @return matrix
 #' @export
 #'
 #' @examples
-histo_hcas <- function(
+histogram <- function(
         observed,
         predicted,
         samples,
         within_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
-        force_compile = FALSE,
         num_threads = parallel::detectCores() - 1,
-        output_file,
+        filename = "",
         source_code) {
-
-    # compile the C++ code
-    cat("Compiling C++ code...\n")
-    tryCatch(
-        {
-            Rcpp::sourceCpp(source_code, rebuild = force_compile)
-        },
-        error = function(cond) {
-            stop("Compiling C++ file failed!\n")
-        }
-    )
 
     # check samples
     if (is(samples, "data.frame")) {
@@ -86,15 +72,14 @@ histo_hcas <- function(
         stop("Number of rows of rasters values and reference samples doesn't match!")
 
     if(any(anyNA(predicted), anyNA(observed), anyNA(samples)))
-        stop("There's NA in the extracted RS\\ENV or samples!")
+        stop("There's NA in the extracted observed, predicted or xy samples!")
 
     if(any(colnames(predicted) != colnames(observed))) {
-        cat("\nWARNING: The names\\order of OBS and MOD datasets doesn't match!\n")
-        cat("Observed:", colnames(observed), "\n")
-        cat("Modelled:", colnames(predicted), "\n")
+        warning("The names\\order of observed and predicted datasets doesn't match!\n")
+        cat("Observed: ", colnames(observed), "\n")
+        cat("Predicted:", colnames(predicted), "\n")
     }
 
-    cat("\nCalculating histogram...\n")
     # run histo calculate in C++
     tryCatch(
         {
@@ -113,37 +98,28 @@ histo_hcas <- function(
             stop("Histogram calculation failed!\n", cond)
         }
     )
-    cat("Histogram is calculated successfully!\n")
 
     # write down the histogram
-    tryCatch(
-        {
-            write.table(
-                out_table,
-                file = output_file,
-                sep = "\t",
-                row.names = FALSE,
-                col.names = FALSE
-            )
-        },
-        error = function(cond) {
-            stop("Writing histogram file failed!\n", cond)
-        }
-    )
-    cat("Histogram is written successfully!\n")
+    if (nchar(filename) > 0) {
+        filename <- ifelse(grepl(".txt", filename), filename, paste0(filename, ".txt"))
+        tryCatch(
+            {
+                write.table(
+                    out_table,
+                    file = filename,
+                    sep = "\t",
+                    row.names = FALSE,
+                    col.names = FALSE
+                )
+            },
+            error = function(cond) {
+                stop("Writing histogram file failed!\n", cond)
+            }
+        )
+    }
 
     return(
         out_table
-    )
-}
-
-
-# are sample points lat-log?
-.is_lonlat <- function(x) {
-    terra::is.lonlat(
-        terra::vect(x),
-        perhaps = TRUE,
-        warn = FALSE
     )
 }
 
