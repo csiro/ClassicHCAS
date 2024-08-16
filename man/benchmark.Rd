@@ -8,6 +8,7 @@ benchmark(
   data,
   samples,
   histogram,
+  add_xy = FALSE,
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
   radius_km = 200,
@@ -38,6 +39,10 @@ information.}
 this order.}
 
 \item{histogram}{A matrix of HCAS histogram (see \code{\link{histogram}}).}
+
+\item{add_xy}{Logical. Add x and y to \code{data} (raster layers). If x and y are already
+available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
+be correct. For matrix \code{data} input this is ignored.}
 
 \item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
 scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)}
@@ -70,10 +75,6 @@ distant location will be. The value 0 means no penalty}
 \item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options}
 
 \item{overwrite}{Logical. Whether to overwrite the output raster.}
-
-\item{add_xy}{Logical. Add x and y to \code{data} (raster layers). If x and y are already
-available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
-be correct. For matrix \code{data} input this is ignored.}
 }
 \value{
 A matrix or SpatRaster
@@ -86,6 +87,11 @@ predicted remote sensing (RS) variables.
 Note that the order of RS variable must be the same for the observed and predicted
 input data (in both raster and matrix inputs). The values of observed and
 predicted RS variables must be centred and scaled (before prediction).
+
+You need to have OpenMP on your system to be able to benefit from parallel
+processing to seed up the computations.
+
+The default parameters are designed for Australia and might nor work elsewhere.
 }
 \examples{
 \donttest{

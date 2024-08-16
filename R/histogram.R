@@ -2,6 +2,9 @@
 #'
 #' The HCAS histogram calculation based on pair-point densities.
 #'
+#' You need to have OpenMP on your system to be able to benefit from parallel
+#' processing to seed up the computations.
+#'
 #' @param observed The data.frame or matrix of observed remote sensing variables.
 #' @param predicted The data.frame or matrix of predicted remote sensing variables.
 #' @param samples Matrix or df. With the XY or XY and RS and ENV values.

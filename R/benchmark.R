@@ -7,6 +7,11 @@
 #' input data (in both raster and matrix inputs). The values of observed and
 #' predicted RS variables must be centred and scaled (before prediction).
 #'
+#' You need to have OpenMP on your system to be able to benefit from parallel
+#' processing to seed up the computations.
+#'
+#' The default parameters are designed for Australia and might nor work elsewhere.
+#'
 #'
 #' @param data A matrix or SpatRaster (or data.frame) of the input data. The data must come
 #' in the order of: x, y, observed-RS, predicted-RS variables. This could be a matrix or

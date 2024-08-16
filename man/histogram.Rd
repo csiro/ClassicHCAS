@@ -39,6 +39,10 @@ matrix
 \description{
 The HCAS histogram calculation based on pair-point densities.
 }
+\details{
+You need to have OpenMP on your system to be able to benefit from parallel
+processing to seed up the computations.
+}
 \examples{
 \donttest{
 library(ClassicHCAS)
