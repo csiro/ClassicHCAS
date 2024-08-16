@@ -5,15 +5,14 @@
 \title{Benchmarking target points}
 \usage{
 benchmark(
-  observed,
-  predicted,
+  data,
   samples,
   histogram,
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
-  within_km = 200,
-  k_env = 50,
-  k_rs = 20,
+  radius_km = 200,
+  k_pred = 50,
+  k_obs = 20,
   bin_width = 0.05,
   interpolate = TRUE,
   offset = 0,
@@ -23,29 +22,34 @@ benchmark(
   make_su = FALSE,
   num_threads = parallel::detectCores() - 1,
   filename = "",
+  wopt = list(datatype = "FLT4S", memfrac = 0.5),
   overwrite = TRUE
 )
 }
 \arguments{
-\item{observed}{The data.frame, matrix or SpatRaster of observed remote sensing variables.}
+\item{data}{A matrix or SpatRaster (or data.frame) of the input data. The data must come
+in the order of: x, y, observed-RS, predicted-RS variables. This could be a matrix or
+data.frame object with the correct order of input variables or a SpatRaster object
+from \pkg{terra} package. If the SpatRaster object does not include x and y coordinates (or
+longitude and latitude), you must set \code{add_xy = TRUE}. See details for more
+information.}
 
-\item{predicted}{The data.frame, matrix or SpatRaster of observed remote sensing variables.}
+\item{samples}{A matrix or data.frame with the XY or alternatively, XY-observed-predicted values with
+this order.}
 
-\item{samples}{Matrix or df. With the XY or XY and RS and ENV values.}
+\item{histogram}{A matrix of HCAS histogram (see \code{\link{histogram}}).}
 
-\item{histogram}{A matrix of HCAS histogram.}
-
-\item{xy_stats}{Vector, mean and standard deviation of coordinates for centre and
+\item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
 scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)}
 
 \item{xy_penalty}{Numeric. The penalty value the higher the value the more penalise the
 distant location will be. The value 0 means no penalty}
 
-\item{within_km}{Numeric. Search radius in kilometers for considering benchmark samples.}
+\item{radius_km}{Numeric. Search radius in kilometers for considering benchmark samples.}
 
-\item{k_env}{Integer. Number of nearest ENV/predicted RS samples to take.}
+\item{k_pred}{Integer. Number of nearest ENV/predicted RS samples to take.}
 
-\item{k_rs}{Integer. Number of nearest observed RS sample to takes.}
+\item{k_obs}{Integer. Number of nearest observed RS sample to takes.}
 
 \item{bin_width}{Numeric. The bin width of the histogram}
 
@@ -63,12 +67,37 @@ distant location will be. The value 0 means no penalty}
 
 \item{filename}{Char (optional). The output file name for raster outputs}
 
+\item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options}
+
 \item{overwrite}{Logical. Whether to overwrite the output raster.}
+
+\item{add_xy}{Logical. Add x and y to \code{data} (raster layers). If x and y are already
+available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
+be correct. For matrix \code{data} input this is ignored.}
 }
 \value{
-matrix or SpatRaster
+A matrix or SpatRaster
 }
 \description{
 The HCAS benchmarking function to calculate habitat condition based on observed and
-predicted remote sensing variables.
+predicted remote sensing (RS) variables.
+}
+\details{
+Note that the order of RS variable must be the same for the observed and predicted
+input data (in both raster and matrix inputs). The values of observed and
+predicted RS variables must be centred and scaled (before prediction).
+}
+\examples{
+\donttest{
+library(ClassicHCAS)
+
+obs_dat <- read.csv("")
+prd_dat <- read.csv("")
+histo <- read.table("histogram.txt")
+
+
+}
+}
+\seealso{
+\code{\link{histogram}}
 }

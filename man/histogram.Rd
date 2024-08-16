@@ -39,3 +39,16 @@ matrix
 \description{
 The HCAS histogram calculation based on pair-point densities.
 }
+\examples{
+\donttest{
+library(ClassicHCAS)
+
+obs_dat <- read.csv("")
+prd_dat <- read.csv("")
+
+
+}
+}
+\seealso{
+\code{\link{benchmark}}
+}

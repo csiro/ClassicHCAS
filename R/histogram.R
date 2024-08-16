@@ -11,10 +11,20 @@
 #' @param num_threads Int. Number of CPU threads for processing...
 #' @param filename Char (optional). The output file name for the .text file.
 #'
+#' @seealso \code{\link{benchmark}}
+#'
 #' @return matrix
 #' @export
 #'
 #' @examples
+#' \donttest{
+#' library(ClassicHCAS)
+#'
+#' obs_dat <- read.csv("")
+#' prd_dat <- read.csv("")
+#'
+#'
+#' }
 histogram <- function(
         observed,
         predicted,

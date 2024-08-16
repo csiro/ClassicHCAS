@@ -1,0 +1,88 @@
+# Author: Roozbeh Valavi
+# contact: roozbeh.valavi@csiro.au
+# Date : Aug-2024
+# Version 0.1
+
+# are sample points lat-log?
+.is_lonlat <- function(x) {
+    return(
+        if (methods::is(x, "SpatRaster")) {
+            terra::is.lonlat(x = x, perhaps = TRUE, warn = FALSE)
+        } else if (methods::is(x, "matrix")) {
+            terra::is.lonlat(x = terra::vect(x[, 1:2]), perhaps = TRUE, warn = FALSE)
+        } else {
+            stop("The 'x' must a matrix to terra object!")
+        }
+    )
+}
+
+# is matrix or data.frame or data.table
+.is_mat <- function(x){
+    z <- class(x)
+    return(
+        any(
+            z %in% c("matrix", "data.table", "data.frame")
+        )
+    )
+}
+
+# check if it's a matrix if not convert it
+.check_mat <- function(x, name = "x") {
+    if (.is_matrix(x)) {
+        if (methods::is(x, "matrix")) {
+            return(x)
+        } else {
+            return(
+                as.matrix(x)
+            )
+        }
+    } else {
+            message(sprintf("'%s' must be a 'matrix', 'data.table', 'data.frame' object.", name))
+    }
+}
+
+# is it a raster object
+.is_rast <- function(x){
+    z <- class(x)
+    return(
+        any(
+            z %in% c(
+                "SpatRaster",
+                "RasterStack", "RasterLayer", "RasterBrick",
+                "stars",
+                "character"
+            )
+        )
+    )
+}
+
+# is it a raster or convertible to raster?
+.check_rast <- function(r, name = "x"){
+    if(!methods::is(r, "SpatRaster")){
+        tryCatch(
+            {
+                r <- terra::rast(r)
+            },
+            error = function(cond) {
+                message(sprintf("'%s' is not convertible to a terra SpatRaster object!", name))
+                message(sprintf("'%s' must be a SpatRaster, stars, Raster* object, or path to a raster file on disk.", name))
+            }
+        )
+    }
+    return(r)
+}
+
+# check for required packages
+.check_pkgs <- function(pkg){
+    pkgna <- names(which(sapply(sapply(pkg, find.package, quiet = TRUE), length) == 0))
+    if(length(pkgna) > 0){
+        nm <- paste(pkgna, collapse = ", ")
+        message("This function requires these packages: ", nm, "\nWould you like to install them now?\n1: yes\n2: no")
+        user <- readline(prompt = paste0("Selection: "))
+        if(tolower(user) %in% c("1", "yes", "y")){
+            utils::install.packages(pkgna)
+        } else{
+            stop("Please install these packages for function to work: ", nm)
+        }
+    }
+}

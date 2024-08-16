@@ -16,8 +16,6 @@ Imports:
   Rcpp (>= 1.0.2)
 Suggests:
   terra (>= 1.7.71),
-  ggplot2 (>= 3.3.6),
-  shiny (>= 1.7),
   methods,
   knitr,
   rmarkdown,
