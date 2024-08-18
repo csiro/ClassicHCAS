@@ -40,8 +40,10 @@ matrix
 The HCAS histogram calculation based on pair-point densities.
 }
 \details{
-You need to have OpenMP on your system to be able to benefit from parallel
-processing to seed up the computations.
+Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
+to take advantage of parallel processing and accelerate computations. While most systems
+include OpenMP by default, you may need to load the appropriate module if you're using an HPC
+system.
 }
 \examples{
 \donttest{

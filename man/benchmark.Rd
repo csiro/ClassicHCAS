@@ -28,15 +28,16 @@ benchmark(
 )
 }
 \arguments{
-\item{data}{A matrix or SpatRaster (or data.frame) of the input data. The data must come
-in the order of: x, y, observed-RS, predicted-RS variables. This could be a matrix or
-data.frame object with the correct order of input variables or a SpatRaster object
-from \pkg{terra} package. If the SpatRaster object does not include x and y coordinates (or
-longitude and latitude), you must set \code{add_xy = TRUE}. See details for more
-information.}
+\item{data}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
+The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
+\strong{predicted-RS} variables. If using a matrix or data.frame, ensure that the variables are in the
+correct order. For a SpatRaster object, if it does not include x and y coordinates (or longitude and
+latitude), you should set \code{add_xy = TRUE}. For more see the details section.}
 
-\item{samples}{A matrix or data.frame with the XY or alternatively, XY-observed-predicted values with
-this order.}
+\item{samples}{A matrix or data.frame containing x, y, observed-RS, and predicted-RS values
+(in that specific order) for benchmark samples (also known as reference sites). If the
+\code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
+benchmark samples. In this case, the corresponding values will be extracted from the raster.}
 
 \item{histogram}{A matrix of HCAS histogram (see \code{\link{histogram}}).}
 
@@ -47,8 +48,8 @@ be correct. For matrix \code{data} input this is ignored.}
 \item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
 scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)}
 
-\item{xy_penalty}{Numeric. The penalty value the higher the value the more penalise the
-distant location will be. The value 0 means no penalty}
+\item{xy_penalty}{Numeric. The spatial distance penalty value for selecting benchmark points.
+The higher the value the more penalise the distant location will be. The value 0 means no penalty.}
 
 \item{radius_km}{Numeric. Search radius in kilometers for considering benchmark samples.}
 
@@ -80,18 +81,25 @@ distant location will be. The value 0 means no penalty}
 A matrix or SpatRaster
 }
 \description{
-The HCAS benchmarking function to calculate habitat condition based on observed and
-predicted remote sensing (RS) variables.
+The HCAS (Habitat Condition Assessment System) benchmarking function evaluates habitat
+condition by comparing observed and predicted remote sensing (RS) variables. It integrates
+multiple RS data layers to provide a comprehensive assessment of habitat quality and changes
+over time. This function is designed to help researchers and conservationists quantify the
+impacts of environmental changes and management interventions on habitat condition.
 }
 \details{
-Note that the order of RS variable must be the same for the observed and predicted
-input data (in both raster and matrix inputs). The values of observed and
-predicted RS variables must be centred and scaled (before prediction).
+Ensure that the order of RS variables is consistent between observed and predicted inputs
+(for both raster and matrix formats). The RS variable values must be centered and scaled
+prior to prediction. Failure to do so may result in variables with larger ranges having
+disproportionate influence in the multi-dimensional distance calculations.
 
-You need to have OpenMP on your system to be able to benefit from parallel
-processing to seed up the computations.
+Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
+to take advantage of parallel processing and accelerate computations. While most systems
+include OpenMP by default, you may need to load the appropriate module if you're using an HPC
+system.
 
-The default parameters are designed for Australia and might nor work elsewhere.
+Note that the default parameters are tailored for Australia and may not be suitable for other
+regions.
 }
 \examples{
 \donttest{

@@ -2,8 +2,10 @@
 #'
 #' The HCAS histogram calculation based on pair-point densities.
 #'
-#' You need to have OpenMP on your system to be able to benefit from parallel
-#' processing to seed up the computations.
+#' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
+#' to take advantage of parallel processing and accelerate computations. While most systems
+#' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
+#' system.
 #'
 #' @param observed The data.frame or matrix of observed remote sensing variables.
 #' @param predicted The data.frame or matrix of predicted remote sensing variables.
