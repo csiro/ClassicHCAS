@@ -37,9 +37,17 @@ histogram(
 matrix
 }
 \description{
-The HCAS histogram calculation based on pair-point densities.
+The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
+designed to learn the expected observed RS values from the predicted RS values across a wide range
+of reference sites. Note that the reference sites used for the \code{histogram} do not need to be
+the same as those used in the \code{\link{benchmark}} function. See more in details.
 }
 \details{
+Ensure that the order of RS variables is consistent between observed and predicted inputs.
+The RS variable values must be centered and scaled prior to prediction. Failure to do
+so may result in variables with larger ranges having disproportionate influence in the
+multi-dimensional distance calculations.
+
 Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 to take advantage of parallel processing and accelerate computations. While most systems
 include OpenMP by default, you may need to load the appropriate module if you're using an HPC

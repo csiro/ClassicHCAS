@@ -1,6 +1,14 @@
 #' The HCAS histogram
 #'
-#' The HCAS histogram calculation based on pair-point densities.
+#' The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
+#' designed to learn the expected observed RS values from the predicted RS values across a wide range
+#' of reference sites. Note that the reference sites used for the \code{histogram} do not need to be
+#' the same as those used in the \code{\link{benchmark}} function. See more in details.
+#'
+#' Ensure that the order of RS variables is consistent between observed and predicted inputs.
+#' The RS variable values must be centered and scaled prior to prediction. Failure to do
+#' so may result in variables with larger ranges having disproportionate influence in the
+#' multi-dimensional distance calculations.
 #'
 #' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 #' to take advantage of parallel processing and accelerate computations. While most systems
@@ -10,7 +18,8 @@
 #' @param observed The data.frame or matrix of observed remote sensing variables.
 #' @param predicted The data.frame or matrix of predicted remote sensing variables.
 #' @param samples Matrix or df. With the XY or XY and RS and ENV values.
-#' @param within_km Numeric. Search radius in kilometers considering samples.
+#' @param radius_km Numeric. Search radius in kilometers for considering reference samples
+#' in creating histogram.
 #' @param bin_width Numeric. The bin width of the histogram
 #' @param bin_num Int. Number of bin for histogram. Keep it at the default 650..
 #' @param num_threads Int. Number of CPU threads for processing...
@@ -34,7 +43,7 @@ histogram <- function(
         observed,
         predicted,
         samples,
-        within_km = 1000,
+        radius_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
         num_threads = parallel::detectCores() - 1,
@@ -102,7 +111,7 @@ histogram <- function(
                 rs_vals = observed,
                 pr_vals = predicted,
                 samples_xy = samples,
-                within_km = within_km,
+                within_km = radius_km,
                 scale = correction,
                 bin_width = bin_width,
                 bin_num = bin_num,
