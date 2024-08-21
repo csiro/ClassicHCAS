@@ -131,7 +131,7 @@ benchmark <- function(
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     within_km = radius_km,
-                    num_vars = 0,
+                    num_vars = 0, # keep it 0 for now to be calculated from data
                     scale = correction,
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
@@ -196,7 +196,7 @@ benchmark <- function(
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     within_km = radius_km,
-                    num_vars = 0,
+                    num_vars = 0, # keep it 0 for now to be calculated from data
                     scale = correction,
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
