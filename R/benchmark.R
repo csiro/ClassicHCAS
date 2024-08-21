@@ -91,12 +91,12 @@ benchmark <- function(
     if (.is_mat(samples)) {
         samples <- .check_mat(samples)
     } else {
-        stop("'samples' must be a matrix or convertibe to matrix")
+        stop("'samples' must be a matrix or an object convertibe to matrix")
     }
     if (.is_mat(histogram)) {
         histogram <- .check_mat(histogram)
     } else {
-        stop("'histogram' must be a matrix or convertibe to matrix")
+        stop("'histogram' must be a matrix or an object convertibe to matrix")
     }
 
     if (nrow(histogram) != ncol(histogram)) {
@@ -218,6 +218,8 @@ benchmark <- function(
             }
         )
 
+    } else {
+        stop("The 'data' must be raster or a matrix, or convertiable object to these classes.")
     }
 
     return(
@@ -248,29 +250,6 @@ benchmark <- function(
 #     cat("Predicted layers:", names(predicted), "\n")
 # }
 
-# # if the raster (tile) is empty won't go ahead
-# if (len_non_na < 1) {
-#     if (make_su) {
-#         # make two for SU; use first in case only one raster is used
-#         out_map <- c(predicted[[1]], predicted[[1]])
-#     } else {
-#         out_map <- predicted[[1]]
-#     }
-#     names(out_map) <- paste0("lyr", seq_len(terra::nlyr(out_map)))
-#     if (filename != "") {
-#         terra::writeRaster(
-#             x = out_map,
-#             filename = filename,
-#             overwrite = overwrite,
-#             datatype = "FLT4S",
-#             memfrac = 0.5
-#         )
-#     }
-#
-#     return(
-#         out_map
-#     )
-# }
 
 
 # the generic HCAS prediction function for C++ integration with terra

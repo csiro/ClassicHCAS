@@ -7,7 +7,7 @@
 histogram(
   observed,
   predicted,
-  samples,
+  samples_xy,
   radius_km = 1000,
   bin_width = 0.05,
   bin_num = 650,
@@ -22,7 +22,7 @@ histogram(
 \item{predicted}{A matrix or data.frame of predicted remote sensing variables.
 Notice that the order or predicted RS variables must the same as observed ones.}
 
-\item{samples}{A matrix or data.frame of x and y (longitude and latitude) of the
+\item{samples_xy}{A matrix or data.frame of x and y (longitude and latitude) of the
 reference points used for observed and predicted RS variiables.}
 
 \item{radius_km}{Numeric. Search radius in kilometers for considering reference samples

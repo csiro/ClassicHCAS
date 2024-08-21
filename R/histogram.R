@@ -19,7 +19,7 @@
 #' @param observed A matrix or data.frame of observed remote sensing variables.
 #' @param predicted A matrix or data.frame of predicted remote sensing variables.
 #' Notice that the order or predicted RS variables must the same as observed ones.
-#' @param samples A matrix or data.frame of x and y (longitude and latitude) of the
+#' @param samples_xy A matrix or data.frame of x and y (longitude and latitude) of the
 #' reference points used for observed and predicted RS variiables.
 #' @param radius_km Numeric. Search radius in kilometers for considering reference samples
 #' in creating histogram.
@@ -48,7 +48,7 @@
 histogram <- function(
         observed,
         predicted,
-        samples,
+        samples_xy,
         radius_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
@@ -56,40 +56,42 @@ histogram <- function(
         filename = "",
         source_code) {
 
-    # check samples
-    if (is(samples, "data.frame")) {
-        samples <- as.matrix(samples)
-    } else if (!is(samples, "matrix")) {
-        stop("Samples must be a data.frame or matrix of the coordinate values.")
+    # check samples_xy
+    if (.is_mat(samples_xy)) {
+        samples_xy <- .check_mat(samples_xy)
+    } else {
+        stop("'samples_xy' must be a matrix or an object convertibe to matrix")
     }
 
+    if (ncol(samples_xy) != 2)
+        stop("'samples_xy' must be a data.frame or matrix with exactly two columns: one for longitude (x) and one for latitude (y).")
+
     # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(samples), 100000, 1)
+    correction <- ifelse(.is_lonlat(samples_xy), 100000, 1)
 
     # check for predicted variables
-    if(is(predicted, "data.frame")) {
-        predicted <- as.matrix(predicted)
-    } else if(is(predicted, "SpatRaster")) {
+    if (.is_mat(predicted)) {
+        predicted <- .check_mat(predicted)
+    } else if (.is_rast(predicted)) {
         # extract values
         predicted <- as.matrix(
-            terra::extract(predicted, samples, ID = FALSE)
+            terra::extract(predicted, samples_xy, ID = FALSE)
         )
-    } else if(!is(predicted, "matrix")) {
-        stop("'predicted' must be raster layers or a matrix of extracted ENV values.")
+    }  else {
+        stop("The 'predicted' must be raster or a matrix, or convertiable object to these classes.")
     }
 
     # check for observed variables
-    if(is(observed, "data.frame")) {
-        observed <- as.matrix(observed)
-    } else if(is(observed, "SpatRaster")) {
+    if (.is_mat(observed)) {
+        observed <- .check_mat(observed)
+    } else if (.is_rast(observed)) {
         # extract values
         observed <- as.matrix(
-            terra::extract(observed, samples, ID = FALSE)
+            terra::extract(observed, samples_xy, ID = FALSE)
         )
-    } else if(!is(observed, "matrix")) {
-        stop("'observed' must be raster layers or a matrix of extracted RS values.")
+    }  else {
+        stop("The 'observed' must be raster or a matrix, or convertiable object to these classes.")
     }
-
 
     cat("\nRS data dimensions: ", dim(observed), "\n")
     cat("ENV data dimensions:", dim(predicted), "\n")
@@ -98,11 +100,11 @@ histogram <- function(
     if(any(dim(predicted) != dim(observed)))
         stop("Dimensions of RS and ENV datasets doesn't match!")
 
-    if(nrow(predicted) != nrow(samples))
-        stop("Number of rows of rasters values and reference samples doesn't match!")
+    if(nrow(predicted) != nrow(samples_xy))
+        stop("Number of rows of rasters values and reference samples_xy doesn't match!")
 
-    if(any(anyNA(predicted), anyNA(observed), anyNA(samples)))
-        stop("There's NA in the extracted observed, predicted or xy samples!")
+    if(any(anyNA(predicted), anyNA(observed), anyNA(samples_xy)))
+        stop("There's NA in the extracted observed, predicted or xy samples_xy!")
 
     if(any(colnames(predicted) != colnames(observed))) {
         warning("The names\\order of observed and predicted datasets doesn't match!\n")
@@ -116,7 +118,7 @@ histogram <- function(
             out_table <- histo_cpp(
                 rs_vals = observed,
                 pr_vals = predicted,
-                samples_xy = samples,
+                samples_xy = samples_xy,
                 within_km = radius_km,
                 scale = correction,
                 bin_width = bin_width,
