@@ -1,0 +1,3 @@
+PKG_CXXFLAGS = -std=gnu++17 -fopenmp
+PKG_LIBS = -fopenmp
+

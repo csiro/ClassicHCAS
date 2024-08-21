@@ -2,22 +2,22 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 bench_cpp <- function(rast_stack, sample_vals, histogram, xy_stats, xy_penalty = 0.0, num_vars = 0L, scale = 100000.0, within_km = 200, k_env = 50L, k_rs = 20L, bin_width = 0.03, bin_num = 400L, offset = 0L, pnorm = 1, confidence = 0.5, lambda = 2.0, exclude_slef = TRUE, make_su = FALSE, num_threads = -1L) {
-    .Call('_ClassicHCAS_bench_cpp', PACKAGE = 'ClassicHCAS', rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads)
+    .Call(`_ClassicHCAS_bench_cpp`, rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads)
 }
 
 clean <- function(x, bin_width, offset = 0L) {
-    .Call('_ClassicHCAS_clean', PACKAGE = 'ClassicHCAS', x, bin_width, offset)
+    .Call(`_ClassicHCAS_clean`, x, bin_width, offset)
 }
 
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {
-    .Call('_ClassicHCAS_histo_cpp', PACKAGE = 'ClassicHCAS', rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads)
+    .Call(`_ClassicHCAS_histo_cpp`, rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads)
 }
 
 linear_rescale <- function(x, low_point, high_point, max_point, low_target = 0.1, high_target = 0.944) {
-    .Call('_ClassicHCAS_linear_rescale', PACKAGE = 'ClassicHCAS', x, low_point, high_point, max_point, low_target, high_target)
+    .Call(`_ClassicHCAS_linear_rescale`, x, low_point, high_point, max_point, low_target, high_target)
 }
 
 spline_rescale <- function(x, spline_x, spline_y) {
-    .Call('_ClassicHCAS_spline_rescale', PACKAGE = 'ClassicHCAS', x, spline_x, spline_y)
+    .Call(`_ClassicHCAS_spline_rescale`, x, spline_x, spline_y)
 }
 

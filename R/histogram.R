@@ -93,8 +93,8 @@ histogram <- function(
         stop("The 'observed' must be raster or a matrix, or convertiable object to these classes.")
     }
 
-    cat("\nRS data dimensions: ", dim(observed), "\n")
-    cat("ENV data dimensions:", dim(predicted), "\n")
+    # cat("\nRS data dimensions: ", dim(observed), "\n")
+    # cat("ENV data dimensions:", dim(predicted), "\n")
 
     # some error checking
     if(any(dim(predicted) != dim(observed)))

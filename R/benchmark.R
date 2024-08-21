@@ -102,7 +102,8 @@ benchmark <- function(
     if (nrow(histogram) != ncol(histogram)) {
         warning("Historgram dimensions are not the same!\n")
     }
-    cat("Histogram dimension:", dim(histogram), "\n")
+    # cat("Histogram dimension:", dim(histogram), "\n")
+
     # interpolate histogram
     if (interpolate) {
         histogram <- terra::as.matrix(
