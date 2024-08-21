@@ -254,6 +254,8 @@ benchmark <- function(
 
 # the generic HCAS prediction function for C++ integration with terra
 # NOTE: the na.rm arg in terra::predict doesn't provide the correct mask
+#' @export
+#' @method predict hcas
 predict.hcas <- function(object, newdata, make_su, ...){
     # check for NAs
     has_na <- anyNA(newdata)
