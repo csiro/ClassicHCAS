@@ -1,9 +1,10 @@
 #' The HCAS histogram
 #'
 #' The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
-#' designed to learn the expected observed RS values from the predicted RS values across a wide range
-#' of reference sites. Note that the reference sites used for the \code{histogram} do not need to be
-#' the same as those used in the \code{\link{benchmark}} function. See more in details.
+#' designed to learn the expected observed remote sensing (RS) values from the
+#' predicted RS values across a wide range of reference sites. Note that the reference
+#' sites used for the \code{histogram} do not need to be the same as those used in
+#' the \code{\link{benchmark}} function. See more in details.
 #'
 #' Ensure that the order of RS variables is consistent between observed and predicted inputs.
 #' The RS variable values must be centered and scaled prior to prediction. Failure to do
@@ -15,14 +16,19 @@
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
-#' @param observed The data.frame or matrix of observed remote sensing variables.
-#' @param predicted The data.frame or matrix of predicted remote sensing variables.
-#' @param samples Matrix or df. With the XY or XY and RS and ENV values.
+#' @param observed A matrix or data.frame of observed remote sensing variables.
+#' @param predicted A matrix or data.frame of predicted remote sensing variables.
+#' Notice that the order or predicted RS variables must the same as observed ones.
+#' @param samples A matrix or data.frame of x and y (longitude and latitude) of the
+#' reference points used for observed and predicted RS variiables.
 #' @param radius_km Numeric. Search radius in kilometers for considering reference samples
 #' in creating histogram.
-#' @param bin_width Numeric. The bin width of the histogram
-#' @param bin_num Int. Number of bin for histogram. Keep it at the default 650..
-#' @param num_threads Int. Number of CPU threads for processing...
+#' @param bin_width Numeric. Specifies the bin width of the histogram. Finding an optimal bin width
+#' may require some experimentation to achieve the best results.
+#' @param bin_num Integer. Specifies the number of bins for the histogram. It is generally recommended
+#' to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
+#' \code{bin_num}.
+#' @param num_threads Int. Number of CPU threads for processing. See details.
 #' @param filename Char (optional). The output file name for the .text file.
 #'
 #' @seealso \code{\link{benchmark}}

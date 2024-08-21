@@ -39,6 +39,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// clean
+NumericMatrix clean(NumericMatrix x, double bin_width, int offset);
+RcppExport SEXP _ClassicHCAS_clean(SEXP xSEXP, SEXP bin_widthSEXP, SEXP offsetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type bin_width(bin_widthSEXP);
+    Rcpp::traits::input_parameter< int >::type offset(offsetSEXP);
+    rcpp_result_gen = Rcpp::wrap(clean(x, bin_width, offset));
+    return rcpp_result_gen;
+END_RCPP
+}
 // histo_cpp
 Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& samples_xy, const double within_km, const double scale, const double bin_width, const int bin_num, int num_threads);
 RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP samples_xySEXP, SEXP within_kmSEXP, SEXP scaleSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP num_threadsSEXP) {
@@ -89,6 +102,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 19},
+    {"_ClassicHCAS_clean", (DL_FUNC) &_ClassicHCAS_clean, 3},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_linear_rescale", (DL_FUNC) &_ClassicHCAS_linear_rescale, 6},
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},

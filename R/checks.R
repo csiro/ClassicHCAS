@@ -28,7 +28,7 @@
 
 # check if it's a matrix if not convert it
 .check_mat <- function(x, name = "x") {
-    if (.is_matrix(x)) {
+    if (.is_mat(x)) {
         if (methods::is(x, "matrix")) {
             return(x)
         } else {

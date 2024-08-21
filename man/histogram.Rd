@@ -8,7 +8,7 @@ histogram(
   observed,
   predicted,
   samples,
-  within_km = 1000,
+  radius_km = 1000,
   bin_width = 0.05,
   bin_num = 650,
   num_threads = parallel::detectCores() - 1,
@@ -17,19 +17,25 @@ histogram(
 )
 }
 \arguments{
-\item{observed}{The data.frame or matrix of observed remote sensing variables.}
+\item{observed}{A matrix or data.frame of observed remote sensing variables.}
 
-\item{predicted}{The data.frame or matrix of predicted remote sensing variables.}
+\item{predicted}{A matrix or data.frame of predicted remote sensing variables.
+Notice that the order or predicted RS variables must the same as observed ones.}
 
-\item{samples}{Matrix or df. With the XY or XY and RS and ENV values.}
+\item{samples}{A matrix or data.frame of x and y (longitude and latitude) of the
+reference points used for observed and predicted RS variiables.}
 
-\item{within_km}{Numeric. Search radius in kilometers considering samples.}
+\item{radius_km}{Numeric. Search radius in kilometers for considering reference samples
+in creating histogram.}
 
-\item{bin_width}{Numeric. The bin width of the histogram}
+\item{bin_width}{Numeric. Specifies the bin width of the histogram. Finding an optimal bin width
+may require some experimentation to achieve the best results.}
 
-\item{bin_num}{Int. Number of bin for histogram. Keep it at the default 650..}
+\item{bin_num}{Integer. Specifies the number of bins for the histogram. It is generally recommended
+to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
+\code{bin_num}.}
 
-\item{num_threads}{Int. Number of CPU threads for processing...}
+\item{num_threads}{Int. Number of CPU threads for processing. See details.}
 
 \item{filename}{Char (optional). The output file name for the .text file.}
 }
@@ -38,9 +44,10 @@ matrix
 }
 \description{
 The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
-designed to learn the expected observed RS values from the predicted RS values across a wide range
-of reference sites. Note that the reference sites used for the \code{histogram} do not need to be
-the same as those used in the \code{\link{benchmark}} function. See more in details.
+designed to learn the expected observed remote sensing (RS) values from the
+predicted RS values across a wide range of reference sites. Note that the reference
+sites used for the \code{histogram} do not need to be the same as those used in
+the \code{\link{benchmark}} function. See more in details.
 }
 \details{
 Ensure that the order of RS variables is consistent between observed and predicted inputs.

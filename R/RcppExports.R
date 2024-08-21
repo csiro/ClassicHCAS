@@ -5,6 +5,10 @@ bench_cpp <- function(rast_stack, sample_vals, histogram, xy_stats, xy_penalty =
     .Call('_ClassicHCAS_bench_cpp', PACKAGE = 'ClassicHCAS', rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads)
 }
 
+clean <- function(x, bin_width, offset = 0L) {
+    .Call('_ClassicHCAS_clean', PACKAGE = 'ClassicHCAS', x, bin_width, offset)
+}
+
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {
     .Call('_ClassicHCAS_histo_cpp', PACKAGE = 'ClassicHCAS', rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads)
 }
