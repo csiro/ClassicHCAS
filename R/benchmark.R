@@ -103,8 +103,6 @@ benchmark <- function(
         warning("Historgram dimensions are not the same!\n")
     }
     cat("Histogram dimension:", dim(histogram), "\n")
-    # get the bin number after interpolation
-    bin_num <- min(dim(histogram))
     # interpolate histogram
     if (interpolate) {
         histogram <- terra::as.matrix(
@@ -116,6 +114,8 @@ benchmark <- function(
             wide = TRUE
         )
     }
+    # get the bin number after interpolation
+    bin_num <- min(dim(histogram))
 
     # correction scale for long-lat CRS
     correction <- ifelse(.is_lonlat(data), 100000, 1)
