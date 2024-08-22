@@ -23,8 +23,10 @@
 #' reference points used for observed and predicted RS variiables.
 #' @param radius_km Numeric. Search radius in kilometers for considering reference samples
 #' in creating histogram.
-#' @param bin_width Numeric. Specifies the bin width of the histogram. Finding an optimal bin width
-#' may require some experimentation to achieve the best results.
+#' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
+#' may require some experimentation to achieve the best results. The bin width is added as an attribute
+#' to the output object, allowing it to be consistently applied in further steps, ensuring accuracy
+#' and consistency in the benchmarking process.
 #' @param bin_num Integer. Specifies the number of bins for the histogram. It is generally recommended
 #' to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
 #' \code{bin_num}.
@@ -33,7 +35,7 @@
 #'
 #' @seealso \code{\link{benchmark}}
 #'
-#' @return matrix
+#' @return A histo object (matrix, array)
 #' @export
 #'
 #' @examples
@@ -150,8 +152,37 @@ histogram <- function(
         )
     }
 
+    class(out_table) <- c("matrix", "array", "histo")
+    attr(out_table, "bin.width") <- bin_width
+
     return(
         out_table
     )
 }
+
+#' @export
+#' @method print histo
+print.histo <- function(x, ...) {
+    print(class(x), ...)
+    i <- which(names(attributes(x)) == "class")
+    print(attributes(x)[-i])
+}
+
+#' @export
+#' @method plot histo
+plot.histo <- function(x, ...) {
+    terra::plot(
+        terra::rast(x), col = histo_color(30), ...
+    )
+}
+
+
+
+
+
+
+
+
+
+
 

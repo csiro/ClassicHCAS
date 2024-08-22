@@ -61,7 +61,8 @@ The higher the value the more penalise the distant location will be. The value 0
 
 \item{interpolate}{Logical. Should interpolate the histogram?}
 
-\item{offset}{Int. Number of histogram bins to ignore...}
+\item{offset}{Integer. Specifies the number of histogram bins that were ignored during
+normalization (see \code{\link{clean}}).}
 
 \item{confidence}{Numeric. The confidence value for LDC methods. See details below..}
 

@@ -41,7 +41,8 @@
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
 #' @param bin_width Numeric. The bin width of the histogram
 #' @param interpolate Logical. Should interpolate the histogram?
-#' @param offset Int. Number of histogram bins to ignore...
+#' @param offset Integer. Specifies the number of histogram bins that were ignored during
+#' normalization (see \code{\link{clean}}).
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
 #' @param make_su Logical. To make the uncertainty map or not.
@@ -227,30 +228,6 @@ benchmark <- function(
         output
     )
 }
-
-
-# cat("Dimension of observed raster: ", dim(observed), "\n")
-# cat("Dimension of predicted raster:", dim(predicted), "\n")
-# len_non_na <- as.numeric(terra::global(predicted[[1]], fun = "notNA"))
-# cat("Number of non-NA raster cells:", len_non_na, "\n")
-# cat("The raster tile ")
-# print(terra::ext(predicted[[1]]))
-# if (terra::nlyr(observed) == terra::nlyr(predicted)) {
-#     num_vars <- terra::nlyr(observed)
-# } else {
-#     stop("Number of observed and predicted raster layers are not equal!\n")
-# }
-#
-# # check raster dimensions...
-# if (any(dim(observed) != dim(predicted))) {
-#     cat("WARNING: dimension of observed and predicted raster layers are different!\n")
-# }
-# if (any(c("x", "y", names(observed), names(predicted)) != colnames(samples))) {
-#     cat("\nWARNING: Raster layers and samples column names do not match!\n")
-#     cat("Observed layers: ", names(observed), "\n")
-#     cat("Predicted layers:", names(predicted), "\n")
-# }
-
 
 
 # the generic HCAS prediction function for C++ integration with terra

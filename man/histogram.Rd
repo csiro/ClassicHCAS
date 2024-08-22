@@ -28,8 +28,10 @@ reference points used for observed and predicted RS variiables.}
 \item{radius_km}{Numeric. Search radius in kilometers for considering reference samples
 in creating histogram.}
 
-\item{bin_width}{Numeric. Specifies the bin width of the histogram. Finding an optimal bin width
-may require some experimentation to achieve the best results.}
+\item{bin_width}{Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
+may require some experimentation to achieve the best results. The bin width is added as an attribute
+to the output object, allowing it to be consistently applied in further steps, ensuring accuracy
+and consistency in the benchmarking process.}
 
 \item{bin_num}{Integer. Specifies the number of bins for the histogram. It is generally recommended
 to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
@@ -40,7 +42,7 @@ to use the default value of 650. Adjusting the \code{bin_width} is often more ef
 \item{filename}{Char (optional). The output file name for the .text file.}
 }
 \value{
-matrix
+A histo object (matrix, array)
 }
 \description{
 The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
