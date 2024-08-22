@@ -10,19 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// clean
-NumericMatrix clean(NumericMatrix x, double bin_width, int offset);
-RcppExport SEXP _ClassicHCAS_clean(SEXP xSEXP, SEXP bin_widthSEXP, SEXP offsetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type bin_width(bin_widthSEXP);
-    Rcpp::traits::input_parameter< int >::type offset(offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(clean(x, bin_width, offset));
-    return rcpp_result_gen;
-END_RCPP
-}
 // bench_cpp
 Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& rast_stack, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, unsigned int num_vars, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double pnorm, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
 RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP rast_stackSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP num_varsSEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP pnormSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
@@ -49,6 +36,35 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type make_su(make_suSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
     rcpp_result_gen = Rcpp::wrap(bench_cpp(rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// linear_rescale
+std::vector<double> linear_rescale(const Rcpp::NumericVector& x, const double low_point, const double high_point, const double max_point, const double low_target, const double high_target);
+RcppExport SEXP _ClassicHCAS_linear_rescale(SEXP xSEXP, SEXP low_pointSEXP, SEXP high_pointSEXP, SEXP max_pointSEXP, SEXP low_targetSEXP, SEXP high_targetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double >::type low_point(low_pointSEXP);
+    Rcpp::traits::input_parameter< const double >::type high_point(high_pointSEXP);
+    Rcpp::traits::input_parameter< const double >::type max_point(max_pointSEXP);
+    Rcpp::traits::input_parameter< const double >::type low_target(low_targetSEXP);
+    Rcpp::traits::input_parameter< const double >::type high_target(high_targetSEXP);
+    rcpp_result_gen = Rcpp::wrap(linear_rescale(x, low_point, high_point, max_point, low_target, high_target));
+    return rcpp_result_gen;
+END_RCPP
+}
+// spline_rescale
+std::vector<double> spline_rescale(const Rcpp::NumericVector& x, const std::vector<double>& spline_x, const std::vector<double>& spline_y);
+RcppExport SEXP _ClassicHCAS_spline_rescale(SEXP xSEXP, SEXP spline_xSEXP, SEXP spline_ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_x(spline_xSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_y(spline_ySEXP);
+    rcpp_result_gen = Rcpp::wrap(spline_rescale(x, spline_x, spline_y));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -83,43 +99,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// linear_rescale
-std::vector<double> linear_rescale(const Rcpp::NumericVector& x, const double low_point, const double high_point, const double max_point, const double low_target, const double high_target);
-RcppExport SEXP _ClassicHCAS_linear_rescale(SEXP xSEXP, SEXP low_pointSEXP, SEXP high_pointSEXP, SEXP max_pointSEXP, SEXP low_targetSEXP, SEXP high_targetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double >::type low_point(low_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type high_point(high_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type max_point(max_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type low_target(low_targetSEXP);
-    Rcpp::traits::input_parameter< const double >::type high_target(high_targetSEXP);
-    rcpp_result_gen = Rcpp::wrap(linear_rescale(x, low_point, high_point, max_point, low_target, high_target));
-    return rcpp_result_gen;
-END_RCPP
-}
-// spline_rescale
-std::vector<double> spline_rescale(const Rcpp::NumericVector& x, const std::vector<double>& spline_x, const std::vector<double>& spline_y);
-RcppExport SEXP _ClassicHCAS_spline_rescale(SEXP xSEXP, SEXP spline_xSEXP, SEXP spline_ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_x(spline_xSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_y(spline_ySEXP);
-    rcpp_result_gen = Rcpp::wrap(spline_rescale(x, spline_x, spline_y));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ClassicHCAS_clean", (DL_FUNC) &_ClassicHCAS_clean, 3},
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 19},
-    {"_ClassicHCAS_clean_cpp", (DL_FUNC) &_ClassicHCAS_clean_cpp, 3},
-    {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_linear_rescale", (DL_FUNC) &_ClassicHCAS_linear_rescale, 6},
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
+    {"_ClassicHCAS_clean_cpp", (DL_FUNC) &_ClassicHCAS_clean_cpp, 3},
+    {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {NULL, NULL, 0}
 };
 
