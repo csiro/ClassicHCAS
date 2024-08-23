@@ -12,7 +12,7 @@
 #' @param offset Integer. Specifies the number of histogram bins to ignore during normalization. This value
 #' will be stored as an attribute in the output object.
 #'
-#' @seealso \code{\link{histogram}}
+#' @seealso \code{\link{histogram}}, and \code{\link{benchmark}}
 #'
 #' @return A histo object (matrix, array)
 #' @export
@@ -38,6 +38,7 @@ normalise <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
         }
     }
 
+    # normalise the histo C++
     out <- norm_cpp(
         x = x,
         trim_size = trim_size,
