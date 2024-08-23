@@ -9,8 +9,8 @@ normalise(x, bin_width = NULL, trim_size = 400, offset = 0)
 \arguments{
 \item{x}{An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).}
 
-\item{bin_width}{Integer (optional). Specifies the bin size of the histogram. If \code{x} is a
-\strong{histo} object, this value can be read from its attributes and may be left \code{NULL}. The bin size
+\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{x} is a
+\strong{histo} object, this value can be read from its attributes and may be left \code{NULL}. The bin width
 is primarily used to ensure consistency in the benchmarking step by accurately tracking and applying the
 bin width used during histogram creation.}
 
@@ -35,4 +35,7 @@ prd_dat <- read.csv("")
 
 
 }
+}
+\seealso{
+\code{\link{histogram}}
 }

@@ -21,6 +21,8 @@
 #' @param filename Char (optional). The output file name for raster outputs.
 #' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
 #'
+#' @seealso \code{\link{benchmark}}
+#'
 #' @return
 #' @export
 #'

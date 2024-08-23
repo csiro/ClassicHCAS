@@ -14,7 +14,7 @@ benchmark(
   radius_km = 200,
   k_pred = 50,
   k_obs = 20,
-  bin_width = 0.05,
+  bin_width = NULL,
   interpolate = TRUE,
   offset = 0,
   confidence = 0.5,
@@ -39,7 +39,8 @@ latitude), you should set \code{add_xy = TRUE}. For more see the details section
 \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
 benchmark samples. In this case, the corresponding values will be extracted from the raster.}
 
-\item{histogram}{A matrix of HCAS histogram (see \code{\link{histogram}}).}
+\item{histogram}{A matrix or \strong{histo} object of normalised HCAS histogram
+see \code{\link{histogram}} and \code{\link{normalise}}).}
 
 \item{add_xy}{Logical. Add x and y to \code{data} (raster layers). If x and y are already
 available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
@@ -57,7 +58,10 @@ The higher the value the more penalise the distant location will be. The value 0
 
 \item{k_obs}{Integer. Number of nearest observed RS sample to takes.}
 
-\item{bin_width}{Numeric. The bin width of the histogram}
+\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{histogram} is
+a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
+The bin width must be consistent between the histogram creation and the benchmarking step to
+ensure condition is accurately calculated.}
 
 \item{interpolate}{Logical. Should interpolate the histogram?}
 
@@ -116,5 +120,5 @@ histo <- read.table("histogram.txt")
 }
 }
 \seealso{
-\code{\link{histogram}}
+\code{\link{histogram}}, code{\link{normalise}}, and \code{\link{calibrate}}
 }

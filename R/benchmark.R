@@ -28,7 +28,8 @@
 #' (in that specific order) for benchmark samples (also known as reference sites). If the
 #' \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
 #' benchmark samples. In this case, the corresponding values will be extracted from the raster.
-#' @param histogram A matrix of HCAS histogram (see \code{\link{histogram}}).
+#' @param histogram A matrix or \strong{histo} object of normalised HCAS histogram
+#' see \code{\link{histogram}} and \code{\link{normalise}}).
 #' @param add_xy Logical. Add x and y to \code{data} (raster layers). If x and y are already
 #' available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
 #' be correct. For matrix \code{data} input this is ignored.
@@ -39,7 +40,10 @@
 #' @param radius_km Numeric. Search radius in kilometers for considering benchmark samples.
 #' @param k_pred Integer. Number of nearest ENV/predicted RS samples to take.
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
-#' @param bin_width Numeric. The bin width of the histogram
+#' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{histogram} is
+#' a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
+#' The bin width must be consistent between the histogram creation and the benchmarking step to
+#' ensure condition is accurately calculated.
 #' @param interpolate Logical. Should interpolate the histogram?
 #' @param offset Integer. Specifies the number of histogram bins that were ignored during
 #' normalization (see \code{\link{clean}}).
@@ -53,7 +57,7 @@
 #' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
 #' @param overwrite Logical. Whether to overwrite the output raster.
 #'
-#' @seealso \code{\link{histogram}}
+#' @seealso \code{\link{histogram}}, code{\link{normalise}}, and \code{\link{calibrate}}
 #'
 #' @return A matrix or SpatRaster
 #' @export
@@ -78,7 +82,7 @@ benchmark <- function(
         radius_km = 200,
         k_pred = 50,
         k_obs = 20,
-        bin_width = 0.05,
+        bin_width = NULL,
         interpolate = TRUE,
         offset = 0,
         confidence = 0.5,
@@ -106,6 +110,16 @@ benchmark <- function(
         warning("Historgram dimensions are not the same!\n")
     }
     # cat("Histogram dimension:", dim(histogram), "\n")
+
+    if (is(histogram, "histo")) {
+        if (is.null(bin_width)) {
+            bin_width <- attributes(histogram)$bin.width
+        } else {
+            if (bin_width != attributes(histogram)$bin.width) {
+                warning("The supplied 'bin_width` is different from the arrtibute(histogram)$bin.width from the input.")
+            }
+        }
+    }
 
     # interpolate histogram
     if (interpolate) {

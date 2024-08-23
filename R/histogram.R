@@ -35,7 +35,7 @@
 #' more information.
 #' @param filename Char (optional). The output file name for the .text file.
 #'
-#' @seealso \code{\link{benchmark}}
+#' @seealso \code{\link{normalise}}, and \code{\link{benchmark}}
 #'
 #' @return A histo object (matrix, array)
 #' @export

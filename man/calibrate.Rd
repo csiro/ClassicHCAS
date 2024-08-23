@@ -60,3 +60,6 @@ histo <- read.table("histogram.txt")
 
 }
 }
+\seealso{
+\code{\link{benchmark}}
+}

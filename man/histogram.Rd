@@ -75,5 +75,5 @@ prd_dat <- read.csv("")
 }
 }
 \seealso{
-\code{\link{benchmark}}
+\code{\link{normalise}}, and \code{\link{benchmark}}
 }
