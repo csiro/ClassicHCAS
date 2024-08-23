@@ -57,7 +57,7 @@
 #' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
 #' @param overwrite Logical. Whether to overwrite the output raster.
 #'
-#' @seealso \code{\link{histogram}}, code{\link{normalise}}, and \code{\link{calibrate}}
+#' @seealso \code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 #'
 #' @return A matrix or SpatRaster
 #' @export

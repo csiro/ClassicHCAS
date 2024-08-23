@@ -120,5 +120,5 @@ histo <- read.table("histogram.txt")
 }
 }
 \seealso{
-\code{\link{histogram}}, code{\link{normalise}}, and \code{\link{calibrate}}
+\code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 }
