@@ -12,8 +12,7 @@ histogram(
   bin_width = 0.05,
   bin_num = 650,
   num_threads = -1,
-  filename = "",
-  source_code
+  filename = ""
 )
 }
 \arguments{

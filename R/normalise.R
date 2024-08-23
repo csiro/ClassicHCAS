@@ -11,6 +11,7 @@
 #' is 400, and it is generally advisable to retain this default setting.
 #' @param offset Integer. Specifies the number of histogram bins to ignore during normalization. This value
 #' will be stored as an attribute in the output object.
+#' @param filename Char (optional). The output file name for the .text file.
 #'
 #' @seealso \code{\link{histogram}}, and \code{\link{benchmark}}
 #'
@@ -26,7 +27,13 @@
 #'
 #'
 #' }
-normalise <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
+normalise <- function(
+        x,
+        bin_width = NULL,
+        trim_size = 400,
+        offset = 0,
+        filename = "") {
+
     # check bin_width and get it from histo object
     if (is(x, "histo")) {
         if (is.null(bin_width)) {
@@ -44,6 +51,25 @@ normalise <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
         trim_size = trim_size,
         offset = offset
     )
+
+    # write down the histogram
+    if (nchar(filename) > 0) {
+        filename <- ifelse(grepl(".txt", filename), filename, paste0(filename, ".txt"))
+        tryCatch(
+            {
+                write.table(
+                    out,
+                    file = filename,
+                    sep = "\t",
+                    row.names = FALSE,
+                    col.names = FALSE
+                )
+            },
+            error = function(cond) {
+                stop("Writing histogram file failed!\n", cond)
+            }
+        )
+    }
 
     class(out) <- c("matrix", "array", "histo")
     if (is.null(bin_width)) {

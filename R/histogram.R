@@ -57,8 +57,7 @@ histogram <- function(
         bin_width = 0.05,
         bin_num = 650,
         num_threads = -1,
-        filename = "",
-        source_code) {
+        filename = "") {
 
     # check samples_xy
     if (.is_mat(samples_xy)) {
