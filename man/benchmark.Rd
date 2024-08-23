@@ -21,7 +21,7 @@ benchmark(
   lambda = 2,
   exclude_slef = TRUE,
   make_su = FALSE,
-  num_threads = parallel::detectCores() - 1,
+  num_threads = -1,
   filename = "",
   wopt = list(datatype = "FLT4S", memfrac = 0.5),
   overwrite = TRUE
@@ -70,11 +70,13 @@ normalization (see \code{\link{clean}}).}
 
 \item{make_su}{Logical. To make the uncertainty map or not.}
 
-\item{num_threads}{Int. Number of CPU threads for processing...}
+\item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
+below 1 indicates that all available threads will be utilized. Refer to the details section for
+more information.}
 
-\item{filename}{Char (optional). The output file name for raster outputs}
+\item{filename}{Char (optional). The output file name for raster outputs.}
 
-\item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options}
+\item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options.}
 
 \item{overwrite}{Logical. Whether to overwrite the output raster.}
 }

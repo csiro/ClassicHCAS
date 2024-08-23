@@ -4,8 +4,6 @@
 #'
 #' @return a charterer vector of color codes
 #' @export
-#'
-#' @examples
 hcas_color <- function(n = 10) {
     hcas_pal <- grDevices::colorRampPalette(c("#430E59", "#CCCC66", "#184F0F"))
 
@@ -21,8 +19,6 @@ hcas_color <- function(n = 10) {
 #'
 #' @return a charterer vector of color codes
 #' @export
-#'
-#' @examples
 histo_color <- function(n = 10) {
     histcols <- grDevices::colorRampPalette(
         c("#ffffff", "#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb",

@@ -1,6 +1,6 @@
 #' Clean and normalise HCAS histogram
 #'
-#' This process includes trimming the histogram to remove noise and normalising the values.
+#' This process includes trimming the histogram to remove noise and normalising its values.
 #'
 #' @param x An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).
 #' @param bin_width Integer (optional). Specifies the bin size of the histogram. If \code{x} is a
@@ -24,7 +24,7 @@
 #'
 #'
 #' }
-clean <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
+normalise <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
     # check bin_width and get it from histo object
     if (is(x, "histo")) {
         if (is.null(bin_width)) {
@@ -36,7 +36,7 @@ clean <- function(x, bin_width = NULL, trim_size = 400, offset = 0) {
         }
     }
 
-    out <- clean_cpp(
+    out <- norm_cpp(
         x = x,
         trim_size = trim_size,
         offset = offset

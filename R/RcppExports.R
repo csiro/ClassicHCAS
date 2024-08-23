@@ -13,11 +13,11 @@ spline_rescale <- function(x, spline_x, spline_y) {
     .Call(`_ClassicHCAS_spline_rescale`, x, spline_x, spline_y)
 }
 
-clean_cpp <- function(x, trim_size = 400L, offset = 0L) {
-    .Call(`_ClassicHCAS_clean_cpp`, x, trim_size, offset)
-}
-
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {
     .Call(`_ClassicHCAS_histo_cpp`, rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads)
+}
+
+norm_cpp <- function(x, trim_size = 400L, offset = 0L) {
+    .Call(`_ClassicHCAS_norm_cpp`, x, trim_size, offset)
 }
 

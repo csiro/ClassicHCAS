@@ -11,7 +11,7 @@ histogram(
   radius_km = 1000,
   bin_width = 0.05,
   bin_num = 650,
-  num_threads = parallel::detectCores() - 1,
+  num_threads = -1,
   filename = "",
   source_code
 )
@@ -37,7 +37,9 @@ and consistency in the benchmarking process.}
 to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
 \code{bin_num}.}
 
-\item{num_threads}{Int. Number of CPU threads for processing. See details.}
+\item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
+below 1 indicates that all available threads will be utilized. Refer to the details section for
+more information.}
 
 \item{filename}{Char (optional). The output file name for the .text file.}
 }

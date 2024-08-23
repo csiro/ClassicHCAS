@@ -46,9 +46,11 @@
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
 #' @param make_su Logical. To make the uncertainty map or not.
-#' @param num_threads Int. Number of CPU threads for processing...
-#' @param filename Char (optional). The output file name for raster outputs
-#' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options
+#' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
+#' below 1 indicates that all available threads will be utilized. Refer to the details section for
+#' more information.
+#' @param filename Char (optional). The output file name for raster outputs.
+#' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
 #' @param overwrite Logical. Whether to overwrite the output raster.
 #'
 #' @seealso \code{\link{histogram}}
@@ -83,7 +85,7 @@ benchmark <- function(
         lambda = 2.0,
         exclude_slef = TRUE,
         make_su = FALSE,
-        num_threads = parallel::detectCores() - 1,
+        num_threads = -1,
         filename = "",
         wopt = list(datatype = "FLT4S", memfrac = 0.5),
         overwrite = TRUE) {

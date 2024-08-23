@@ -5,7 +5,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix clean_cpp(
+Rcpp::NumericMatrix norm_cpp(
         const Rcpp::NumericMatrix &x,
         const int trim_size = 400,
         const int offset = 0)
@@ -33,14 +33,14 @@ Rcpp::NumericMatrix clean_cpp(
         }
     }
 
-    // dimensions of the original and trimmed grid
+    // dimensions of the trimmed matrix
     const int n_rows = trim_size;
     const int n_cols = trim_size;
 
     // initialize new_mat
     Rcpp::NumericMatrix new_mat(n_rows, n_cols);
 
-    // reverse column for input grid
+    // reverse column for input matrix
     Rcpp::NumericMatrix x_reverse(nr, nc);
     for (int i = 0; i < nr; ++i) {
         Rcpp::NumericVector column = x(_, i);
