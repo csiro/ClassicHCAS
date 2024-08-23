@@ -49,8 +49,8 @@ Rcpp::NumericMatrix bench_cpp(
     add_xy_scaled(rstack, xy_stats, xy_penalty);
 
     // ncol MUST BE after adding xy_scaled
-    const int nc = rast_stack.ncol();
-    const int nr = rast_stack.nrow();
+    const int nc = rstack.ncol();
+    const int nr = rstack.nrow();
 
     // output condition vector
     std::vector<condition> condition_vect(nr);

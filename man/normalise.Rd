@@ -37,5 +37,5 @@ prd_dat <- read.csv("")
 }
 }
 \seealso{
-\code{\link{histogram}}
+\code{\link{histogram}}, and \code{\link{benchmark}}
 }
