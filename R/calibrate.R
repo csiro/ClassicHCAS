@@ -23,7 +23,7 @@
 #'
 #' @seealso \code{\link{benchmark}}
 #'
-#' @return
+#' @return A matrix, SpatRaster or vector, depending on the inputs.
 #' @export
 #'
 #' @examples

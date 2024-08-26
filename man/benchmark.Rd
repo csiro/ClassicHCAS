@@ -85,7 +85,7 @@ more information.}
 \item{overwrite}{Logical. Whether to overwrite the output raster.}
 }
 \value{
-A matrix or SpatRaster
+A matrix or SpatRaster, depending on the inputs.
 }
 \description{
 The HCAS (Habitat Condition Assessment System) benchmarking function evaluates habitat

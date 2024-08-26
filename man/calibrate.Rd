@@ -45,6 +45,9 @@ method produces a smoother map and histogram of calibrated condition values. The
 
 \item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options.}
 }
+\value{
+A matrix, SpatRaster or vector, depending on the inputs.
+}
 \description{
 This function calibrates the HCAS habitat condition and scales the values between
 0 and 1.
