@@ -112,6 +112,15 @@ benchmark <- function(
     # cat("Histogram dimension:", dim(histogram), "\n")
 
     if (is(histogram, "histo")) {
+        # check for histo offset consistency
+        if (is.null(offset)) {
+            offset <- attributes(histogram)$offset
+        } else {
+            if (offset != attributes(histogram)$offset) {
+                warning("The supplied 'offset` is different from the arrtibute(histogram)$offset from the input.")
+            }
+        }
+        # check for histo bin_width consistency
         if (is.null(bin_width)) {
             bin_width <- attributes(histogram)$bin.width
         } else {
@@ -141,9 +150,33 @@ benchmark <- function(
     if (.is_mat(data)) {
         tryCatch(
             {
-                output <- bench_cpp(
-                    rast_stack = data,
-                    sample_vals = samples,
+                # output <- bench_cpp(
+                #     rast_stack = data,
+                #     sample_vals = samples,
+                #     histogram = histogram,
+                #     xy_stats = xy_stats,
+                #     xy_penalty = xy_penalty,
+                #     within_km = radius_km,
+                #     num_vars = 0, # keep it 0 for now to be calculated from data
+                #     scale = correction,
+                #     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
+                #     bin_num = bin_num,
+                #     offset = ifelse(interpolate, offset * 2, offset),
+                #     k_env = k_pred,
+                #     k_rs = k_obs,
+                #     confidence = confidence,
+                #     lambda = lambda,
+                #     exclude_slef = exclude_slef,
+                #     make_su = make_su,
+                #     num_threads = num_threads
+                # )
+
+                # change the class of samples to work with predict.hcas
+                class(samples) <- c("hcas", "matrix", "array")
+
+                output <- predict(
+                    object = samples,
+                    newdata = data,
                     histogram = histogram,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
