@@ -2,12 +2,12 @@ Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
 Version: 0.1.1
-Date: 2024-08-15
-Author: Roozbeh Valavi, el al. (will be updated)
+Date: 2024-08-26
+Author: Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 Maintainer: <roozbeh.valavi@csiro.au>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: The HCAS evaluates habitat condition by comparing observed and 
+  predicted remote sensing variables using reference ecosystem samples.
+License: (TO BE DECIDED)
 Encoding: UTF-8
 LazyData: true
 Depends:

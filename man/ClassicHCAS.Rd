@@ -5,11 +5,10 @@
 \alias{ClassicHCAS}
 \title{ClassicHCAS: The Classic Habitat Condition Assessment System (HCAS)}
 \description{
-The HCAS (Habitat Condition Assessment System) benchmarking function evaluates habitat
-condition by comparing observed and predicted remote sensing (RS) variables. It integrates
-multiple RS data layers to provide a comprehensive assessment of habitat quality and changes
-over time. This function is designed to help researchers and conservationists quantify the
-impacts of environmental changes and management interventions on habitat condition.
+The HCAS evaluates habitat condition by comparing observed and predicted
+remote sensing (RS) variables using reference ecosystem samples.
+It integrates multiple RS data layers to provide a comprehensive assessment of
+habitat quality.
 }
 \references{
 The Habitat Condition Assessment System (HCAS)...
@@ -18,5 +17,5 @@ The Habitat Condition Assessment System (HCAS)...
 \code{\link{benchmark}} and \code{\link{histogram}}.
 }
 \author{
-Roozbeh Valavi, el al. (will be updated)
+Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 }
