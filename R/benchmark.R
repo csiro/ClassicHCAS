@@ -179,6 +179,8 @@ benchmark <- function(
             }
         )
     } else if (.is_rast(data)) {
+        # check terra is available
+        .check_pkgs("terra")
         # get the raster layers
         data <- .check_rast(data)
 

@@ -46,6 +46,8 @@ calibrate <- function(x, low, mid, high, max,
     linear <- ifelse(method == "linear", TRUE, FALSE)
 
     if (.is_rast(x)) {
+        # check terra is available
+        .check_pkgs("terra")
         # check x
         x <- .check_rast(x)
         # calibrate condition raster

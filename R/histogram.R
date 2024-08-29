@@ -76,6 +76,8 @@ histogram <- function(
     if (.is_mat(predicted)) {
         predicted <- .check_mat(predicted)
     } else if (.is_rast(predicted)) {
+        # check terra is available
+        .check_pkgs("terra")
         # extract values
         predicted <- as.matrix(
             terra::extract(predicted, samples_xy, ID = FALSE)

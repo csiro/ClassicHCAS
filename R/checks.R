@@ -11,7 +11,7 @@
         } else if (methods::is(x, "matrix")) {
             terra::is.lonlat(x = terra::vect(x[, 1:2]), perhaps = TRUE, warn = FALSE)
         } else {
-            stop("The 'x' must a matrix to terra object!")
+            stop("The 'x' must be a matrix or terra object!")
         }
     )
 }
