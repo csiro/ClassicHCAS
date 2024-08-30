@@ -16,31 +16,32 @@ histogram(
 )
 }
 \arguments{
-\item{observed}{A matrix or data.frame of observed remote sensing variables.}
+\item{observed}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
+the observed remote sensing variables.}
 
-\item{predicted}{A matrix or data.frame of predicted remote sensing variables.
-Notice that the order or predicted RS variables must the same as observed ones.}
+\item{predicted}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
+the predicted remote sensing variables. The order of the predicted RS variables must match the
+order of the observed RS variables.}
 
-\item{samples_xy}{A matrix or data.frame of x and y (longitude and latitude) of the
-reference points used for observed and predicted RS variiables.}
+\item{samples_xy}{A matrix or data.frame containing the x and y coordinates (longitude and latitude)
+of the reference points used for the observed and predicted RS variables.}
 
-\item{radius_km}{Numeric. Search radius in kilometers for considering reference samples
-in creating histogram.}
+\item{radius_km}{Numeric. Specifies the search radius in kilometers for considering reference samples
+when creating the histogram.}
 
 \item{bin_width}{Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
 may require some experimentation to achieve the best results. The bin width is added as an attribute
-to the output object, allowing it to be consistently applied in further steps, ensuring accuracy
-and consistency in the benchmarking process.}
+to the output object, ensuring consistency and accuracy in subsequent benchmarking steps.}
 
 \item{bin_num}{Integer. Specifies the number of bins for the histogram. It is generally recommended
-to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
+to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 \code{bin_num}.}
 
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
-more information.}
+additional information.}
 
-\item{filename}{Char (optional). The output file name for the .text file.}
+\item{filename}{Character (optional). The name of the output file for saving the results as a .txt file.}
 }
 \value{
 A histo object (matrix, array)
@@ -67,8 +68,6 @@ system.
 \donttest{
 library(ClassicHCAS)
 
-obs_dat <- read.csv("")
-prd_dat <- read.csv("")
 
 
 }

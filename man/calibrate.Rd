@@ -56,9 +56,6 @@ This function calibrates the HCAS habitat condition and scales the values betwee
 \donttest{
 library(ClassicHCAS)
 
-obs_dat <- read.csv("")
-prd_dat <- read.csv("")
-histo <- read.table("histogram.txt")
 
 
 }

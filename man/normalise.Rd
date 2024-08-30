@@ -32,8 +32,6 @@ This process includes trimming the histogram to remove noise and normalising its
 \donttest{
 library(ClassicHCAS)
 
-obs_dat <- read.csv("")
-prd_dat <- read.csv("")
 
 
 }

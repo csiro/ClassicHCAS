@@ -16,24 +16,25 @@
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
-#' @param observed A matrix or data.frame of observed remote sensing variables.
-#' @param predicted A matrix or data.frame of predicted remote sensing variables.
-#' Notice that the order or predicted RS variables must the same as observed ones.
-#' @param samples_xy A matrix or data.frame of x and y (longitude and latitude) of the
-#' reference points used for observed and predicted RS variiables.
-#' @param radius_km Numeric. Search radius in kilometers for considering reference samples
-#' in creating histogram.
+#' @param observed A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
+#' the observed remote sensing variables.
+#' @param predicted A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
+#' the predicted remote sensing variables. The order of the predicted RS variables must match the
+#' order of the observed RS variables.
+#' @param samples_xy A matrix or data.frame containing the x and y coordinates (longitude and latitude)
+#' of the reference points used for the observed and predicted RS variables.
+#' @param radius_km Numeric. Specifies the search radius in kilometers for considering reference samples
+#' when creating the histogram.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
 #' may require some experimentation to achieve the best results. The bin width is added as an attribute
-#' to the output object, allowing it to be consistently applied in further steps, ensuring accuracy
-#' and consistency in the benchmarking process.
+#' to the output object, ensuring consistency and accuracy in subsequent benchmarking steps.
 #' @param bin_num Integer. Specifies the number of bins for the histogram. It is generally recommended
-#' to use the default value of 650. Adjusting the \code{bin_width} is often more effective than changing
+#' to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 #' \code{bin_num}.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
-#' more information.
-#' @param filename Char (optional). The output file name for the .text file.
+#' additional information.
+#' @param filename Character (optional). The name of the output file for saving the results as a .txt file.
 #'
 #' @seealso \code{\link{normalise}}, and \code{\link{benchmark}}
 #'
@@ -44,8 +45,6 @@
 #' \donttest{
 #' library(ClassicHCAS)
 #'
-#' obs_dat <- read.csv("")
-#' prd_dat <- read.csv("")
 #'
 #'
 #' }
@@ -174,6 +173,11 @@ print.histo <- function(x, ...) {
 #' @export
 #' @method plot histo
 plot.histo <- function(x, ...) {
+    is_norm <- "offset" %in% names(attributes(x))
+    if (is_norm) {
+        x <- apply(t(x), 2, rev)
+        message("For aesthetic, the normalised histogram plot is reversed and transposed.")
+    }
     terra::plot(
         terra::rast(x), col = histo_color(30), ...
     )

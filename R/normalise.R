@@ -22,8 +22,6 @@
 #' \donttest{
 #' library(ClassicHCAS)
 #'
-#' obs_dat <- read.csv("")
-#' prd_dat <- read.csv("")
 #'
 #'
 #' }
