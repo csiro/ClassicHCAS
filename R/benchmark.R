@@ -46,9 +46,13 @@
 #' ensure condition is accurately calculated.
 #' @param interpolate Logical. Should interpolate the histogram?
 #' @param offset Integer. Specifies the number of histogram bins that were ignored during
-#' normalization (see \code{\link{clean}}).
+#' normalization (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+#' this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
+#' the \code{offset} must be consistent between the histogram normalisation and the benchmarking
+#' step to ensure condition is accurately calculated.
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
+#' @param exclude_slef Logical. To exclude a benchmark point from assessing itself.
 #' @param make_su Logical. To make the uncertainty map or not.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
@@ -68,7 +72,6 @@
 #'
 #' obs_dat <- read.csv("")
 #' prd_dat <- read.csv("")
-#' histo <- read.table("histogram.txt")
 #'
 #'
 #' }
@@ -111,7 +114,7 @@ benchmark <- function(
     }
     # cat("Histogram dimension:", dim(histogram), "\n")
 
-    if (is(histogram, "histo")) {
+    if (methods::is(histogram, "histo")) {
         # check for histo bin_width consistency
         if (is.null(bin_width)) {
             bin_width <- attributes(histogram)$bin.width
@@ -191,8 +194,8 @@ benchmark <- function(
                     # NOTE: the order of files/layers matters here
                     # change the name to avoid error in in terra::predict
                     data <- c(
-                        setNames(terra::init(predicted[[1]], fun = "x"), "x"),
-                        setNames(terra::init(predicted[[1]], fun = "y"), "y"),
+                        stats::setNames(terra::init(data[[1]], fun = "x"), "x"),
+                        stats::setNames(terra::init(data[[1]], fun = "y"), "y"),
                         data
                     )
                 },
@@ -272,7 +275,7 @@ predict.hcas <- function(object, newdata, make_su, ...){
     nr <- nrow(newdata)
 
     if (has_na) {
-        idx <- which(complete.cases(newdata))
+        idx <- which(stats::complete.cases(newdata))
         out <- matrix(NaN, nrow = nr, ncol = nc)
         # name the raster layers
         colnames(out) <- c("condition", "su")[1:nc]

@@ -141,7 +141,7 @@ histogram <- function(
         filename <- ifelse(grepl(".txt", filename), filename, paste0(filename, ".txt"))
         tryCatch(
             {
-                write.table(
+                utils::write.table(
                     out_table,
                     file = filename,
                     sep = "\t",

@@ -35,7 +35,7 @@ normalise <- function(
         filename = "") {
 
     # check bin_width and get it from histo object
-    if (is(x, "histo")) {
+    if (methods::is(x, "histo")) {
         if (is.null(bin_width)) {
             bin_width <- attributes(x)$bin.width
         } else {
@@ -57,7 +57,7 @@ normalise <- function(
         filename <- ifelse(grepl(".txt", filename), filename, paste0(filename, ".txt"))
         tryCatch(
             {
-                write.table(
+                utils::write.table(
                     out,
                     file = filename,
                     sep = "\t",

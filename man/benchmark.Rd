@@ -66,11 +66,16 @@ ensure condition is accurately calculated.}
 \item{interpolate}{Logical. Should interpolate the histogram?}
 
 \item{offset}{Integer. Specifies the number of histogram bins that were ignored during
-normalization (see \code{\link{clean}}).}
+normalization (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
+the \code{offset} must be consistent between the histogram normalisation and the benchmarking
+step to ensure condition is accurately calculated.}
 
 \item{confidence}{Numeric. The confidence value for LDC methods. See details below..}
 
 \item{lambda}{Numeric. The lambda param for LDC Cauchy weighting...}
+
+\item{exclude_slef}{Logical. To exclude a benchmark point from assessing itself.}
 
 \item{make_su}{Logical. To make the uncertainty map or not.}
 
@@ -114,7 +119,6 @@ library(ClassicHCAS)
 
 obs_dat <- read.csv("")
 prd_dat <- read.csv("")
-histo <- read.table("histogram.txt")
 
 
 }

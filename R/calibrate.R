@@ -121,7 +121,7 @@ calibrate <- function(x, low, mid, high, max,
         )
         # fitting smoothing spline
         spline_dat <- as.data.frame(
-            spline(
+            stats::spline(
                 x= dat$x,
                 y = dat$y,
                 method = "natural",
