@@ -179,7 +179,7 @@ plot.histo <- function(x, ...) {
         message("For aesthetic, the normalised histogram plot is reversed and transposed.")
     }
     terra::plot(
-        terra::rast(x), col = histo_color(30), ...
+        terra::rast(x), col = histo_color(150), ...
     )
 }
 
