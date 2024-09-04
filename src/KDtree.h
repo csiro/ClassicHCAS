@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <numeric>
+#include <limits>
 #include <algorithm>
 #include <exception>
 #include <functional>

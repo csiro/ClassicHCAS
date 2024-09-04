@@ -97,9 +97,6 @@ histogram <- function(
         stop("The 'observed' must be raster or a matrix, or convertiable object to these classes.")
     }
 
-    # cat("\nRS data dimensions: ", dim(observed), "\n")
-    # cat("ENV data dimensions:", dim(predicted), "\n")
-
     # some error checking
     if(any(dim(predicted) != dim(observed)))
         stop("Dimensions of RS and ENV datasets doesn't match!")
@@ -182,14 +179,4 @@ plot.histo <- function(x, ...) {
         terra::rast(x), col = histo_color(150), ...
     )
 }
-
-
-
-
-
-
-
-
-
-
 

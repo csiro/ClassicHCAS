@@ -13,6 +13,10 @@ spline_rescale <- function(x, spline_x, spline_y) {
     .Call(`_ClassicHCAS_spline_rescale`, x, spline_x, spline_y)
 }
 
+density_cpp <- function(rast, xy, radius_km = 200.0, scale = 100000.0, num_threads = -1L) {
+    .Call(`_ClassicHCAS_density_cpp`, rast, xy, radius_km, scale, num_threads)
+}
+
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {
     .Call(`_ClassicHCAS_histo_cpp`, rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads)
 }

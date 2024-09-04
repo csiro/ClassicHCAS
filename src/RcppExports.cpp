@@ -68,6 +68,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// density_cpp
+Rcpp::IntegerVector density_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, const double scale, int num_threads);
+RcppExport SEXP _ClassicHCAS_density_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP scaleSEXP, SEXP num_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rast(rastSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy(xySEXP);
+    Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
+    Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(density_cpp(rast, xy, radius_km, scale, num_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // histo_cpp
 Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& samples_xy, const double within_km, const double scale, const double bin_width, const int bin_num, int num_threads);
 RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP samples_xySEXP, SEXP within_kmSEXP, SEXP scaleSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP num_threadsSEXP) {
@@ -104,6 +119,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 19},
     {"_ClassicHCAS_linear_rescale", (DL_FUNC) &_ClassicHCAS_linear_rescale, 6},
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
+    {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
     {NULL, NULL, 0}

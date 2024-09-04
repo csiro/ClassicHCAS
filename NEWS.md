@@ -1,3 +1,6 @@
+# Version 0.1.3
+* Added the `proximity` function to count the number samples within a radius
+
 # Version 0.1.2
 * Check for availability of the `terra` package is added when input is a raster
 * improved documentation and imports
