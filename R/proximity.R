@@ -52,7 +52,7 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1) {
                 xy = samples_xy[, 1:2],
                 radius_km = radius_km,
                 scale = correction,
-                nunum_threads = num_threads
+                num_threads = num_threads
                 # na.rm = TRUE,
                 # ...
             )
