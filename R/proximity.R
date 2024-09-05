@@ -40,18 +40,11 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
     .check_pkgs("terra")
     # get the raster layers
     x <- .check_rast(x)
-
-    # get the xy coordinate of the raster and mask it back
-    # xy_rast <- terra::mask(
-    #     x = c(
-    #         stats::setNames(terra::init(x[[1]], fun = "x"), "x"),
-    #         stats::setNames(terra::init(x[[1]], fun = "y"), "y")
-    #     ),
-    #     mask = x
-    # )
+    # make x y maps
     xy_rast <- c(
         stats::setNames(terra::init(x[[1]], fun = "x"), "x"),
-        stats::setNames(terra::init(x[[1]], fun = "y"), "y")
+        stats::setNames(terra::init(x[[1]], fun = "y"), "y"),
+        x[[1]]
     )
 
     # correction scale for long-lat CRS
@@ -59,8 +52,9 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
 
     tryCatch(
         {
-            output <- terra::app(
-                x = xy_rast,
+            output <- terra::predict(
+                object = xy_rast,
+                model = list(),
                 fun = proxy_count,
                 xy = samples_xy[, 1:2],
                 radius_km = radius_km,
@@ -79,33 +73,32 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
     )
 }
 
-proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE) {
-    # check for NAs
-    has_na <- anyNA(cellxy)
-    nr <- nrow(cellxy)
 
-    if (has_na && na.rm) {
-        idx <- which(stats::complete.cases(cellxy))
+# proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE) {
+proxy_count <- function(object, newdata, ...) {
+    # check for NAs
+    has_na <- anyNA(newdata)
+    nr <- nrow(newdata)
+
+    if (has_na) {
+        idx <- which(stats::complete.cases(newdata))
         # out <- matrix(NaN, nrow = nr, ncol = 1)
         # # name the raster layers
         # colnames(out) <- "point-density"
-        # if all NA, return NaN vector
-        # if (!length(idx)) return(out)
-        if (!length(idx)) return(rep(NaN, nr))
+        out <- rep(NaN, nr)
+        # # if all NA, return NaN vector
+        if (!length(idx)) return(out)
         # subset the complete data
-        dat <- as.matrix(cellxy[idx, ])
+        dat <- as.matrix(newdata[idx, ])
     } else {
-        dat <- as.matrix(cellxy)
+        dat <- as.matrix(newdata)
     }
 
     tryCatch(
         {
-            out <- density_cpp(
+            pcount <- density_cpp(
                 rast = dat,
-                xy = xy,
-                radius_km = radius_km,
-                scale = scale,
-                num_threads = num_threads
+                ...
             )
         },
         error = function(cond) {
@@ -117,9 +110,17 @@ proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE)
         }
     )
 
-    return(
-        out
-    )
+    # sort out possible NAs
+    if (has_na) {
+        out[idx] <- pcount
+        return(
+            out
+        )
+    } else {
+        return(
+            pcount
+        )
+    }
 }
 
 

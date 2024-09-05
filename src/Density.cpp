@@ -45,7 +45,7 @@ Rcpp::IntegerVector density_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
     {
         // get the target points xy from raster stack;
