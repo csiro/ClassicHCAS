@@ -40,20 +40,13 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
     .check_pkgs("terra")
     # get the raster layers
     x <- .check_rast(x)
-    # make x y maps
-    xy_rast <- c(
-        stats::setNames(terra::init(x[[1]], fun = "x"), "x"),
-        stats::setNames(terra::init(x[[1]], fun = "y"), "y"),
-        x[[1]]
-    )
-
     # correction scale for long-lat CRS
     correction <- ifelse(.is_lonlat(x), 100000, 1)
 
     tryCatch(
         {
-            output <- terra::predict(
-                object = xy_rast,
+            output <- terra::interpolate(
+                object = x,
                 model = list(),
                 fun = proxy_count,
                 xy = samples_xy[, 1:2],
@@ -75,7 +68,7 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
 
 
 # proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE) {
-proxy_count <- function(object, newdata, ...) {
+proxy_count <- function(model, newdata, ...) {
     # check for NAs
     has_na <- anyNA(newdata)
     nr <- nrow(newdata)
