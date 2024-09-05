@@ -27,7 +27,7 @@
 #'
 #'
 #' }
-proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1) {
+proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
 
     # check samples and histograms
     if (.is_mat(samples_xy)) {
@@ -41,20 +41,32 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1) {
     # get the raster layers
     x <- .check_rast(x)
 
+    # get the xy coordinate of the raster and mask it back
+    # xy_rast <- terra::mask(
+    #     x = c(
+    #         stats::setNames(terra::init(x[[1]], fun = "x"), "x"),
+    #         stats::setNames(terra::init(x[[1]], fun = "y"), "y")
+    #     ),
+    #     mask = x
+    # )
+    xy_rast <- c(
+        stats::setNames(terra::init(x[[1]], fun = "x"), "x"),
+        stats::setNames(terra::init(x[[1]], fun = "y"), "y")
+    )
+
     # correction scale for long-lat CRS
     correction <- ifelse(.is_lonlat(x), 100000, 1)
 
     tryCatch(
         {
             output <- terra::app(
-                x = x,
-                fun = density_cpp,
+                x = xy_rast,
+                fun = proxy_count,
                 xy = samples_xy[, 1:2],
                 radius_km = radius_km,
                 scale = correction,
-                num_threads = num_threads
-                # na.rm = TRUE,
-                # ...
+                num_threads = num_threads,
+                ...
             )
         },
         error = function(cond) {
@@ -66,4 +78,66 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1) {
         output
     )
 }
+
+proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE) {
+    # check for NAs
+    has_na <- anyNA(cellxy)
+    nr <- nrow(cellxy)
+
+    if (has_na && na.rm) {
+        idx <- which(stats::complete.cases(cellxy))
+        # out <- matrix(NaN, nrow = nr, ncol = 1)
+        # # name the raster layers
+        # colnames(out) <- "point-density"
+        # if all NA, return NaN vector
+        # if (!length(idx)) return(out)
+        if (!length(idx)) return(rep(NaN, nr))
+        # subset the complete data
+        dat <- as.matrix(cellxy[idx, ])
+    } else {
+        dat <- as.matrix(cellxy)
+    }
+
+    tryCatch(
+        {
+            out <- density_cpp(
+                rast = dat,
+                xy = xy,
+                radius_km = radius_km,
+                scale = scale,
+                num_threads = num_threads
+            )
+        },
+        error = function(cond) {
+            message("Error: the benchmarking C++ function faild, returning -0.02!")
+            # return error values -0.02
+            return(
+                rep(-0.02, nr)
+            )
+        }
+    )
+
+    return(
+        out
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
