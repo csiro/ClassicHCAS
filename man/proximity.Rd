@@ -4,7 +4,7 @@
 \alias{proximity}
 \title{Number of samples within a proximity (radial search)}
 \usage{
-proximity(x, samples_xy, radius_km = 200, num_threads = -1)
+proximity(x, samples_xy, radius_km = 200, num_threads = -1, ...)
 }
 \arguments{
 \item{x}{A SpatRaster representing the study area over which sample density will be calculated.}
@@ -17,8 +17,6 @@ of the reference points used for density calculation.}
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
 more information.}
-
-\item{...}{Additional arguments for writing raster outputs.}
 }
 \value{
 A SpatRaster

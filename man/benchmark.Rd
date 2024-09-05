@@ -8,7 +8,6 @@ benchmark(
   data,
   samples,
   histogram,
-  add_xy = FALSE,
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
   radius_km = 200,
@@ -22,29 +21,24 @@ benchmark(
   exclude_slef = TRUE,
   make_su = FALSE,
   num_threads = -1,
-  filename = "",
-  wopt = list(datatype = "FLT4S", memfrac = 0.5),
-  overwrite = TRUE
+  ...
 )
 }
 \arguments{
 \item{data}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
 The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
-\strong{predicted-RS} variables. If using a matrix or data.frame, ensure that the variables are in the
-correct order. For a SpatRaster object, if it does not include x and y coordinates (or longitude and
-latitude), you should set \code{add_xy = TRUE}. For more see the details section.}
+\strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
+If using a matrix or data.frame, ensure that the variables are in the
+correct order. For more see the details section.}
 
 \item{samples}{A matrix or data.frame containing x, y, observed-RS, and predicted-RS values
 (in that specific order) for benchmark samples (also known as reference sites). If the
 \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
-benchmark samples. In this case, the corresponding values will be extracted from the raster.}
+benchmark samples. In this case, the corresponding values will be extracted from the raster
+layers. Consider extra time for sample value extraction in this case.}
 
 \item{histogram}{A matrix or \strong{histo} object of normalised HCAS histogram
 see \code{\link{histogram}} and \code{\link{normalise}}).}
-
-\item{add_xy}{Logical. Add x and y to \code{data} (raster layers). If x and y are already
-available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
-be correct. For matrix \code{data} input this is ignored.}
 
 \item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
 scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)}
@@ -82,12 +76,6 @@ step to ensure condition is accurately calculated.}
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
 more information.}
-
-\item{filename}{Char (optional). The output file name for raster outputs.}
-
-\item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options.}
-
-\item{overwrite}{Logical. Whether to overwrite the output raster.}
 }
 \value{
 A matrix or SpatRaster, depending on the inputs.

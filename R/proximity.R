@@ -15,7 +15,8 @@
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' more information.
-#' @param ... Additional arguments for writing raster outputs.
+#' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
+#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
 #'
 #' @return A SpatRaster
 #' @export
@@ -67,7 +68,7 @@ proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
 }
 
 
-# proxy_count <- function(cellxy, xy, radius_km, scale, num_threads, na.rm = TRUE) {
+# wrapper function for density_cpp
 proxy_count <- function(model, newdata, ...) {
     # check for NAs
     has_na <- anyNA(newdata)
@@ -75,11 +76,8 @@ proxy_count <- function(model, newdata, ...) {
 
     if (has_na) {
         idx <- which(stats::complete.cases(newdata))
-        # out <- matrix(NaN, nrow = nr, ncol = 1)
-        # # name the raster layers
-        # colnames(out) <- "point-density"
         out <- rep(NaN, nr)
-        # # if all NA, return NaN vector
+        # if all NA, return NaN vector
         if (!length(idx)) return(out)
         # subset the complete data
         dat <- as.matrix(newdata[idx, ])
@@ -95,7 +93,7 @@ proxy_count <- function(model, newdata, ...) {
             )
         },
         error = function(cond) {
-            message("Error: the benchmarking C++ function faild, returning -0.02!")
+            message("Error: the proximity C++ function faild, returning -0.02!")
             # return error values -0.02
             return(
                 rep(-0.02, nr)
@@ -115,23 +113,4 @@ proxy_count <- function(model, newdata, ...) {
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -13,8 +13,7 @@ calibrate(
   target1 = 0.1,
   target2 = 0.944,
   method = "spline",
-  filename = "",
-  wopt = list(datatype = "FLT4S", memfrac = 0.5)
+  ...
 )
 }
 \arguments{
@@ -40,10 +39,6 @@ of 0.944 is based on Australian data.}
 
 \item{method}{Character. Specifies the calibration method, either "linear" or "spline". The spline
 method produces a smoother map and histogram of calibrated condition values. The default is "spline".}
-
-\item{filename}{Char (optional). The output file name for raster outputs.}
-
-\item{wopt}{list (optional). The output \code{\link[terra]{writeRaster}} options.}
 }
 \value{
 A matrix, SpatRaster or vector, depending on the inputs.

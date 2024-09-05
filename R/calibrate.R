@@ -18,8 +18,8 @@
 #' of 0.944 is based on Australian data.
 #' @param method Character. Specifies the calibration method, either "linear" or "spline". The spline
 #' method produces a smoother map and histogram of calibrated condition values. The default is "spline".
-#' @param filename Char (optional). The output file name for raster outputs.
-#' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
+#' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
+#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
 #'
 #' @seealso \code{\link{benchmark}}
 #'
@@ -36,8 +36,7 @@
 calibrate <- function(x, low, mid, high, max,
                       target1 = 0.1, target2 = 0.944,
                       method = "spline",
-                      filename = "",
-                      wopt = list(datatype = "FLT4S", memfrac = 0.5)) {
+                      ...) {
 
     method <- match.arg(method, c("spline", "linear"))
     linear <- ifelse(method == "linear", TRUE, FALSE)
@@ -57,13 +56,14 @@ calibrate <- function(x, low, mid, high, max,
             mx = max,
             t1 = target1,
             t2 = target2,
-            linear = linear,
-            filename = filename,
-            wopt = wopt
+            ...
         )
     } else {
         # if matrix or data.frame apply on all columns
         if (.is_mat(x)) {
+            # check and convert to matrix
+            x <- .check_mat(x)
+
             out <- apply(
                 X = x,
                 MARGIN = 2,

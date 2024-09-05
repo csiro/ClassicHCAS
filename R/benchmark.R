@@ -21,18 +21,16 @@
 #'
 #' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
 #' The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
-#' \strong{predicted-RS} variables. If using a matrix or data.frame, ensure that the variables are in the
-#' correct order. For a SpatRaster object, if it does not include x and y coordinates (or longitude and
-#' latitude), you should set \code{add_xy = TRUE}. For more see the details section.
+#' \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
+#' If using a matrix or data.frame, ensure that the variables are in the
+#' correct order. For more see the details section.
 #' @param samples A matrix or data.frame containing x, y, observed-RS, and predicted-RS values
 #' (in that specific order) for benchmark samples (also known as reference sites). If the
 #' \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
-#' benchmark samples. In this case, the corresponding values will be extracted from the raster.
+#' benchmark samples. In this case, the corresponding values will be extracted from the raster
+#' layers. Consider extra time for sample value extraction in this case.
 #' @param histogram A matrix or \strong{histo} object of normalised HCAS histogram
 #' see \code{\link{histogram}} and \code{\link{normalise}}).
-#' @param add_xy Logical. Add x and y to \code{data} (raster layers). If x and y are already
-#' available as the first and second layers set \code{add_xy = FALSE}, otherwise result will not
-#' be correct. For matrix \code{data} input this is ignored.
 #' @param xy_stats A vector, mean and standard deviation of coordinates for centre and
 #' scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)
 #' @param xy_penalty Numeric. The spatial distance penalty value for selecting benchmark points.
@@ -57,9 +55,8 @@
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' more information.
-#' @param filename Char (optional). The output file name for raster outputs.
-#' @param wopt list (optional). The output \code{\link[terra]{writeRaster}} options.
-#' @param overwrite Logical. Whether to overwrite the output raster.
+#' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
+#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
 #'
 #' @seealso \code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 #'
@@ -77,7 +74,6 @@ benchmark <- function(
         data,
         samples,
         histogram,
-        add_xy = FALSE,
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
@@ -91,9 +87,7 @@ benchmark <- function(
         exclude_slef = TRUE,
         make_su = FALSE,
         num_threads = -1,
-        filename = "",
-        wopt = list(datatype = "FLT4S", memfrac = 0.5),
-        overwrite = TRUE) {
+        ...) {
 
     # check samples and histograms
     if (.is_mat(samples)) {
@@ -145,18 +139,20 @@ benchmark <- function(
     # get the bin number after interpolation
     bin_num <- min(dim(histogram))
 
-    # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(data), 100000, 1)
+
 
     if (.is_mat(data)) {
         tryCatch(
             {
-                # change the class of samples to work with predict.hcas
-                class(samples) <- c("hcas", "matrix", "array")
+                # check and convert to matrix
+                data <- .check_mat(data)
+                # correction scale for long-lat CRS
+                correction <- ifelse(.is_lonlat(data), 100000, 1)
 
-                output <- predict.hcas(
-                    object = samples,
-                    newdata = data,
+                output <- benchmarking(
+                    model = list(),
+                    newdata = data, # rast_stack arg
+                    sample_vals = samples,
                     histogram = histogram,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
@@ -182,48 +178,41 @@ benchmark <- function(
     } else if (.is_rast(data)) {
         # check terra is available
         .check_pkgs("terra")
-        # get the raster layers
+        # check and convert to SpatRaster object
         data <- .check_rast(data)
 
-        # add xy to the stack
-        if (add_xy) {
-            tryCatch(
-                {
-                    # NOTE: the order of files/layers matters here
-                    # change the name to avoid error in in terra::predict
-                    data <- c(
-                        stats::setNames(terra::init(data[[1]], fun = "x"), "x"),
-                        stats::setNames(terra::init(data[[1]], fun = "y"), "y"),
-                        data
-                    )
-                },
-                error = function(cond) {
-                    stop("Failed to build xy for raster stack!\n", cond)
-                }
-            )
-        }
+        # correction scale for long-lat CRS
+        correction <- ifelse(.is_lonlat(data), 100000, 1)
 
         # sample extraction if needed
         if (ncol(samples) == 2) {
             cat("Extracting sample values...\n")
+            # add xy to the stack and extract
             samples <- as.matrix(
-                terra::extract(data, samples, ID = FALSE)
+                terra::extract(
+                    x = c(
+                        stats::setNames(terra::init(data[[1]], fun = "x"), "x"),
+                        stats::setNames(terra::init(data[[1]], fun = "y"), "y"),
+                        data
+                    ),
+                    y = samples,
+                    ID = FALSE
+                )
             )
-        } else if (ncol(samples) == terra::nlyr(data)) {
+        } else if ((ncol(samples) - 2) == terra::nlyr(data)) {
             cat("Samples with raster values are provided!\n")
         } else{
             # this should include rows/cols columns as well
             stop("Samples must either be coordinate values exclusively or include all raster layer values.")
         }
 
-        # change the class of samples to work with terra::predict
-        class(samples) <- c("hcas", "matrix", "array")
-
         tryCatch(
             {
-                output <- terra::predict(
+                output <- terra::interpolate(
                     object = data,
-                    model = samples,
+                    model = list(),
+                    fun = benchmarking,
+                    sample_vals = samples,
                     histogram = histogram,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
@@ -240,10 +229,7 @@ benchmark <- function(
                     exclude_slef = exclude_slef,
                     make_su = make_su,
                     num_threads = num_threads,
-                    na.rm = FALSE,
-                    filename = filename,
-                    overwrite = overwrite,
-                    wopt = wopt
+                    ...
                 )
             },
             error = function(cond) {
@@ -263,9 +249,8 @@ benchmark <- function(
 
 # the generic HCAS prediction function for C++ integration with terra
 # NOTE: the na.rm arg in terra::predict doesn't provide the correct mask
-#' @export
-#' @method predict hcas
-predict.hcas <- function(object, newdata, make_su, ...){
+#   and keep model an empty list
+benchmarking <- function(model, newdata, make_su, ...){
     # check for NAs
     has_na <- anyNA(newdata)
     # number of output columns; TRUE/FALSE + 1
@@ -290,7 +275,6 @@ predict.hcas <- function(object, newdata, make_su, ...){
             # the HCAS C++ function
             hcas_cond <- bench_cpp(
                 rast_stack = dat,
-                sample_vals = as.matrix(object),
                 make_su = make_su,
                 ...
             )
