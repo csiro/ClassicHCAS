@@ -39,6 +39,9 @@ of 0.944 is based on Australian data.}
 
 \item{method}{Character. Specifies the calibration method, either "linear" or "spline". The spline
 method produces a smoother map and histogram of calibrated condition values. The default is "spline".}
+
+\item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
+\code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
 }
 \value{
 A matrix, SpatRaster or vector, depending on the inputs.

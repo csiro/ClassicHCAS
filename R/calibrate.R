@@ -19,7 +19,7 @@
 #' @param method Character. Specifies the calibration method, either "linear" or "spline". The spline
 #' method produces a smoother map and histogram of calibrated condition values. The default is "spline".
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
-#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
+#' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
 #'
 #' @seealso \code{\link{benchmark}}
 #'

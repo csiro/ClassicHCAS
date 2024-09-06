@@ -16,7 +16,9 @@
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' more information.
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
-#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
+#' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
+#'
+#' @seealso \code{\link{benchmark}}
 #'
 #' @return A SpatRaster
 #' @export
@@ -93,10 +95,10 @@ proxy_count <- function(model, newdata, ...) {
             )
         },
         error = function(cond) {
-            message("Error: the proximity C++ function faild, returning -0.02!")
+            message("Error: the proximity C++ function faild, returning -2!")
             # return error values -0.02
             return(
-                rep(-0.02, nr)
+                rep(-2, nr)
             )
         }
     )

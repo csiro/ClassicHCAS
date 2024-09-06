@@ -17,6 +17,9 @@ of the reference points used for density calculation.}
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
 more information.}
+
+\item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
+\code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
 }
 \value{
 A SpatRaster
@@ -38,4 +41,7 @@ library(ClassicHCAS)
 
 
 }
+}
+\seealso{
+\code{\link{benchmark}}
 }

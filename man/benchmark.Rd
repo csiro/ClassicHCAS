@@ -76,6 +76,9 @@ step to ensure condition is accurately calculated.}
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
 more information.}
+
+\item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
+\code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
 }
 \value{
 A matrix or SpatRaster, depending on the inputs.

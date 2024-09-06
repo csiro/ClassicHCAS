@@ -56,7 +56,7 @@
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' more information.
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
-#' \code{overwrite}, and \code{wopt} from \code{\link[terra]{predict}.
+#' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
 #'
 #' @seealso \code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 #'
