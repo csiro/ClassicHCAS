@@ -142,13 +142,13 @@ benchmark <- function(
 
 
     if (.is_mat(data)) {
+        # check and convert to matrix
+        data <- .check_mat(data)
+        # correction scale for long-lat CRS
+        correction <- ifelse(.is_lonlat(data), 100000, 1)
+
         tryCatch(
             {
-                # check and convert to matrix
-                data <- .check_mat(data)
-                # correction scale for long-lat CRS
-                correction <- ifelse(.is_lonlat(data), 100000, 1)
-
                 output <- benchmarking(
                     model = list(),
                     newdata = data, # rast_stack arg
@@ -188,16 +188,9 @@ benchmark <- function(
         if (ncol(samples) == 2) {
             cat("Extracting sample values...\n")
             # add xy to the stack and extract
-            samples <- as.matrix(
-                terra::extract(
-                    x = c(
-                        stats::setNames(terra::init(data[[1]], fun = "x"), "x"),
-                        stats::setNames(terra::init(data[[1]], fun = "y"), "y"),
-                        data
-                    ),
-                    y = samples,
-                    ID = FALSE
-                )
+            samples <- cbind(
+                samples,
+                as.matrix(terra::extract(x = data, y = samples, ID = FALSE))
             )
         } else if ((ncol(samples) - 2) == terra::nlyr(data)) {
             cat("Samples with raster values are provided!\n")
