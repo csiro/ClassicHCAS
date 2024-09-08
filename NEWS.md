@@ -1,8 +1,8 @@
 # Version 0.1.3
-* Added the `proximity` function to count the number samples within a radius
-* Removed the requirement for `add_xy` in the `benchmark()` function
-* Removed `filename` and `wopt` from all function and replaced by additional args `...`
-* Improved the internal `terra` functions by removing the need for xy creation
+* Added the `proximity` function to count the number of samples within a specified radius.
+* Removed the requirement for `add_xy` in the `benchmark()` function.
+* Removed `filename` and `wopt` parameters from all functions and replaced them with additional arguments `...` for more flexibility.
+* Internal `terra` functions have been improved by eliminating the need for explicit creation of x and y coordinates.
 
 # Version 0.1.2
 * Check for availability of the `terra` package is added when input is a raster
