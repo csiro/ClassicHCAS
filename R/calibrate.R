@@ -24,7 +24,12 @@
 #'
 #'
 #' }
-calibrate <- function(x, x_values, y_values = c(0, 0.101, 0.944, 1), ...) {
+calibrate <- function(
+        x,
+        x_values,
+        y_values = c(0, 0.101, 0.944, 1),
+        ...) {
+
     # some initial checks
     if (!methods::is(x_values, "numeric")) {
         stop("The 'x_values' must be a numeric vector.")

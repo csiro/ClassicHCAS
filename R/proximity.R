@@ -30,7 +30,12 @@
 #'
 #'
 #' }
-proximity <- function(x, samples_xy, radius_km = 200, num_threads = -1, ...) {
+proximity <- function(
+        x,
+        samples_xy,
+        radius_km = 200,
+        num_threads = -1,
+        ...) {
 
     # check samples and histograms
     if (.is_mat(samples_xy)) {
