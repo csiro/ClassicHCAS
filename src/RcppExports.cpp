@@ -39,22 +39,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// linear_rescale
-std::vector<double> linear_rescale(const Rcpp::NumericVector& x, const double low_point, const double high_point, const double max_point, const double low_target, const double high_target);
-RcppExport SEXP _ClassicHCAS_linear_rescale(SEXP xSEXP, SEXP low_pointSEXP, SEXP high_pointSEXP, SEXP max_pointSEXP, SEXP low_targetSEXP, SEXP high_targetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double >::type low_point(low_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type high_point(high_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type max_point(max_pointSEXP);
-    Rcpp::traits::input_parameter< const double >::type low_target(low_targetSEXP);
-    Rcpp::traits::input_parameter< const double >::type high_target(high_targetSEXP);
-    rcpp_result_gen = Rcpp::wrap(linear_rescale(x, low_point, high_point, max_point, low_target, high_target));
-    return rcpp_result_gen;
-END_RCPP
-}
 // spline_rescale
 std::vector<double> spline_rescale(const Rcpp::NumericVector& x, const std::vector<double>& spline_x, const std::vector<double>& spline_y);
 RcppExport SEXP _ClassicHCAS_spline_rescale(SEXP xSEXP, SEXP spline_xSEXP, SEXP spline_ySEXP) {
@@ -117,7 +101,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 19},
-    {"_ClassicHCAS_linear_rescale", (DL_FUNC) &_ClassicHCAS_linear_rescale, 6},
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},

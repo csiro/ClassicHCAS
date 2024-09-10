@@ -4,41 +4,17 @@
 \alias{calibrate}
 \title{Calibrate habitat condition output}
 \usage{
-calibrate(
-  x,
-  low,
-  mid,
-  high,
-  max,
-  target1 = 0.1,
-  target2 = 0.944,
-  method = "spline",
-  ...
-)
+calibrate(x, x_values, y_values = c(0, 0.101, 0.944, 1), ...)
 }
 \arguments{
 \item{x}{A SpatRaster, matrix, data.frame, or vector containing HCAS habitat condition values from
 the benchmarking function (see \code{\link{benchmark}}). If \code{x} is a matrix or data.frame,
 the calibration will be applied to all columns.}
 
-\item{low}{Numeric. The median uncalibrated condition value for highly modified areas.}
+\item{x_values}{Numeric vector of uncalibrated condition values. It is recommended that \code{x_values}
+cover the full range of values, including the minimum and maximum of the raw condition data.}
 
-\item{mid}{Numeric. The median uncalibrated condition value for natural reference areas.}
-
-\item{high}{Numeric. The median uncalibrated condition value for \strong{benchmark} reference
-sites used in the \code{\link{benchmark}} function.}
-
-\item{max}{Numeric. The median uncalibrated condition value for the entire area of interest, based
-on the maximum values in the raster or matrix.}
-
-\item{target1}{Numeric. The calibrated target value for highly modified areas. The default value of
-0.1 is based on Australian data.}
-
-\item{target2}{Numeric. The calibrated target value for natural reference areas. The default value
-of 0.944 is based on Australian data.}
-
-\item{method}{Character. Specifies the calibration method, either "linear" or "spline". The spline
-method produces a smoother map and histogram of calibrated condition values. The default is "spline".}
+\item{y_values}{Numeric vector of calibrated target condition value corresponding to \code{x_values}.}
 
 \item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
 \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
@@ -47,8 +23,8 @@ method produces a smoother map and histogram of calibrated condition values. The
 A matrix, SpatRaster or vector, depending on the inputs.
 }
 \description{
-This function calibrates the HCAS habitat condition and scales the values between
-0 and 1.
+This function calibrates the HCAS habitat condition values and scales them between 0 and 1
+using a Spline function.
 }
 \examples{
 \donttest{

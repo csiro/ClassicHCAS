@@ -28,7 +28,7 @@ Rcpp::NumericMatrix bench_cpp(
     const double within_km = 200,           // radius in kilometers to consider ref points
     const int k_env = 50,                   // number of ENV nn to select
     const int k_rs = 20,                    // number of RS/Prob values to select
-    const double bin_width = 0.03,          // histogram bin width
+    const double bin_width = 0.05,          // histogram bin width
     const int bin_num = 400,                // number of bins in histogram
     const int offset = 0,                   // offset of histogram
     const double pnorm = 1,                 // distance fraction; 1 = L1; 2 = L2; <1 fractional distance
