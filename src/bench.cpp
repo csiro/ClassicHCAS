@@ -119,8 +119,9 @@ Rcpp::NumericMatrix bench_cpp(
             double rsdist = std::pow(rsdist_sum, 1.0 / pnorm);
             double prdist = std::pow(prdist_sum, 1.0 / pnorm);
 
-            // skip the point if exclude-slef is true and prdist is zero
-            if (exclude_slef && prdist == 0.0)
+            // skip the point if exclude-slef is true and
+            // prdist is in the first bin i.e < 1 * bw
+            if (exclude_slef && prdist < bin_width)
             {
                 continue;
             }

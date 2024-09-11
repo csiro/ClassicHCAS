@@ -1,6 +1,7 @@
 # Version 0.1.4
 * Deprecated the linear (piece-wise) calibration method, superseded with the spline method.
 * The arguments of `calibrate` are updated with `x_values` and `y_values`.
+* Fixed the benchmarking `self_exclude` floating point error.
 
 # Version 0.1.3
 * Added the `proximity` function to count the number of samples within a specified radius.
