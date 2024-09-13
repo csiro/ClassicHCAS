@@ -1,12 +1,12 @@
 #' Calibrate habitat condition output
 #'
 #' This function calibrates the HCAS habitat condition values and scales them between 0 and 1
-#' using a Spline function.
+#' using a monotonically increasing Spline function.
 #'
 #' @param x A SpatRaster, matrix, data.frame, or vector containing HCAS habitat condition values from
 #' the benchmarking function (see \code{\link{benchmark}}). If \code{x} is a matrix or data.frame,
 #' the calibration will be applied to all columns.
-#' @param x_values Numeric vector of uncalibrated condition values. It is recommended that \code{x_values}
+#' @param x_values Numeric vector of un-calibrated condition values. It is recommended that \code{x_values}
 #' cover the full range of values, including the minimum and maximum of the raw condition data.
 #' @param y_values Numeric vector of calibrated target condition value corresponding to \code{x_values}.
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
@@ -86,21 +86,21 @@ calibrate <- function(
 # NOTE: although this will repeat spline fitting when raster files are read in steps,
 #   the spline function is deterministic and very fast, 0.005 seconds
 .calib <- function(x, x_vals, y_vals) {
-    # fitting smoothing spline
-    spline_dat <- as.data.frame(
-        stats::spline(
-            x= x_vals,
-            y = y_vals,
-            method = "natural",
-            xout = seq(0, x_vals[length(x_vals)], length.out = 100)
-        )
+    # the monotonic spline function
+    f <- stats::splinefun(
+        x = x_vals,
+        y = y_vals,
+        method = "monoH.FC"
     )
+
+    # equally placed values for x to be interpolated
+    x_range <- seq(0, max(x_vals), length.out = 150)
 
     return(
         spline_rescale(
             x = x,
-            spline_x = spline_dat$x,
-            spline_y = spline_dat$y
+            spline_x = x_range,
+            spline_y = f(x_range)
         )
     )
 }

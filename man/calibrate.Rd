@@ -11,7 +11,7 @@ calibrate(x, x_values, y_values = c(0, 0.101, 0.944, 1), ...)
 the benchmarking function (see \code{\link{benchmark}}). If \code{x} is a matrix or data.frame,
 the calibration will be applied to all columns.}
 
-\item{x_values}{Numeric vector of uncalibrated condition values. It is recommended that \code{x_values}
+\item{x_values}{Numeric vector of un-calibrated condition values. It is recommended that \code{x_values}
 cover the full range of values, including the minimum and maximum of the raw condition data.}
 
 \item{y_values}{Numeric vector of calibrated target condition value corresponding to \code{x_values}.}
@@ -24,7 +24,7 @@ A matrix, SpatRaster or vector, depending on the inputs.
 }
 \description{
 This function calibrates the HCAS habitat condition values and scales them between 0 and 1
-using a Spline function.
+using a monotonically increasing Spline function.
 }
 \examples{
 \donttest{

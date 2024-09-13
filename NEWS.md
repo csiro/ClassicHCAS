@@ -1,3 +1,6 @@
+# Version 0.1.5
+* Replaced the natural spline in the `calibrate` function with a monotonically increasing spline function.
+
 # Version 0.1.4
 * Deprecated the linear (piece-wise) calibration method, superseded with the spline method.
 * The arguments of `calibrate` are updated with `x_values` and `y_values`.
