@@ -1,0 +1,37 @@
+---
+title: "Introduction to Habitat Condition Assessment System (HCAS)"
+author: "Roozbeh Valavi, ..."
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Introduction to Habitat Condition Assessment System (HCAS)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+## Introduction
+
+
+## HCAS steps
+
+
+## Getting example data
+
+
+
+## Histogram calculation
+
+
+## Histogram normalisation
+
+
+## Benchmarking
+
+
+## Calibration
+
+
+
