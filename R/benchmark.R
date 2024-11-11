@@ -36,6 +36,10 @@
 #' @param xy_penalty Numeric. The spatial distance penalty value for selecting benchmark points.
 #' The higher the value the more penalise the distant location will be. The value 0 means no penalty.
 #' @param radius_km Numeric. Search radius in kilometers for considering benchmark samples.
+#' @param scale_factor Numeric. A scaling factor to correct distance calculations by converting degrees to
+#' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
+#' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
+#' function.
 #' @param k_pred Integer. Number of nearest ENV/predicted RS samples to take.
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{histogram} is
@@ -77,6 +81,7 @@ benchmark <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
+        scale_factor = 100000,
         k_pred = 50,
         k_obs = 20,
         bin_width = NULL,
@@ -145,7 +150,7 @@ benchmark <- function(
         # check and convert to matrix
         data <- .check_mat(data)
         # correction scale for long-lat CRS
-        correction <- ifelse(.is_lonlat(data), 100000, 1)
+        correction <- ifelse(.is_lonlat(data), scale_factor, 1)
 
         tryCatch(
             {
@@ -182,7 +187,7 @@ benchmark <- function(
         data <- .check_rast(data)
 
         # correction scale for long-lat CRS
-        correction <- ifelse(.is_lonlat(data), 100000, 1)
+        correction <- ifelse(.is_lonlat(data), scale_factor, 1)
 
         # sample extraction if needed
         if (ncol(samples) == 2) {

@@ -31,6 +31,10 @@
 #' @param bin_num Integer. Specifies the number of bins for the histogram. It is generally recommended
 #' to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 #' \code{bin_num}.
+#' @param scale_factor Numeric. A scaling factor to correct distance calculations by converting degrees to
+#' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
+#' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
+#' function.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' additional information.
@@ -55,6 +59,7 @@ histogram <- function(
         radius_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
+        scale_factor = 100000,
         num_threads = -1,
         filename = "") {
 
@@ -69,7 +74,7 @@ histogram <- function(
         stop("'samples_xy' must be a data.frame or matrix with exactly two columns: one for longitude (x) and one for latitude (y).")
 
     # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(samples_xy), 100000, 1)
+    correction <- ifelse(.is_lonlat(samples_xy), scale_factor, 1)
 
     # check for predicted variables
     if (.is_mat(predicted)) {

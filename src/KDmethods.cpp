@@ -11,11 +11,13 @@
 std::vector<XYPoints> as_XYPoints(const Lightweight_matrix<double>& mat)
 {
     std::vector<XYPoints> points;
+    points.reserve(mat.nrow());
+
     for (int i = 0; i < mat.nrow(); i++)
     {
         double x = mat(i, 0);
         double y = mat(i, 1);
-        points.push_back(XYPoints(x, y)); // the push back maight be time consuming! replace by initilized vector?
+        points.push_back(XYPoints(x, y));
     }
 
     return points;

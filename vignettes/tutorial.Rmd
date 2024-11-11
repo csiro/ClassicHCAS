@@ -17,18 +17,58 @@ vignette: >
 
 ## HCAS steps
 
+Diagram here:
+
+
+
 
 ## Getting example data
 
+```{r}
+xy_train <- read.csv("P:/BMS/pacakge_data/samples/train_xy.csv")
+obs_train <- read.csv("P:/BMS/pacakge_data/samples/train_obs.csv")
+pred_train <- read.csv("P:/BMS/pacakge_data/samples/train_pred.csv")
+
+```
 
 
 ## Histogram calculation
 
 
+```{r, warning=FALSE, message=FALSE, fig.width=5, fig.height=4}
+histo <- ClassicHCAS::histogram(
+  observed = obs_train,
+  predicted = pred_train,
+  samples_xy = xy_train,
+  radius_km = 1000,
+  bin_width = 0.03
+)
+
+plot(histo)
+
+```
+
+
 ## Histogram normalisation
 
 
+```{r, fig.width=5, fig.height=4}
+norm <- ClassicHCAS::normalise(
+  x = histo
+)
+
+plot(norm)
+
+```
+
+
 ## Benchmarking
+
+
+```{r}
+
+
+```
 
 
 ## Calibration

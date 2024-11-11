@@ -1,3 +1,7 @@
+# Version 0.1.6
+* Added a `scale_factor` parameter to allow user-defined correction of geographic CRS distance calculations, enhancing flexibility in handling distance conversions (previously set to a default value only).
+* Enhanced C++ code for improved efficiency in point class creation.
+
 # Version 0.1.5
 * Replaced the natural spline in the `calibrate` function with a monotonically increasing spline function.
 
