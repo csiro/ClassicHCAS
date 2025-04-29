@@ -56,7 +56,6 @@ std::vector<int> KD_KNN(const Lightweight_matrix<double>& data,      // main dat
                         const int start,                             // starting column in raster stack matrix
                         const int end)
 {
-
     // define multi-dimensional points only for env variables
     std::vector<MDPoints> points = as_MDPoints(data, start, end);
     // build k-d tree for searching knn
