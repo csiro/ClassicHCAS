@@ -6,7 +6,7 @@ status](https://github.com/csiro-internal/ClassicHCAS/workflows/R-CMD-check/badg
 
 ## The Classic Habitat Condition Assessment System (HCAS)
 
-The `ClassicHCAS` package provides a comprehensive suite of functions for assessing habitat condition using remote sensing indices and reference ecosystem samples. This package is a complete re-write of CSIRO’s earlier software collection, **HCAS**, originally developed by Tom Harwood. All the tools and functions from the previous HCAS software are now available in this R package, which supports a variety of data formats. 
+The `ClassicHCAS` package provides a comprehensive suite of functions for assessing habitat condition using remote sensing indices and reference ecosystem samples. This package is a complete re-write of CSIRO’s earlier software collection, **HCAS**, originally developed by Tom Harwood. All the tools and functions from the previous HCAS software are now available in this R package, which supports a variety of data formats. `ClassicHCAS` is implemented using Rcpp, leveraging the high performance of C++ code. A Rust implementation is currently in progress and can be found [here](https://github.com/csiro-internal/xcas)).
 The calculation of HCAS products across the entire continent is now fully automated through the [hcas-workflow](https://github.com/csiro-internal/hcas_workflow) Python repository, using the `ClassicHCAS` package.
 
 **Note**: The `ClassicHCAS` package is still under active development, so the user interface might completely change.
