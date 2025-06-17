@@ -55,6 +55,9 @@
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
 #' @param exclude_slef Logical. To exclude a benchmark point from assessing itself.
+#' @param drop_features Integer vector. Completely remove the RS variable from the benchmarking process. For
+#' consistency, it is recommended to exclude the same variables used in the histogram step; unless
+#' you have a specific reason not to.
 #' @param make_su Logical. To make the uncertainty map or not.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
@@ -90,26 +93,17 @@ benchmark <- function(
         confidence = 0.5,
         lambda = 2.0,
         exclude_slef = TRUE,
+        drop_features = NULL,
         make_su = FALSE,
         num_threads = -1,
         ...) {
 
+    # check k_pred and k_obs
+    if (k_pred < k_obs) stop("'k_obs' must be smaller or equal to 'k_pred'.")
     # check samples and histograms
-    if (.is_mat(samples)) {
-        samples <- .check_mat(samples)
-    } else {
-        stop("'samples' must be a matrix or an object convertibe to matrix")
-    }
-    if (.is_mat(histogram)) {
-        histogram <- .check_mat(histogram)
-    } else {
-        stop("'histogram' must be a matrix or an object convertibe to matrix")
-    }
-
-    if (nrow(histogram) != ncol(histogram)) {
-        warning("Historgram dimensions are not the same!\n")
-    }
-    # cat("Histogram dimension:", dim(histogram), "\n")
+    samples <- if (.is_mat(samples)) .check_mat(samples) else stop("'samples' must be a matrix or convertible to one.")
+    histogram <- if (.is_mat(histogram)) .check_mat(histogram) else stop("'histogram' must be a matrix or convertible to one.")
+    if (nrow(histogram) != ncol(histogram)) warning("Historgram dimensions are not the same!\n")
 
     if (methods::is(histogram, "histo")) {
         # check for histo bin_width consistency
@@ -117,7 +111,7 @@ benchmark <- function(
             bin_width <- attributes(histogram)$bin.width
         } else {
             if (bin_width != attributes(histogram)$bin.width) {
-                warning("The supplied 'bin_width` is different from the arrtibute(histogram)$bin.width from the input.")
+                warning("Provided 'bin_width' differs from histogram attribute.")
             }
         }
         # check for histo offset consistency
@@ -125,7 +119,7 @@ benchmark <- function(
             offset <- attributes(histogram)$offset
         } else {
             if (offset != attributes(histogram)$offset) {
-                warning("The supplied 'offset` is different from the arrtibute(histogram)$offset from the input.")
+                warning("Provided 'offset' differs from histogram attribute.")
             }
         }
     }
@@ -133,24 +127,32 @@ benchmark <- function(
     # interpolate histogram
     if (interpolate) {
         histogram <- terra::as.matrix(
-            x = terra::disagg(
-                x = terra::rast(histogram),
-                fact = 2,
-                method = "bilinear"
-            ),
+            terra::disagg(terra::rast(histogram), fact = 2, method = "bilinear"),
             wide = TRUE
         )
     }
     # get the bin number after interpolation
     bin_num <- min(dim(histogram))
 
-
+    exclude_var <- NULL
+    # drop features from calculation if requested
+    if (length(drop_features)) {
+        n_vars <- (ncol(samples) - 2) / 2
+        exclude_var <- c(drop_features + 2, drop_features + 2 + n_vars)
+    }
 
     if (.is_mat(data)) {
         # check and convert to matrix
         data <- .check_mat(data)
         # correction scale for long-lat CRS
         correction <- ifelse(.is_lonlat(data), scale_factor, 1)
+
+        if (ncol(samples) != ncol(data)) {
+            stop("Samples must include all raster values (matching column count with 'data').")
+        }
+
+        # remove the features from the reference samples as well
+        if (!is.null(exclude_var)) samples[, exclude_var] <- 0
 
         tryCatch(
             {
@@ -172,6 +174,7 @@ benchmark <- function(
                     confidence = confidence,
                     lambda = lambda,
                     exclude_slef = exclude_slef,
+                    drop = exclude_var,
                     make_su = make_su,
                     num_threads = num_threads
                 )
@@ -192,16 +195,14 @@ benchmark <- function(
         # sample extraction if needed
         if (ncol(samples) == 2) {
             cat("Extracting sample values...\n")
-            # add xy to the stack and extract
-            samples <- cbind(
-                samples,
-                as.matrix(terra::extract(x = data, y = samples, ID = FALSE))
-            )
-        } else if ((ncol(samples) - 2) == terra::nlyr(data)) {
-            cat("Samples with raster values are provided!\n")
-        } else{
-            # this should include rows/cols columns as well
-            stop("Samples must either be coordinate values exclusively or include all raster layer values.")
+            samples <- cbind(samples, as.matrix(terra::extract(data, samples, ID = FALSE)))
+        } else if ((ncol(samples) - 2) != terra::nlyr(data)) {
+            stop("Sample feature count does not match number of raster layers.")
+        }
+
+        # remove the features from the reference samples as well
+        if (length(drop_features)) {
+            samples[, exclude_var] <- 0
         }
 
         tryCatch(
@@ -225,6 +226,7 @@ benchmark <- function(
                     confidence = confidence,
                     lambda = lambda,
                     exclude_slef = exclude_slef,
+                    drop = exclude_var,
                     make_su = make_su,
                     num_threads = num_threads,
                     ...
@@ -248,7 +250,7 @@ benchmark <- function(
 # the generic HCAS prediction function for C++ integration with terra
 # NOTE: the na.rm arg in terra::predict doesn't provide the correct mask
 #   and keep model an empty list
-benchmarking <- function(model, newdata, make_su, ...){
+benchmarking <- function(model, newdata, make_su, drop = NULL, ...){
     # check for NAs
     has_na <- anyNA(newdata)
     # number of output columns; TRUE/FALSE + 1
@@ -268,6 +270,9 @@ benchmarking <- function(model, newdata, make_su, ...){
         dat <- as.matrix(newdata)
     }
 
+    # if drop_features are provided exclude them from features
+    if (length(drop)) dat[, drop] <- 0
+
     tryCatch(
         {
             # the HCAS C++ function
@@ -278,7 +283,7 @@ benchmarking <- function(model, newdata, make_su, ...){
             )
         },
         error = function(cond) {
-            message("Error: the benchmarking C++ function faild, returning -0.02!")
+            message("Benchmarking C++ function failed. Returning -0.02 for all cells.")
             # return error values -0.02
             return(
                 matrix(-0.02, nrow = nr, ncol = nc)

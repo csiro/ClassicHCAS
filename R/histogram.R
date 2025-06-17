@@ -35,6 +35,9 @@
 #' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
 #' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
 #' function.
+#' @param drop_features Integer vector. Completely remove the RS variable from the histogram generation. For
+#' consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
+#' you have a specific reason not to.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' additional information.
@@ -60,15 +63,12 @@ histogram <- function(
         bin_width = 0.05,
         bin_num = 650,
         scale_factor = 100000,
+        drop_features = NULL,
         num_threads = -1,
         filename = "") {
 
     # check samples_xy
-    if (.is_mat(samples_xy)) {
-        samples_xy <- .check_mat(samples_xy)
-    } else {
-        stop("'samples_xy' must be a matrix or an object convertibe to matrix")
-    }
+    samples_xy <- if (.is_mat(samples_xy)) .check_mat(samples_xy) else stop("'samples_xy' must be a matrix or convertible to one.")
 
     if (ncol(samples_xy) != 2)
         stop("'samples_xy' must be a data.frame or matrix with exactly two columns: one for longitude (x) and one for latitude (y).")
@@ -116,6 +116,12 @@ histogram <- function(
         warning("The names\\order of observed and predicted datasets doesn't match!\n")
         cat("Observed: ", colnames(observed), "\n")
         cat("Predicted:", colnames(predicted), "\n")
+    }
+
+    # drop features from calculation if requested
+    if (length(drop_features)) {
+        observed[, drop_features] <- 0
+        predicted[, drop_features] <- 0
     }
 
     # run histo calculate in C++

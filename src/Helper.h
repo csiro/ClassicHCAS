@@ -1,6 +1,5 @@
 #pragma once
 
-#define PI 3.14159265358978993897
 #define PI_Sq 9.869604401089358
 
 
