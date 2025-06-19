@@ -2,7 +2,7 @@ Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
 Version: 0.2.0
-Date: 2025-06-17
+Date: 2025-06-19
 Author: Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 Maintainer: <roozbeh.valavi@csiro.au>
 Description: The HCAS evaluates habitat condition by comparing observed and 

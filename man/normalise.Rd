@@ -4,7 +4,14 @@
 \alias{normalise}
 \title{Clean and normalise HCAS histogram}
 \usage{
-normalise(x, bin_width = NULL, trim_size = 400, offset = 0, filename = "")
+normalise(
+  x,
+  bin_width = NULL,
+  trim_size = 400,
+  offset = 0,
+  legacy = FALSE,
+  filename = ""
+)
 }
 \arguments{
 \item{x}{An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).}
@@ -19,6 +26,9 @@ is 400, and it is generally advisable to retain this default setting.}
 
 \item{offset}{Integer. Specifies the number of histogram bins to ignore during normalization. This value
 will be stored as an attribute in the output object.}
+
+\item{legacy}{Logical. Whether to use the legacy C++ code for normalisation (for backward
+compatibility) or the modern R version (default). The modern version solves the edge effect issue.}
 
 \item{filename}{Char (optional). The output file name for the .text file.}
 }

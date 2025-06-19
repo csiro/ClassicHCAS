@@ -20,6 +20,7 @@ benchmark(
   confidence = 0.5,
   lambda = 2,
   exclude_slef = TRUE,
+  drop_features = NULL,
   make_su = FALSE,
   num_threads = -1,
   ...
@@ -76,6 +77,10 @@ step to ensure condition is accurately calculated.}
 \item{lambda}{Numeric. The lambda param for LDC Cauchy weighting...}
 
 \item{exclude_slef}{Logical. To exclude a benchmark point from assessing itself.}
+
+\item{drop_features}{Integer vector. Completely remove the RS variable from the benchmarking process. For
+consistency, it is recommended to exclude the same variables used in the histogram step; unless
+you have a specific reason not to.}
 
 \item{make_su}{Logical. To make the uncertainty map or not.}
 
