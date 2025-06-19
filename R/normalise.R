@@ -17,7 +17,7 @@
 #'
 #' @seealso \code{\link{histogram}}, and \code{\link{benchmark}}
 #'
-#' @return A histo object (matrix, array)
+#' @return A histo object (also matrix, array)
 #' @export
 #'
 #' @examples

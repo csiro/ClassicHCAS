@@ -33,7 +33,7 @@ compatibility) or the modern R version (default). The modern version solves the 
 \item{filename}{Char (optional). The output file name for the .text file.}
 }
 \value{
-A histo object (matrix, array)
+A histo object (also matrix, array)
 }
 \description{
 This process includes trimming the histogram to remove noise and normalising its values.
