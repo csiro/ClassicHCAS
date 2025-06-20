@@ -1,9 +1,9 @@
 # Version 0.2.0
-* Added `drop_features` parameter to fully exclude specific variables from both the `histogram` and `benchmark` functions.
-* Adding a condition to ensure that `k_obs`  is less than or equal to `k_pred`.
+* Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.
+* Added a condition to ensure that `k_obs`  is less than or equal to `k_pred`.
 * A new histogram normalisation method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
-* The zero-zero point in the raw self-assessment histogram is now excluded prior to normalisation.
-* The `histogram` function arguments changed to `data` and `samples`.
+* The zero-zero point (reference self-count) in the raw histogram is now excluded prior to normalisation.
+* The `histogram` function arguments have changed to `data` and `samples`.
 
 # Version 0.1.6
 * Added a `scale_factor` parameter to allow user-defined correction of geographic CRS distance calculations, enhancing flexibility in handling distance conversions (previously set to a default value only).
