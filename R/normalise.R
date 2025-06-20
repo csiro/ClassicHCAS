@@ -103,6 +103,7 @@ normalise <- function(
 # the new normalisation function that doesn't remove the edges
 norm_r <- function(x, trim_size = 400, offset = 0) {
     nr <- nrow(x)
+    nc <- ncol(x)
 
     r <- terra::rast(x)
     # create a Gaussian filter and normalise it to add up to 1

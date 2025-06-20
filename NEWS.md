@@ -1,8 +1,8 @@
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific variables from both the `histogram` and `benchmark` functions.
 * Adding a condition to ensure that `k_obs`  is less than or equal to `k_pred`.
-* A new histogram normalization method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
-* The zero-zero point in the raw self-assessment histogram is now excluded prior to normalization.
+* A new histogram normalisation method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
+* The zero-zero point in the raw self-assessment histogram is now excluded prior to normalisation.
 * The `histogram` function arguments changed to `data` and `samples`.
 
 # Version 0.1.6
