@@ -118,7 +118,7 @@ histogram <- function(
 
     if(any(colnames(modelled) != colnames(observed))) {
         warning("The names\\order of observed and modelled datasets doesn't match!\n")
-        cat("Observed: ", colnames(observed), "\n")
+        cat("Observed:", colnames(observed), "\n")
         cat("Modelled:", colnames(modelled), "\n")
     }
 
