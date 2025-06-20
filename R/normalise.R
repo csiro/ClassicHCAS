@@ -46,7 +46,10 @@ normalise <- function(
         }
     }
 
-    # remove the 0,0 point
+    # force offset to be above zero
+    offset <- max(0, offset)
+
+    # remove the 0,0 point; self overlaps
     nr <- nrow(x)
     x[nr, 1] <- 0
 
@@ -100,7 +103,7 @@ normalise <- function(
 # the new normalisation function that doesn't remove the edges
 norm_r <- function(x, trim_size = 400, offset = 0) {
     nr <- nrow(x)
-    x[nr, 1] <- 0
+
     r <- terra::rast(x)
     # create a Gaussian filter and normalise it to add up to 1
     d <- stats::dnorm(-2:2, 0, 1)
@@ -110,10 +113,10 @@ norm_r <- function(x, trim_size = 400, offset = 0) {
     mat <- as.matrix(rr, wide = TRUE)
 
     # trim the histogram and apply offset
-    lower <- nr - trim_size + 1 - offset
     upper <- nr - offset
+    lower <- min(nr - trim_size + 1 - offset, upper)
     left <- 1 + offset
-    right <- trim_size + offset
+    right <- min(trim_size + offset, nc)
     mat <- mat[lower:upper, left:right]
 
     # normalise the columns and then reverse them

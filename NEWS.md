@@ -3,6 +3,7 @@
 * Adding a condition to ensure that `k_obs`  is less than or equal to `k_pred`.
 * A new histogram normalization method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
 * The zero-zero point in the raw self-assessment histogram is now excluded prior to normalization.
+* The `histogram` function arguments changed to `data` and `samples`.
 
 # Version 0.1.6
 * Added a `scale_factor` parameter to allow user-defined correction of geographic CRS distance calculations, enhancing flexibility in handling distance conversions (previously set to a default value only).

@@ -6,23 +6,24 @@
 #' sites used for the \code{histogram} do not need to be the same as those used in
 #' the \code{\link{benchmark}} function. See more in details.
 #'
-#' Ensure that the order of RS variables is consistent between observed and predicted inputs.
-#' The RS variable values must be centered and scaled prior to prediction. Failure to do
-#' so may result in variables with larger ranges having disproportionate influence in the
-#' multi-dimensional distance calculations.
+#' Ensure that the order of RS variables is consistent between observed and predicted inputs
+#' (for both raster and matrix formats). The RS variable values must be centered and scaled
+#' prior to prediction. Failure to do so may result in variables with larger ranges having
+#' disproportionate influence in the multi-dimensional distance calculations.
 #'
 #' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 #' to take advantage of parallel processing and accelerate computations. While most systems
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
-#' @param observed A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
-#' the observed remote sensing variables.
-#' @param predicted A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
-#' the predicted remote sensing variables. The order of the predicted RS variables must match the
-#' order of the observed RS variables.
-#' @param samples_xy A matrix or data.frame containing the x and y coordinates (longitude and latitude)
-#' of the reference points used for the observed and predicted RS variables.
+#' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
+#' The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
+#' \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
+#' If using a matrix or data.frame, ensure that the variables are in the
+#' correct order. For more see the details section.
+#' @param samples A matrix or data.frame containing the x and y coordinates (longitude and latitude)
+#' of the reference points used for the observed and predicted RS value extraction if \code{data} is a
+#' raster object. If \code{data} argument is matrix, this will not be used.
 #' @param radius_km Numeric. Specifies the search radius in kilometers for considering reference samples
 #' when creating the histogram.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
@@ -56,9 +57,8 @@
 #'
 #' }
 histogram <- function(
-        observed,
-        predicted,
-        samples_xy,
+        data,
+        samples = NULL,
         radius_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
@@ -67,61 +67,65 @@ histogram <- function(
         num_threads = -1,
         filename = "") {
 
-    # check samples_xy
-    samples_xy <- if (.is_mat(samples_xy)) .check_mat(samples_xy) else stop("'samples_xy' must be a matrix or convertible to one.")
-
-    if (ncol(samples_xy) != 2)
-        stop("'samples_xy' must be a data.frame or matrix with exactly two columns: one for longitude (x) and one for latitude (y).")
-
-    # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(samples_xy), scale_factor, 1)
-
-    # check for predicted variables
-    if (.is_mat(predicted)) {
-        predicted <- .check_mat(predicted)
-    } else if (.is_rast(predicted)) {
+    # check for data variables
+    if (.is_mat(data)) {
+        data_vals <- .check_mat(data)
+    } else if (.is_rast(data)) {
         # check terra is available
         .check_pkgs("terra")
+
+        # check samples
+        if (is.null(samples)) stop("For input 'data' as a raster file, 'sample' xy must be provided!")
+
+        samples <- if (.is_mat(samples)) .check_mat(samples) else stop("'samples' must be a matrix or convertible to one.")
+
+        if (ncol(samples) != 2) stop("'samples' must be a data.frame or matrix with exactly two columns of XY coordinates.")
+
+        data <- .check_rast(data)
+        if (terra::nlyr(data) %% 2) stop("Odd number of layers! The number of observed and prediced RS must be equal!")
+
         # extract values
-        predicted <- as.matrix(
-            terra::extract(predicted, samples_xy, ID = FALSE)
-        )
+        data_ext <- terra::extract(data, samples, ID = FALSE)
+        data_vals <- as.matrix(cbind(samples, data_ext))
     }  else {
         stop("The 'predicted' must be raster or a matrix, or convertiable object to these classes.")
     }
 
-    # check for observed variables
-    if (.is_mat(observed)) {
-        observed <- .check_mat(observed)
-    } else if (.is_rast(observed)) {
-        # extract values
-        observed <- as.matrix(
-            terra::extract(observed, samples_xy, ID = FALSE)
-        )
-    }  else {
-        stop("The 'observed' must be raster or a matrix, or convertiable object to these classes.")
-    }
+
+    # number of observed RS vars
+    num_layers <- (ncol(data_vals) - 2) / 2
+    # id of obs and mod for saving
+    obs_layers <- seq_len(num_layers) + 2
+    mod_layers <- obs_layers + num_layers
+
+    # get the correct columns for the C++ code
+    samples_xy <- data_vals[, 1:2]
+    observed <- data_vals[, obs_layers]
+    modelled <- data_vals[, mod_layers]
+
+    # correction scale for long-lat CRS
+    correction <- ifelse(.is_lonlat(samples_xy), scale_factor, 1)
 
     # some error checking
-    if(any(dim(predicted) != dim(observed)))
+    if(any(dim(modelled) != dim(observed)))
         stop("Dimensions of RS and ENV datasets doesn't match!")
 
-    if(nrow(predicted) != nrow(samples_xy))
+    if(nrow(modelled) != nrow(samples_xy))
         stop("Number of rows of rasters values and reference samples_xy doesn't match!")
 
-    if(any(anyNA(predicted), anyNA(observed), anyNA(samples_xy)))
-        stop("There's NA in the extracted observed, predicted or xy samples_xy!")
+    if(any(anyNA(modelled), anyNA(observed), anyNA(samples_xy)))
+        stop("There's NA in the extracted observed, modelled or xy samples_xy!")
 
-    if(any(colnames(predicted) != colnames(observed))) {
-        warning("The names\\order of observed and predicted datasets doesn't match!\n")
+    if(any(colnames(modelled) != colnames(observed))) {
+        warning("The names\\order of observed and modelled datasets doesn't match!\n")
         cat("Observed: ", colnames(observed), "\n")
-        cat("Predicted:", colnames(predicted), "\n")
+        cat("Modelled:", colnames(modelled), "\n")
     }
 
     # drop features from calculation if requested
     if (length(drop_features)) {
         observed[, drop_features] <- 0
-        predicted[, drop_features] <- 0
+        modelled[, drop_features] <- 0
     }
 
     # run histo calculate in C++
@@ -129,7 +133,7 @@ histogram <- function(
         {
             out_table <- histo_cpp(
                 rs_vals = observed,
-                pr_vals = predicted,
+                pr_vals = modelled,
                 samples_xy = samples_xy,
                 within_km = radius_km,
                 scale = correction,

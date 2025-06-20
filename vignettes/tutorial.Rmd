@@ -29,6 +29,8 @@ xy_train <- read.csv("P:/BMS/pacakge_data/samples/train_xy.csv")
 obs_train <- read.csv("P:/BMS/pacakge_data/samples/train_obs.csv")
 pred_train <- read.csv("P:/BMS/pacakge_data/samples/train_pred.csv")
 
+full_data <- cbind(xy_train, obs_train, pred_train)
+
 ```
 
 
@@ -37,9 +39,7 @@ pred_train <- read.csv("P:/BMS/pacakge_data/samples/train_pred.csv")
 
 ```{r, warning=FALSE, message=FALSE, fig.width=5, fig.height=4}
 histo <- ClassicHCAS::histogram(
-  observed = obs_train,
-  predicted = pred_train,
-  samples_xy = xy_train,
+  data = full_data,
   radius_km = 1000,
   bin_width = 0.03
 )
@@ -53,9 +53,7 @@ plot(histo)
 
 
 ```{r, fig.width=5, fig.height=4}
-norm <- ClassicHCAS::normalise(
-  x = histo
-)
+norm <- ClassicHCAS::normalise(x = histo)
 
 plot(norm)
 

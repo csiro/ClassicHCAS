@@ -5,9 +5,8 @@
 \title{The HCAS histogram}
 \usage{
 histogram(
-  observed,
-  predicted,
-  samples_xy,
+  data,
+  samples = NULL,
   radius_km = 1000,
   bin_width = 0.05,
   bin_num = 650,
@@ -18,15 +17,15 @@ histogram(
 )
 }
 \arguments{
-\item{observed}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
-the observed remote sensing variables.}
+\item{data}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
+The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
+\strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
+If using a matrix or data.frame, ensure that the variables are in the
+correct order. For more see the details section.}
 
-\item{predicted}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing
-the predicted remote sensing variables. The order of the predicted RS variables must match the
-order of the observed RS variables.}
-
-\item{samples_xy}{A matrix or data.frame containing the x and y coordinates (longitude and latitude)
-of the reference points used for the observed and predicted RS variables.}
+\item{samples}{A matrix or data.frame containing the x and y coordinates (longitude and latitude)
+of the reference points used for the observed and predicted RS value extraction if \code{data} is a
+raster object. If \code{data} argument is matrix, this will not be used.}
 
 \item{radius_km}{Numeric. Specifies the search radius in kilometers for considering reference samples
 when creating the histogram.}
@@ -65,10 +64,10 @@ sites used for the \code{histogram} do not need to be the same as those used in
 the \code{\link{benchmark}} function. See more in details.
 }
 \details{
-Ensure that the order of RS variables is consistent between observed and predicted inputs.
-The RS variable values must be centered and scaled prior to prediction. Failure to do
-so may result in variables with larger ranges having disproportionate influence in the
-multi-dimensional distance calculations.
+Ensure that the order of RS variables is consistent between observed and predicted inputs
+(for both raster and matrix formats). The RS variable values must be centered and scaled
+prior to prediction. Failure to do so may result in variables with larger ranges having
+disproportionate influence in the multi-dimensional distance calculations.
 
 Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 to take advantage of parallel processing and accelerate computations. While most systems
