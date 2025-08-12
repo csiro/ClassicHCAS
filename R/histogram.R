@@ -1,12 +1,12 @@
-#' The HCAS histogram
+#' The HCAS reference density surface
 #'
-#' The HCAS histogram calculation is based on pair-point densities. It is an integral part of HCAS,
+#' The HCAS reference density surface calculation (also known as 2D histogram) is based on pair-point densities. It is an integral part of HCAS,
 #' designed to learn the expected observed remote sensing (RS) values from the
 #' predicted RS values across a wide range of reference sites. Note that the reference
 #' sites used for the \code{histogram} do not need to be the same as those used in
 #' the \code{\link{benchmark}} function. See more in details.
 #'
-#' Ensure that the order of RS variables is consistent between observed and predicted inputs
+#' Ensure that the order of remote sensing variables is consistent between observed and predicted inputs
 #' (for both raster and matrix formats). The RS variable values must be centered and scaled
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
@@ -17,7 +17,7 @@
 #' system.
 #'
 #' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
-#' The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
+#' The data must be organised in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
 #' \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
 #' If using a matrix or data.frame, ensure that the variables are in the
 #' correct order. For more see the details section.
@@ -40,8 +40,8 @@
 #' consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
 #' you have a specific reason not to.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
-#' below 1 indicates that all available threads will be utilized. Refer to the details section for
-#' additional information.
+#' below 1 indicates that all available threads will be utilized (default). Refer to the details section for
+#' more information.
 #' @param filename Character (optional). The name of the output file for saving the results as a .txt file.
 #'
 #' @seealso \code{\link{normalise}}, and \code{\link{benchmark}}

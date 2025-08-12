@@ -48,7 +48,7 @@ Rcpp::NumericMatrix bench_cpp(
     add_xy_scaled(samples, xy_stats, xy_penalty);
     add_xy_scaled(rstack, xy_stats, xy_penalty);
 
-    // ncol MUST BE after adding xy_scaled
+    // ncol MUST BE after adding xy_scaled, so it has the two extra columns
     const int nc = rstack.ncol();
     const int nr = rstack.nrow();
 

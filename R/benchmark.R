@@ -1,4 +1,4 @@
-#' Benchmarking target points
+#' Condition benchmarking of target points
 #'
 #' The HCAS (Habitat Condition Assessment System) benchmarking function evaluates habitat
 #' condition by comparing observed and predicted remote sensing (RS) variables. It integrates
@@ -6,7 +6,7 @@
 #' over time. This function is designed to help researchers and conservationists quantify the
 #' impacts of environmental changes and management interventions on habitat condition.
 #'
-#' Ensure that the order of RS variables is consistent between observed and predicted inputs
+#' Ensure that the order of remote sensing variables is consistent between observed and predicted inputs
 #' (for both raster and matrix formats). The RS variable values must be centered and scaled
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
@@ -19,11 +19,7 @@
 #' Note that the default parameters are tailored for Australia and may not be suitable for other
 #' regions.
 #'
-#' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
-#' The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
-#' \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
-#' If using a matrix or data.frame, ensure that the variables are in the
-#' correct order. For more see the details section.
+#' @inheritParams histogram
 #' @param samples A matrix or data.frame containing x, y, observed-RS, and predicted-RS values
 #' (in that specific order) for benchmark samples (also known as reference sites). If the
 #' \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
@@ -36,19 +32,15 @@
 #' @param xy_penalty Numeric. The spatial distance penalty value for selecting benchmark points.
 #' The higher the value the more penalise the distant location will be. The value 0 means no penalty.
 #' @param radius_km Numeric. Search radius in kilometers for considering benchmark samples.
-#' @param scale_factor Numeric. A scaling factor to correct distance calculations by converting degrees to
-#' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
-#' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-#' function.
-#' @param k_pred Integer. Number of nearest ENV/predicted RS samples to take.
+#' @param k_pred Integer. Number of nearest predicted RS samples to take.
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{histogram} is
 #' a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
 #' The bin width must be consistent between the histogram creation and the benchmarking step to
 #' ensure condition is accurately calculated.
-#' @param interpolate Logical. Should interpolate the histogram?
+#' @param interpolate Logical. Whether to interpolate the histogram for a smoother result.
 #' @param offset Integer. Specifies the number of histogram bins that were ignored during
-#' normalization (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+#' normalisation (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
 #' this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
 #' the \code{offset} must be consistent between the histogram normalisation and the benchmarking
 #' step to ensure condition is accurately calculated.
@@ -59,9 +51,6 @@
 #' consistency, it is recommended to exclude the same variables used in the histogram step; unless
 #' you have a specific reason not to.
 #' @param make_su Logical. To make the uncertainty map or not.
-#' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
-#' below 1 indicates that all available threads will be utilized. Refer to the details section for
-#' more information.
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
 #' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
 #'
@@ -195,7 +184,7 @@ benchmark <- function(
         # sample extraction if needed
         if (ncol(samples) == 2) {
             cat("Extracting sample values...\n")
-            samples <- cbind(samples, as.matrix(terra::extract(data, samples, ID = FALSE)))
+            samples <- cbind(samples, as.matrix(terra::extract(data, samples)))
         } else if ((ncol(samples) - 2) != terra::nlyr(data)) {
             stop("Sample feature count does not match number of raster layers.")
         }

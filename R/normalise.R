@@ -3,16 +3,14 @@
 #' This process includes trimming the histogram to remove noise and normalising its values.
 #'
 #' @param x An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).
-#' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{x} is a
-#' \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}. The bin width
-#' is primarily used to ensure consistency in the benchmarking step by accurately tracking and applying the
-#' bin width used during histogram creation.
+#' @inheritParams benchmark
 #' @param trim_size Integer. Defines the number of rows and columns in the trimmed histogram. The default
 #' is 400, and it is generally advisable to retain this default setting.
 #' @param offset Integer. Specifies the number of histogram bins to ignore during normalization. This value
 #' will be stored as an attribute in the output object.
 #' @param legacy Logical. Whether to use the legacy C++ code for normalisation (for backward
-#' compatibility) or the modern R version (default). The modern version solves the edge effect issue.
+#' compatibility) or the modern R version (default). The modern version solves the edge effect
+#' issue without any speed compromise.
 #' @param filename Char (optional). The output file name for the .text file.
 #'
 #' @seealso \code{\link{histogram}}, and \code{\link{benchmark}}
@@ -53,19 +51,11 @@ normalise <- function(
     nr <- nrow(x)
     x[nr, 1] <- 0
 
-    # normalise the histo C++
-    if (legacy) {
-        out <- norm_cpp(
-            x = x,
-            trim_size = trim_size,
-            offset = offset
-        )
+    # normalise the histo, C++ or R
+    out <- if (legacy) {
+        norm_cpp(x, trim_size = trim_size, offset = offset)
     } else {
-        out <- norm_r(
-            x = x,
-            trim_size = trim_size,
-            offset = offset
-        )
+        norm_r(x, trim_size = trim_size, offset = offset)
     }
 
     # write down the histogram
@@ -111,7 +101,7 @@ norm_r <- function(x, trim_size = 400, offset = 0) {
     w <- outer(d, d)
     w <- w / sum(w)
     rr <- terra::focal(r, w = w, fun = sum, na.rm = TRUE)
-    mat <- as.matrix(rr, wide = TRUE)
+    mat <- terra::as.matrix(rr, wide = TRUE)
 
     # trim the histogram and apply offset
     upper <- nr - offset

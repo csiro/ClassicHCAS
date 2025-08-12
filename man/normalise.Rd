@@ -16,10 +16,10 @@ normalise(
 \arguments{
 \item{x}{An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).}
 
-\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{x} is a
-\strong{histo} object, this value can be read from its attributes and may be left \code{NULL}. The bin width
-is primarily used to ensure consistency in the benchmarking step by accurately tracking and applying the
-bin width used during histogram creation.}
+\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{histogram} is
+a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
+The bin width must be consistent between the histogram creation and the benchmarking step to
+ensure condition is accurately calculated.}
 
 \item{trim_size}{Integer. Defines the number of rows and columns in the trimmed histogram. The default
 is 400, and it is generally advisable to retain this default setting.}
@@ -28,7 +28,8 @@ is 400, and it is generally advisable to retain this default setting.}
 will be stored as an attribute in the output object.}
 
 \item{legacy}{Logical. Whether to use the legacy C++ code for normalisation (for backward
-compatibility) or the modern R version (default). The modern version solves the edge effect issue.}
+compatibility) or the modern R version (default). The modern version solves the edge effect
+issue without any speed compromise.}
 
 \item{filename}{Char (optional). The output file name for the .text file.}
 }

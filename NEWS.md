@@ -1,3 +1,11 @@
+# Version 1.0.0
+* Change most data types from double to float resulting in significant speed improvement with no accuracy compromsie.
+* Significat optimisation in histogram calcualtion. 
+    - The remote sensing distances are calucate in single-precision floating points.
+    - The histogram now does calcuate only one-way pairwise distance calculaiton, meaning the raw histogram values will be exactly half before. This has zero impact on normalised histogram thus the condition output.
+    - The select corner value that is the count of values is no longer calcualte; that is just the number of smaples.
+
+
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.
 * Added a condition to ensure that `k_obs`  is less than or equal to `k_pred`.

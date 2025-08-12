@@ -2,7 +2,7 @@
 % Please edit documentation in R/benchmark.R
 \name{benchmark}
 \alias{benchmark}
-\title{Benchmarking target points}
+\title{Condition benchmarking of target points}
 \usage{
 benchmark(
   data,
@@ -28,7 +28,7 @@ benchmark(
 }
 \arguments{
 \item{data}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
-The data must be organized in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
+The data must be organised in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
 \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
 If using a matrix or data.frame, ensure that the variables are in the
 correct order. For more see the details section.}
@@ -55,7 +55,7 @@ meters in unprojected coordinate systems. The default is 100,000 for an average 
 On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
 function.}
 
-\item{k_pred}{Integer. Number of nearest ENV/predicted RS samples to take.}
+\item{k_pred}{Integer. Number of nearest predicted RS samples to take.}
 
 \item{k_obs}{Integer. Number of nearest observed RS sample to takes.}
 
@@ -64,10 +64,10 @@ a \strong{histo} object, this value can be read from its attributes and may be l
 The bin width must be consistent between the histogram creation and the benchmarking step to
 ensure condition is accurately calculated.}
 
-\item{interpolate}{Logical. Should interpolate the histogram?}
+\item{interpolate}{Logical. Whether to interpolate the histogram for a smoother result.}
 
 \item{offset}{Integer. Specifies the number of histogram bins that were ignored during
-normalization (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+normalisation (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
 this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
 the \code{offset} must be consistent between the histogram normalisation and the benchmarking
 step to ensure condition is accurately calculated.}
@@ -85,7 +85,7 @@ you have a specific reason not to.}
 \item{make_su}{Logical. To make the uncertainty map or not.}
 
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
-below 1 indicates that all available threads will be utilized. Refer to the details section for
+below 1 indicates that all available threads will be utilized (default). Refer to the details section for
 more information.}
 
 \item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
@@ -102,7 +102,7 @@ over time. This function is designed to help researchers and conservationists qu
 impacts of environmental changes and management interventions on habitat condition.
 }
 \details{
-Ensure that the order of RS variables is consistent between observed and predicted inputs
+Ensure that the order of remote sensing variables is consistent between observed and predicted inputs
 (for both raster and matrix formats). The RS variable values must be centered and scaled
 prior to prediction. Failure to do so may result in variables with larger ranges having
 disproportionate influence in the multi-dimensional distance calculations.
