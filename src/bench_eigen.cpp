@@ -51,16 +51,17 @@ RowMajorMatrix<T> filter_matrix(const RowMajorMatrix<T> &matrix,
 
 
 // Compute indices of k closest rows in L1 distance
-template <typename T>
-std::vector<int> knn_Search(const RowMajorMatrix<T> &X, const Eigen::VectorXd &q, int k) {
+template <typename T, typename QueryType>
+std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const QueryType &q, int k) {
     const int n = X.rows();
-    std::vector<std::pair<T,int>> dist_idx;
+    std::vector<std::pair<double,int>> dist_idx;
     dist_idx.reserve(n);
 
     for (int i = 0; i < n; ++i) {
-        auto row_i = X.row(i);  // row vector view
-        T dist = (row_i - q.transpose()).lpNorm<1>();  // vectorised L1
-        dist_idx.emplace_back(dist, i); // 0-based indices
+        auto row_i = X.row(i);
+        // Cast both to double for consistent arithmetic and avoid precision issues
+        double dist = (row_i.template cast<double>() - q.template cast<double>()).template lpNorm<1>();
+        dist_idx.emplace_back(dist, i);
     }
 
     if (k < n) {
@@ -153,10 +154,15 @@ Rcpp::NumericMatrix bench_eigen(
     RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
 
     // Normalise XY and apply weight to it; after filtering XY columns
-    REM.col(0) = ((REM.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
-    REM.col(1) = ((REM.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
-    rstack.col(0) = ((rstack.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
-    rstack.col(1) = ((rstack.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
+    // REM.col(0) = ((REM.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
+    // REM.col(1) = ((REM.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
+    // rstack.col(0) = ((rstack.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
+    // rstack.col(1) = ((rstack.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
+    REM.col(0) = ((REM.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
+    REM.col(1) = ((REM.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
+    rstack.col(0) = ((rstack.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
+    rstack.col(1) = ((rstack.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
+
 
     // define radius in m and divide by scale because the search doesn't correct it
     const double radius = within_km * 1000.0 / scale;
@@ -203,20 +209,20 @@ Rcpp::NumericMatrix bench_eigen(
         RowMajorMatrix<DTYPE> sub_obs = filter_matrix(OBS, indices);
 
         // find the 50 nearest samples to the target point in ENV dist
-        std::vector<int> knn_env = knn_search<DTYPE>(sub_rem, cell_rem, k_env);
+        std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
 
         // rs and env distance of the 50 nearest env neighbour
-        std::vector<DTYPE> prdist_vect(k_env);
-        std::vector<DTYPE> histo_vect(k_env);
+        std::vector<double> prdist_vect(k_env);
+        std::vector<double> histo_vect(k_env);
 
         // to avoid complexity and overhead of kdtree, use for loop for the 50 records
         int n = 0;
         for (const auto& j : knn_env)
         {
             // vectorised L1 distance over all columns
-            double rsdist = (cell_obs - sub_obs.row(j)).lpNorm<1>();
+            double rsdist = (cell_obs.template cast<double>() - sub_obs.row(j).template cast<double>()).template lpNorm<1>();
             // the xy coordinates should be ignored here so only, nvar right columns
-            double prdist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).lpNorm<1>();
+            double prdist = (cell_rem.rightCols(nvar).template cast<double>() - sub_rem.row(j).rightCols(nvar).template cast<double>()).template lpNorm<1>();
 
             // skip the point if exclude-slef is true and
             // prdist is in the first bin i.e < 1 * bw
