@@ -2,7 +2,6 @@
 
 #define PI_Sq 9.869604401089358
 
-
 // a struct to hold both condition and SU values
 struct condition
 {
@@ -11,45 +10,45 @@ struct condition
 };
 
 
-// scale x and y (columns 0 and 1), and add them to the end of the matrix
-inline void add_xy_scaled(Lightweight_matrix<double> &matrix, const Rcpp::NumericVector &xy_stats, const double penalty)
-{
-    const int nr = matrix.nrow();
-    const int nc = matrix.ncol();
+Rcpp::NumericMatrix get_XY(const Rcpp::NumericMatrix& X) {
+    int n = X.nrow();
+    if (X.ncol() < 2) Rcpp::stop("Input must have at least 2 columns");
 
-    // resize the matrix to accommodate two new columns
-    matrix.resize(nr, nc + 2);
-
-    // scale and add columns; only if penalty is non-zero
-    if (penalty != 0.0)
-    {
-        for (int i = 0; i < nr; i++)
-        {
-            matrix(i, nc) = (matrix(i, 0) - xy_stats[0]) / xy_stats[2] * penalty;       // x new column
-            matrix(i, nc + 1) = (matrix(i, 1) - xy_stats[1]) / xy_stats[3] * penalty;   // y new column
-        }
+    Rcpp::NumericMatrix out(n, 2);
+    for (int i = 0; i < n; ++i) {
+        out(i, 0) = X(i, 0);
+        out(i, 1) = X(i, 1);
     }
+    return out;
 }
 
 
-// get a subset matrix using a vector of indices
-Lightweight_matrix<double> filter_matrix(const Lightweight_matrix<double> &matrix,
-                                         const std::vector<int> &indices)
-{
-    int new_rows = indices.size();
-    int new_columns = matrix.ncol();
-    Lightweight_matrix<double> filtered_matrix(new_rows, new_columns);
+// Compute indices of k closest rows in L1 distance
+template <typename T, typename QueryType>
+std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const QueryType &q, int k) {
+    const int n = X.rows();
+    std::vector<std::pair<double,int>> dist_idx;
+    dist_idx.reserve(n);
 
-    for (int i = 0; i < new_rows; ++i)
-    {
-        int original_index = indices[i];
-        for (int j = 0; j < new_columns; ++j)
-        {
-            filtered_matrix(i, j) = matrix(original_index, j);
-        }
+    for (int i = 0; i < n; ++i) {
+        auto row_i = X.row(i);
+        // Cast both to double for consistent arithmetic and avoid precision issues
+        double dist = (row_i.template cast<double>() - q.template cast<double>()).template lpNorm<1>();
+        dist_idx.emplace_back(dist, i);
     }
 
-    return filtered_matrix;
+    if (k < n) {
+        std::nth_element(dist_idx.begin(), dist_idx.begin() + k, dist_idx.end());
+        dist_idx.resize(k);
+    }
+
+    std::sort(dist_idx.begin(), dist_idx.end());
+
+    std::vector<int> result(dist_idx.size());
+    for (size_t i = 0; i < dist_idx.size(); ++i) {
+        result[i] = dist_idx[i].second;
+    }
+    return result;
 }
 
 
@@ -108,7 +107,7 @@ inline condition get_condition(
 
 
 // get the probability value from histogram
-inline double get_prob(const Lightweight_matrix<double>& histo,
+inline double get_prob(const RowMajorMatrix<double>& histo,
                        const double dist_pre,
                        const double dist_obs,
                        const double w_bin,
@@ -126,30 +125,5 @@ inline double get_prob(const Lightweight_matrix<double>& histo,
     jj = std::max(jj - offset, 0);
 
     return histo(ii, jj);
-}
-
-
-
-// find the points within specified geographic distance
-// NOTE: the kdtree was several minutes faster than (some version of) this
-std::vector<int> nn_search(const Lightweight_matrix<double>& dat, const double x, const double y, const double sq_dist)
-{
-    std::vector<int> out;
-    out.reserve(dat.nrow()); // reserve memory to avoid frequent re-allocations
-
-    int n = dat.nrow();
-    for (int i = 0; i < n; i++)
-    {
-        double dx = dat(i, 0) - x;
-        double dy = dat(i, 1) - y;
-        double dd = (dx * dx) + (dy * dy);
-
-        if (dd < sq_dist)
-        {
-            out.push_back(i);
-        }
-    }
-
-    return out;
 }
 

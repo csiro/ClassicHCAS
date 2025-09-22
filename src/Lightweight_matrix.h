@@ -80,23 +80,4 @@ private:
 };
 
 
-// // convert to NumericMatrix
-// Rcpp::NumericMatrix as_NumericMatrix(const Lightweight_matrix<double> &matrix)
-// {
-//     int nr = matrix.nrow();
-//     int nc = matrix.ncol();
-//
-//     Rcpp::NumericMatrix rcpp_matrix(nr, nc);
-//
-//     for (int i = 0; i < nr; ++i)
-//     {
-//         for (int j = 0; j < nc; ++j)
-//         {
-//             rcpp_matrix(i, j) = matrix(i, j);
-//         }
-//     }
-//
-//     return rcpp_matrix;
-// }
-
 #endif /* IGHTWEIGHT_MATRIX_H */

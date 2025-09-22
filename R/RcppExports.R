@@ -13,8 +13,8 @@ norm_cpp <- function(x, trim_size = 400L, offset = 0L) {
     .Call(`_ClassicHCAS_norm_cpp`, x, trim_size, offset)
 }
 
-bench_cpp <- function(rast_stack, sample_vals, histogram, xy_stats, xy_penalty = 0.0, num_vars = 0L, scale = 100000.0, within_km = 200, k_env = 50L, k_rs = 20L, bin_width = 0.05, bin_num = 400L, offset = 0L, pnorm = 1, confidence = 0.5, lambda = 2.0, exclude_slef = TRUE, make_su = FALSE, num_threads = -1L) {
-    .Call(`_ClassicHCAS_bench_cpp`, rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads)
+bench_cpp <- function(raster_vals, sample_vals, histogram, xy_stats, xy_penalty = 0.0, scale = 100000.0, within_km = 200, k_env = 50L, k_rs = 20L, bin_width = 0.05, bin_num = 400L, offset = 0L, confidence = 0.5, lambda = 2.0, exclude_slef = TRUE, make_su = FALSE, num_threads = -1L) {
+    .Call(`_ClassicHCAS_bench_cpp`, raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads)
 }
 
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {

@@ -3,6 +3,7 @@
 #include <Rcpp.h>
 #include <cmath>
 #include <vector>
+#include <RcppEigen.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -10,20 +11,21 @@
 #include "KDtree.h"
 #include "KDmethods.h"
 #include "Quickisort.h"
-#include "Lightweight_matrix.h"
+#include "Matrix.h"
 #include "Helper.h"
 
 using namespace Rcpp;
 
+using DTYPE = float;
+
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix bench_cpp(
-    const Rcpp::NumericMatrix &rast_stack,  // a raster stack to read everything at once: x,y,rs,env
+    const Rcpp::NumericMatrix &raster_vals, // a raster stack to read everything at once: x,y,rs,env
     const Rcpp::NumericMatrix &sample_vals, // extraction of values of rstack using smaples xy: x,y,RS,ENV
     const Rcpp::NumericMatrix &histogram,   // cleaned histogram
     const Rcpp::NumericVector &xy_stats,    // mean(x), mean(y), sd(x), sd(y); ORDER MATTERS
     const double xy_penalty = 0.0,          // penalising env nearest neighbour searching for geographic distance
-    unsigned int num_vars = 0,              // can be calculate from the stack
     const double scale = 100000.0,          // correction scale for CRS; 1 if metric, 100,000 otherwise
     const double within_km = 200,           // radius in kilometers to consider ref points
     const int k_env = 50,                   // number of ENV nn to select
@@ -31,46 +33,56 @@ Rcpp::NumericMatrix bench_cpp(
     const double bin_width = 0.05,          // histogram bin width
     const int bin_num = 400,                // number of bins in histogram
     const int offset = 0,                   // offset of histogram
-    const double pnorm = 1,                 // distance fraction; 1 = L1; 2 = L2; <1 fractional distance
     const double confidence = 0.5,          // the LDC confidence index; default 0.5
     const double lambda = 2.0,              // the lambda of the Cauchy weighting
     const bool exclude_slef = true,         // whether to exclude a benchmark sample from assessing itself
     const bool make_su = false,             // whether to produce SU map
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
+    // Copy xy for calculating the correct squared distances;
+    // making a copy before reading the rest in the generic format flaot-32
+    Rcpp::NumericMatrix xy_r = get_XY(raster_vals);
+    Rcpp::NumericMatrix xy_s = get_XY(sample_vals);
+    RowMajorMatrix<double> rast_xy = as_Matrix<double>(xy_r);
+    RowMajorMatrix<double> sample_xy = as_Matrix<double>(xy_s);
 
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
-    Lightweight_matrix<double> samples(sample_vals);
-    Lightweight_matrix<double> rstack(rast_stack);
-    Lightweight_matrix<double> histo(histogram);
+    RowMajorMatrix<DTYPE> rstack = as_Matrix<DTYPE>(raster_vals);
+    RowMajorMatrix<DTYPE> samples = as_Matrix<DTYPE>(sample_vals);
+    RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
 
-    // add scaled x and y columns to the end and apply weight to it;
-    add_xy_scaled(samples, xy_stats, xy_penalty);
-    add_xy_scaled(rstack, xy_stats, xy_penalty);
+    const int nr = rstack.rows();
+    int nvar = (samples.cols() - 2) / 2; // number of RS vars
+    int ndim = nvar + 2; // number of multi-variate space REM + XY
 
-    // ncol MUST BE after adding xy_scaled, so it has the two extra columns
-    const int nc = rstack.ncol();
-    const int nr = rstack.nrow();
+    // // Copy xy for calculating the correct squared distances
+    // const RowMajorMatrix<double> sample_xy = samples.leftCols(2);
+    // const RowMajorMatrix<double> rast_xy = rstack.leftCols(2);
+    // Copy OBS and MOD RS from raster cells and samples
+    RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
+    RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
+
+    // Normalise XY and apply weight to it; after filtering XY columns
+    // REM.col(0) = ((REM.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
+    // REM.col(1) = ((REM.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
+    // rstack.col(0) = ((rstack.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
+    // rstack.col(1) = ((rstack.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
+    REM.col(0) = ((REM.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
+    REM.col(1) = ((REM.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
+    rstack.col(0) = ((rstack.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
+    rstack.col(1) = ((rstack.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
+
+
+    // define radius in m and divide by scale because the search doesn't correct it
+    const double radius = within_km * 1000.0 / scale;
+
+    // convert points from matrix to vector of XYPoints
+    std::vector<XYPoints> points = as_XYPoints(sample_xy);
+    // build k-d tree for searching 200km points
+    kdt::KDTree<XYPoints> kdtree(points);
 
     // output condition vector
     std::vector<condition> condition_vect(nr);
-
-    // if number of layers is not supplied, define it
-    // minus 2 for ij, then divide by 2 for equal layers
-    if (num_vars < 3)
-        num_vars = (nc - 4) / 2; // 4 for x, y, x_scaled, y_scaled
-
-    // end column for RS varibales; start column for ENV
-    const int end_rs = num_vars + 2;
-    const int end_pr = nc - 2;
-
-    // define radius in m and divide by scale because the search doesn't correct it
-    const double radius = within_km * 1000 / scale;
-
-    // convert points from matrix to vector of XYPoints
-    std::vector<XYPoints> points = as_XYPoints(samples);
-    // build k-d tree for searching 200km points
-    kdt::KDTree<XYPoints> kdtree(points);
 
     // set the number of threads
     #ifdef _OPENMP
@@ -79,45 +91,47 @@ Rcpp::NumericMatrix bench_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < nr; i++)
     {
+        const auto cell_rem = rstack.row(i).leftCols(ndim);
+        const auto cell_obs = rstack.row(i).rightCols(nvar);
+
+        // if ((cell_obs.array().isNaN()).any())
+        // {
+        //     output(i) = std::numeric_limits<double>::quiet_NaN();
+        // }
+        // else
+        // {
+        // }
+
         // get the target points xy from raster stack;
-        const auto x = rstack(i, 0);
-        const auto y = rstack(i, 1);
+        const double x = rast_xy(i, 0);
+        const double y = rast_xy(i, 1);
         // define the query point of i; a cell in raster
         XYPoints query(x, y);
         // find all ref samples in a radius e.g. 200km
         std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
         // now filter the matrix rows based on indices within 200km radius
         // this sub_sample contain all the points in this radius that can be several thousands
-        Lightweight_matrix<double> sub_sample = filter_matrix(samples, indices);
+        RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
+        RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
 
         // find the 50 nearest samples to the target point in ENV dist
-        std::vector<int> knn_env = KD_KNN(sub_sample, rstack, i, k_env, 1, end_rs, nc); // 1 for L1 distance
+        std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
 
         // rs and env distance of the 50 nearest env neighbour
         std::vector<double> prdist_vect(k_env);
-        // a vector to copy histogram values; initialize with size 50
         std::vector<double> histo_vect(k_env);
 
         // to avoid complexity and overhead of kdtree, use for loop for the 50 records
         int n = 0;
         for (const auto& j : knn_env)
         {
-            // calculate fractional distance for RS and ENV of target cell (i) to 50-NN
-            double rsdist_sum(0.);
-            for (int m = 2; m < end_rs; m++)
-            {
-                rsdist_sum += std::pow(std::fabs(rstack(i, m) - sub_sample(j, m)), pnorm);
-            }
-            double prdist_sum(0.);
-            for (int m = end_rs; m < end_pr; m++)
-            {
-                prdist_sum += std::pow(std::fabs(rstack(i, m) - sub_sample(j, m)), pnorm);
-            }
-            double rsdist = std::pow(rsdist_sum, 1.0 / pnorm);
-            double prdist = std::pow(prdist_sum, 1.0 / pnorm);
+            // vectorised L1 distance over all columns
+            double rsdist = (cell_obs.template cast<double>() - sub_obs.row(j).template cast<double>()).template lpNorm<1>();
+            // the xy coordinates should be ignored here so only, nvar right columns
+            double prdist = (cell_rem.rightCols(nvar).template cast<double>() - sub_rem.row(j).rightCols(nvar).template cast<double>()).template lpNorm<1>();
 
             // skip the point if exclude-slef is true and
             // prdist is in the first bin i.e < 1 * bw

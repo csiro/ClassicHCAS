@@ -53,17 +53,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // bench_cpp
-Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& rast_stack, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, unsigned int num_vars, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double pnorm, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
-RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP rast_stackSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP num_varsSEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP pnormSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
+Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
+RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rast_stack(rast_stackSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type raster_vals(raster_valsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type sample_vals(sample_valsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type histogram(histogramSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type xy_stats(xy_statsSEXP);
     Rcpp::traits::input_parameter< const double >::type xy_penalty(xy_penaltySEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_vars(num_varsSEXP);
     Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
     Rcpp::traits::input_parameter< const int >::type k_env(k_envSEXP);
@@ -71,13 +70,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
     Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
     Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< const double >::type pnorm(pnormSEXP);
     Rcpp::traits::input_parameter< const double >::type confidence(confidenceSEXP);
     Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const bool >::type exclude_slef(exclude_slefSEXP);
     Rcpp::traits::input_parameter< const bool >::type make_su(make_suSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(bench_cpp(rast_stack, sample_vals, histogram, xy_stats, xy_penalty, num_vars, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, pnorm, confidence, lambda, exclude_slef, make_su, num_threads));
+    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -104,7 +102,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
-    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 19},
+    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {NULL, NULL, 0}
 };

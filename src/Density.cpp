@@ -9,7 +9,7 @@
 // local scripts
 #include "KDtree.h"
 #include "KDmethods.h"
-#include "Lightweight_matrix.h"
+#include "Matrix.h"
 
 using namespace Rcpp;
 
@@ -22,11 +22,10 @@ Rcpp::IntegerVector density_cpp(
         int num_threads = -1
 )
 {
+    RowMajorMatrix<double> raster = as_Matrix<double>(rast);
+    RowMajorMatrix<double> samples = as_Matrix<double>(xy);
 
-    Lightweight_matrix<double> raster(rast);
-    Lightweight_matrix<double> samples(xy);
-
-    const int nr = raster.nrow();
+    const int nr = raster.rows();
     // output vector
     std::vector<int> out(nr);
 
