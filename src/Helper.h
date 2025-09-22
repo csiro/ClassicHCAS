@@ -12,7 +12,7 @@ struct condition
 
 
 // scale x and y (columns 0 and 1), and add them to the end of the matrix
-void add_xy_scaled(Lightweight_matrix<double> &matrix, const Rcpp::NumericVector &xy_stats, const double penalty)
+inline void add_xy_scaled(Lightweight_matrix<double> &matrix, const Rcpp::NumericVector &xy_stats, const double penalty)
 {
     const int nr = matrix.nrow();
     const int nc = matrix.ncol();
@@ -54,7 +54,7 @@ Lightweight_matrix<double> filter_matrix(const Lightweight_matrix<double> &matri
 
 
 // HCAS Cauchy weighted condition using histogram values and env distances
-condition get_condition(
+inline condition get_condition(
     const std::vector<double> &prob_values, // histo probability values
     double prob_max,                        // max probability value of the 20 records
     const std::vector<double> &pred_dists,  // the predicted/modelled distance

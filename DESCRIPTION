@@ -13,7 +13,8 @@ LazyData: true
 Depends:
   R (>= 4.1.0)
 Imports:
-  Rcpp (>= 1.0.2)
+  Rcpp (>= 1.0.2),
+  RcppEigen (>= 0.3.3.9.1)
 Suggests:
   terra (>= 1.7.71),
   methods,
@@ -24,5 +25,6 @@ RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LinkingTo: 
-  Rcpp
+  Rcpp,
+  RcppEigen
 

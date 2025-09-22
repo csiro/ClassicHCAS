@@ -30,7 +30,7 @@ int partition(std::vector<double>& arr, std::vector<int>& indices, int low, int 
 }
 
 // quicksort with index tracking for double type
-void quicksort(std::vector<double>& arr, std::vector<int>& indices, int low, int high, bool descending)
+inline void quicksort(std::vector<double>& arr, std::vector<int>& indices, int low, int high, bool descending)
 {
     if (low < high)
     {
@@ -41,7 +41,7 @@ void quicksort(std::vector<double>& arr, std::vector<int>& indices, int low, int
 }
 
 // wrapper function to sort array and return sorted indices
-std::vector<int> qsort_index(const std::vector<double>& arr, bool descending = true)
+inline std::vector<int> qsort_index(const std::vector<double>& arr, bool descending = true)
 {
     std::vector<int> indices(arr.size());
     for (size_t i = 0; i < arr.size(); ++i)
