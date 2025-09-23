@@ -1,6 +1,7 @@
 #ifndef MATRIX_T
 #define MATRIX_T
-// [[Rcpp::plugins(openmp)]]
+
+// [[Rcpp::depends(RcppEigen)]]
 #include <Rcpp.h>
 #include <RcppEigen.h>
 

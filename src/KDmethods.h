@@ -3,9 +3,6 @@
 
 #include "Matrix.h"
 
-// dimension of multi-dimensional points (ENV points)
-static const int MDP_DIM = 16;
-
 /**
  * A set of point classes and methods definitions for KD-tree algorithm.
  */

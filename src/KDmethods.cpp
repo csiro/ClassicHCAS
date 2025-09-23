@@ -3,11 +3,6 @@
 #include "KDtree.h"
 #include "Matrix.h"
 
-/**
- * A set of methods for KD-tree algorithm.
- */
-
-
 // function to convert RowMajorMatrix to vector of XYPoints; only uses 0-1 columns
 std::vector<XYPoints> as_XYPoints(const RowMajorMatrix<double> &mat)
 {

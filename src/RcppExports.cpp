@@ -11,6 +11,33 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// bench_cpp
+Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
+RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type raster_vals(raster_valsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type sample_vals(sample_valsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type histogram(histogramSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type xy_stats(xy_statsSEXP);
+    Rcpp::traits::input_parameter< const double >::type xy_penalty(xy_penaltySEXP);
+    Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
+    Rcpp::traits::input_parameter< const int >::type k_env(k_envSEXP);
+    Rcpp::traits::input_parameter< const int >::type k_rs(k_rsSEXP);
+    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
+    Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
+    Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< const double >::type confidence(confidenceSEXP);
+    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const bool >::type exclude_slef(exclude_slefSEXP);
+    Rcpp::traits::input_parameter< const bool >::type make_su(make_suSEXP);
+    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // spline_rescale
 std::vector<double> spline_rescale(const Rcpp::NumericVector& x, const std::vector<double>& spline_x, const std::vector<double>& spline_y);
 RcppExport SEXP _ClassicHCAS_spline_rescale(SEXP xSEXP, SEXP spline_xSEXP, SEXP spline_ySEXP) {
@@ -39,46 +66,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// norm_cpp
-Rcpp::NumericMatrix norm_cpp(const Rcpp::NumericMatrix& x, const int trim_size, const int offset);
-RcppExport SEXP _ClassicHCAS_norm_cpp(SEXP xSEXP, SEXP trim_sizeSEXP, SEXP offsetSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const int >::type trim_size(trim_sizeSEXP);
-    Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
-    rcpp_result_gen = Rcpp::wrap(norm_cpp(x, trim_size, offset));
-    return rcpp_result_gen;
-END_RCPP
-}
-// bench_cpp
-Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
-RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type raster_vals(raster_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type sample_vals(sample_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type histogram(histogramSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type xy_stats(xy_statsSEXP);
-    Rcpp::traits::input_parameter< const double >::type xy_penalty(xy_penaltySEXP);
-    Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
-    Rcpp::traits::input_parameter< const int >::type k_env(k_envSEXP);
-    Rcpp::traits::input_parameter< const int >::type k_rs(k_rsSEXP);
-    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
-    Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
-    Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< const double >::type confidence(confidenceSEXP);
-    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const bool >::type exclude_slef(exclude_slefSEXP);
-    Rcpp::traits::input_parameter< const bool >::type make_su(make_suSEXP);
-    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
 // histo_cpp
 Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& samples_xy, const double within_km, const double scale, const float bin_width, const int bin_num, int num_threads);
 RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP samples_xySEXP, SEXP within_kmSEXP, SEXP scaleSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP num_threadsSEXP) {
@@ -97,13 +84,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// norm_cpp
+Rcpp::NumericMatrix norm_cpp(const Rcpp::NumericMatrix& x, const int trim_size, const int offset);
+RcppExport SEXP _ClassicHCAS_norm_cpp(SEXP xSEXP, SEXP trim_sizeSEXP, SEXP offsetSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int >::type trim_size(trim_sizeSEXP);
+    Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
+    rcpp_result_gen = Rcpp::wrap(norm_cpp(x, trim_size, offset));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
     {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
-    {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
-    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
+    {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
     {NULL, NULL, 0}
 };
 
