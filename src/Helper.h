@@ -1,7 +1,5 @@
 #pragma once
 
-#define PI_Sq 9.869604401089358
-
 // a struct to hold both condition and SU values
 struct condition
 {
@@ -10,11 +8,12 @@ struct condition
 };
 
 
-Rcpp::NumericMatrix get_XY(const Rcpp::NumericMatrix& X) {
+// Get a copy of XY in double to avoid losing accuracy
+RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
     int n = X.nrow();
     if (X.ncol() < 2) Rcpp::stop("Input must have at least 2 columns");
 
-    Rcpp::NumericMatrix out(n, 2);
+    RowMajorMatrix<double> out(n, 2);
     for (int i = 0; i < n; ++i) {
         out(i, 0) = X(i, 0);
         out(i, 1) = X(i, 1);
@@ -23,9 +22,9 @@ Rcpp::NumericMatrix get_XY(const Rcpp::NumericMatrix& X) {
 }
 
 
-// Compute indices of k closest rows in L1 distance
-template <typename T, typename QueryType>
-std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const QueryType &q, int k) {
+// Compute indices of k nearest rows in L1 distance
+template <typename T, typename Q>
+std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
     const int n = X.rows();
     std::vector<std::pair<double,int>> dist_idx;
     dist_idx.reserve(n);
@@ -52,7 +51,7 @@ std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const QueryType &q, int 
 }
 
 
-// HCAS Cauchy weighted condition using histogram values and env distances
+// HCAS Cauchy weighted condition calculation using histogram values and env distances
 inline condition get_condition(
     const std::vector<double> &prob_values, // histo probability values
     double prob_max,                        // max probability value of the 20 records
@@ -61,7 +60,12 @@ inline condition get_condition(
     const double lambda)                    // the lambda of the Cauchy weighting
 {
     const int n = prob_values.size();
-    const double default_hc = -2.0;
+
+    const double PI_SQ = 9.869604401089358;
+    const double DEFAULT_HC = -2.0;
+    double lambda_sq = lambda * lambda;
+    double w_sum = 0.0;
+    double p_sum = 0.0;
 
     // calculate weights
     std::vector<double> weights(n);
@@ -70,7 +74,7 @@ inline condition get_condition(
         double p_dist = pred_dists[i];
         if (p_dist > 0)
         {
-            double den = PI_Sq * p_dist * lambda * (1.0 + (p_dist * p_dist) / (lambda * lambda));
+            double den = PI_SQ * p_dist * lambda * (1.0 + (p_dist * p_dist) / lambda_sq);
             weights[i] = 1.0 / den;
         }
         else
@@ -80,8 +84,6 @@ inline condition get_condition(
     }
 
     // calculate weighted mean and sum of weights
-    double p_sum = 0.0;
-    double w_sum = 0.0;
     for (int j = 0; j < n; ++j)
     {
         p_sum += prob_values[j] * weights[j];
@@ -96,7 +98,7 @@ inline condition get_condition(
     }
 
     // calculate hc
-    double hc = default_hc;
+    double hc = DEFAULT_HC;
     if (w_sum > 0)
     {
         hc = (prob_max * confidence) + (p_mean * (1.0 - confidence));

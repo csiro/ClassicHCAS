@@ -153,7 +153,6 @@ benchmark <- function(
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     within_km = radius_km,
-                    num_vars = 0, # keep it 0 for now to be calculated from data
                     scale = correction,
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
@@ -205,7 +204,6 @@ benchmark <- function(
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     within_km = radius_km,
-                    num_vars = 0, # keep it 0 for now to be calculated from data
                     scale = correction,
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
@@ -236,37 +234,21 @@ benchmark <- function(
 }
 
 
-# the generic HCAS prediction function for C++ integration with terra
-# NOTE: the na.rm arg in terra::predict doesn't provide the correct mask
-#   and keep model an empty list
+# a function to handling predicting with terra
 benchmarking <- function(model, newdata, make_su, drop = NULL, ...){
-    # check for NAs
-    has_na <- anyNA(newdata)
-    # number of output columns; TRUE/FALSE + 1
-    nc <- make_su + 1
     nr <- nrow(newdata)
+    nc <- make_su + 1
+    col_names <- c("condition", "su")[1:nc]
 
-    if (has_na) {
-        idx <- which(stats::complete.cases(newdata))
-        out <- matrix(NaN, nrow = nr, ncol = nc)
-        # name the raster layers
-        colnames(out) <- c("condition", "su")[1:nc]
-        # if all NA, return NaN vector
-        if (!length(idx)) return(out)
-        # subset the complete data
-        dat <- as.matrix(newdata[idx, ])
-    } else {
-        dat <- as.matrix(newdata)
-    }
+    dat <- as.matrix(newdata)
 
     # if drop_features are provided exclude them from features
     if (length(drop)) dat[, drop] <- 0
 
     tryCatch(
         {
-            # the HCAS C++ function
             hcas_cond <- bench_cpp(
-                rast_stack = dat,
+                raster_vals = dat,
                 make_su = make_su,
                 ...
             )
@@ -275,18 +257,13 @@ benchmarking <- function(model, newdata, make_su, drop = NULL, ...){
             message("Benchmarking C++ function failed. Returning -0.02 for all cells.")
             # return error values -0.02
             return(
-                matrix(-0.02, nrow = nr, ncol = nc)
+                matrix(-0.02, nrow = nr, ncol = nc, dimnames = list(NULL, col_names))
             )
         }
     )
 
-    if (has_na) {
-        out[idx, ] <- hcas_cond
-        return(out)
-    } else {
-        # name the raster layers
-        colnames(hcas_cond) <- c("condition", "su")[1:nc]
-        return(hcas_cond)
-    }
+    colnames(hcas_cond) <- col_names
+
+    return(hcas_cond)
 }
 

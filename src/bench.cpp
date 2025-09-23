@@ -1,13 +1,14 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
 #include <Rcpp.h>
+#include <RcppEigen.h>
 #include <cmath>
 #include <vector>
-#include <RcppEigen.h>
+#include <limits>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-// local scripts
+// Local scripts
 #include "KDtree.h"
 #include "KDmethods.h"
 #include "Quickisort.h"
@@ -16,6 +17,8 @@
 
 using namespace Rcpp;
 
+// Data type for all distance calcaulations
+// Use float (32bit) for speed imporvement (inputs are normalised)
 using DTYPE = float;
 
 
@@ -39,38 +42,36 @@ Rcpp::NumericMatrix bench_cpp(
     const bool make_su = false,             // whether to produce SU map
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
-    // Copy xy for calculating the correct squared distances;
-    // making a copy before reading the rest in the generic format flaot-32
-    Rcpp::NumericMatrix xy_r = get_XY(raster_vals);
-    Rcpp::NumericMatrix xy_s = get_XY(sample_vals);
-    RowMajorMatrix<double> rast_xy = as_Matrix<double>(xy_r);
-    RowMajorMatrix<double> sample_xy = as_Matrix<double>(xy_s);
+    // Copy XY before normalisation (and reading in DTYPE) to calculate the correct distances;
+    RowMajorMatrix<double> rast_xy = get_XY(raster_vals);
+    RowMajorMatrix<double> sample_xy = get_XY(sample_vals);
 
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<DTYPE> rstack = as_Matrix<DTYPE>(raster_vals);
     RowMajorMatrix<DTYPE> samples = as_Matrix<DTYPE>(sample_vals);
+    // Keep histo as double; not much processing with histo for now... 
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
 
     const int nr = rstack.rows();
     int nvar = (samples.cols() - 2) / 2; // number of RS vars
     int ndim = nvar + 2; // number of multi-variate space REM + XY
 
-    // // Copy xy for calculating the correct squared distances
-    // const RowMajorMatrix<double> sample_xy = samples.leftCols(2);
-    // const RowMajorMatrix<double> rast_xy = rstack.leftCols(2);
     // Copy OBS and MOD RS from raster cells and samples
     RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
     RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
 
+    // cast the values once; cleaner code
+    std::vector<DTYPE> xystats(xy_stats.size());
+    for (int s = 0; s < xy_stats.size(); s++) {
+        xystats[s] = static_cast<DTYPE>(xy_stats[s]);
+    }
+    DTYPE xypenalty = static_cast<DTYPE>(xy_penalty);
+
     // Normalise XY and apply weight to it; after filtering XY columns
-    // REM.col(0) = ((REM.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
-    // REM.col(1) = ((REM.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
-    // rstack.col(0) = ((rstack.col(0).array() - xy_stats[0]) / xy_stats[2]) * xy_penalty;
-    // rstack.col(1) = ((rstack.col(1).array() - xy_stats[1]) / xy_stats[3]) * xy_penalty;
-    REM.col(0) = ((REM.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
-    REM.col(1) = ((REM.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
-    rstack.col(0) = ((rstack.col(0).array() - static_cast<DTYPE>(xy_stats[0])) / static_cast<DTYPE>(xy_stats[2])) * static_cast<DTYPE>(xy_penalty);
-    rstack.col(1) = ((rstack.col(1).array() - static_cast<DTYPE>(xy_stats[1])) / static_cast<DTYPE>(xy_stats[3])) * static_cast<DTYPE>(xy_penalty);
+    REM.col(0) = ((REM.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
+    REM.col(1) = ((REM.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
+    rstack.col(0) = ((rstack.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
+    rstack.col(1) = ((rstack.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
 
 
     // define radius in m and divide by scale because the search doesn't correct it
@@ -97,75 +98,81 @@ Rcpp::NumericMatrix bench_cpp(
         const auto cell_rem = rstack.row(i).leftCols(ndim);
         const auto cell_obs = rstack.row(i).rightCols(nvar);
 
-        // if ((cell_obs.array().isNaN()).any())
-        // {
-        //     output(i) = std::numeric_limits<double>::quiet_NaN();
-        // }
-        // else
-        // {
-        // }
-
-        // get the target points xy from raster stack;
-        const double x = rast_xy(i, 0);
-        const double y = rast_xy(i, 1);
-        // define the query point of i; a cell in raster
-        XYPoints query(x, y);
-        // find all ref samples in a radius e.g. 200km
-        std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
-        // now filter the matrix rows based on indices within 200km radius
-        // this sub_sample contain all the points in this radius that can be several thousands
-        RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
-        RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
-
-        // find the 50 nearest samples to the target point in ENV dist
-        std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
-
-        // rs and env distance of the 50 nearest env neighbour
-        std::vector<double> prdist_vect(k_env);
-        std::vector<double> histo_vect(k_env);
-
-        // to avoid complexity and overhead of kdtree, use for loop for the 50 records
-        int n = 0;
-        for (const auto& j : knn_env)
+        // Take care of NaN cells
+        if ((cell_obs.array().isNaN()).any())
         {
-            // vectorised L1 distance over all columns
-            double rsdist = (cell_obs.template cast<double>() - sub_obs.row(j).template cast<double>()).template lpNorm<1>();
-            // the xy coordinates should be ignored here so only, nvar right columns
-            double prdist = (cell_rem.rightCols(nvar).template cast<double>() - sub_rem.row(j).rightCols(nvar).template cast<double>()).template lpNorm<1>();
-
-            // skip the point if exclude-slef is true and
-            // prdist is in the first bin i.e < 1 * bw
-            if (exclude_slef && prdist < bin_width)
-            {
-                continue;
-            }
-            else
-            {
-                prdist_vect[n] = prdist;
-                histo_vect[n] = get_prob(histo, prdist, rsdist, bin_width, bin_num, offset);
-                n++;
-            }
+            condition cond { 
+                std::numeric_limits<double>::quiet_NaN(), 
+                std::numeric_limits<double>::quiet_NaN() 
+            };
+            
+            #pragma omp critical
+            condition_vect[i] = cond;
         }
-
-        // descending sort prob values for selecting the 20 highest values
-        // the histo_vect itself will also be sorted
-        std::vector<int> sorted_index = qsort_index(histo_vect, true);
-
-        std::vector<double> pr_dist(k_rs);     // ENV distances
-        std::vector<double> prob_sorted(k_rs); // probability values
-        // get the values of 20 nearest RS neighbors
-        for (int k = 0; k < k_rs; k++)
+        else
         {
-            int id = sorted_index[k];
-            pr_dist[k] = prdist_vect[id];
-            prob_sorted[k] = histo_vect[k]; // histo_vect is already sorted by qsort_index; just get first 20
+            // get the target points xy from raster stack;
+            const auto x = rast_xy(i, 0);
+            const auto y = rast_xy(i, 1);
+            // define the query point of i; a cell in raster
+            XYPoints query(x, y);
+            // find all ref samples in a radius e.g. 200km
+            std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
+            // now filter the matrix rows based on indices within 200km radius
+            // this sub_sample contain all the points in this radius that can be several thousands
+            RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
+            RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
+
+            // find the 50 nearest samples to the target point in ENV dist
+            std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
+
+            // rs and env distance of the 50 nearest env neighbour
+            std::vector<double> prdist_vect(k_env);
+            std::vector<double> histo_vect(k_env);
+
+            // to avoid complexity and overhead of kdtree, use for loop for the 50 records
+            int n = 0;
+            for (const auto& j : knn_env)
+            {
+                // vectorised L1 distance over all columns
+                double rsdist = (cell_obs.template cast<double>() - sub_obs.row(j).template cast<double>()).template lpNorm<1>();
+                // the xy coordinates should be ignored here so only, nvar right columns
+                double prdist = (cell_rem.rightCols(nvar).template cast<double>() - sub_rem.row(j).rightCols(nvar).template cast<double>()).template lpNorm<1>();
+
+                // skip the point if exclude-slef is true and
+                // prdist is in the first bin i.e < 1 * bw
+                if (exclude_slef && prdist < bin_width)
+                {
+                    continue;
+                }
+                else
+                {
+                    prdist_vect[n] = prdist;
+                    histo_vect[n] = get_prob(histo, prdist, rsdist, bin_width, bin_num, offset);
+                    n++;
+                }
+            }
+
+            // descending sort prob values for selecting the 20 highest values
+            // the histo_vect itself will also be sorted
+            std::vector<int> sorted_index = qsort_index(histo_vect, true);
+
+            std::vector<double> pr_dist(k_rs);     // ENV distances
+            std::vector<double> prob_sorted(k_rs); // probability values
+            // get the values of 20 nearest RS neighbors
+            for (int k = 0; k < k_rs; k++)
+            {
+                int id = sorted_index[k];
+                pr_dist[k] = prdist_vect[id];
+                prob_sorted[k] = histo_vect[k]; // histo_vect is already sorted by qsort_index; just get first 20
+            }
+
+            // calculate the Cauchy weighting condition
+            condition wcond = get_condition(prob_sorted, prob_sorted[0], pr_dist, confidence, lambda);
+
+            #pragma omp critical
+            condition_vect[i] = wcond;
         }
-
-        // calculate the Cauchy weighting condition
-        condition wcond = get_condition(prob_sorted, prob_sorted[0], pr_dist, confidence, lambda);
-
-        #pragma omp critical
-        condition_vect[i] = wcond;
     }
 
     // output matrix; doesn't occupy memory until here
