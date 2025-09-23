@@ -1,7 +1,7 @@
 #pragma once
 
 // a struct to hold both condition and SU values
-struct condition
+struct Condition 
 {
     double hc;
     double su;
@@ -26,13 +26,13 @@ RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
 template <typename T, typename Q>
 std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
     const int n = X.rows();
-    std::vector<std::pair<double,int>> dist_idx;
+    std::vector<std::pair<T,int>> dist_idx;
     dist_idx.reserve(n);
 
     for (int i = 0; i < n; ++i) {
         auto row_i = X.row(i);
         // Cast both to double for consistent arithmetic and avoid precision issues
-        double dist = (row_i.template cast<double>() - q.template cast<double>()).template lpNorm<1>();
+        T dist = (row_i - q).template lpNorm<1>();
         dist_idx.emplace_back(dist, i);
     }
 
@@ -52,10 +52,10 @@ std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
 
 
 // HCAS Cauchy weighted condition calculation using histogram values and env distances
-inline condition get_condition(
+inline Condition get_condition(
     const std::vector<double> &prob_values, // histo probability values
-    double prob_max,                        // max probability value of the 20 records
     const std::vector<double> &pred_dists,  // the predicted/modelled distance
+    double prob_max,                        // max probability value of the 20 records
     const double confidence,                // the confidence value
     const double lambda)                    // the lambda of the Cauchy weighting
 {
@@ -68,39 +68,24 @@ inline condition get_condition(
     double p_sum = 0.0;
 
     // calculate weights
-    std::vector<double> weights(n);
     for (int i = 0; i < n; ++i)
     {
         double p_dist = pred_dists[i];
-        if (p_dist > 0)
-        {
-            double den = PI_SQ * p_dist * lambda * (1.0 + (p_dist * p_dist) / lambda_sq);
-            weights[i] = 1.0 / den;
+
+        double weight = 1.0;
+        if (p_dist > 0) {
+            weight = 1.0 / (PI_SQ * p_dist * lambda * (1.0 + (p_dist * p_dist) / lambda_sq));
         }
-        else
-        {
-            weights[i] = 1.0;
-        }
+
+        p_sum += prob_values[i] * weight;
+        w_sum += weight;
     }
 
-    // calculate weighted mean and sum of weights
-    for (int j = 0; j < n; ++j)
-    {
-        p_sum += prob_values[j] * weights[j];
-        w_sum += weights[j];
-    }
-
-    // calculate p_mean and update prob_max if necessary
-    double p_mean = (w_sum > 0) ? p_sum / w_sum : 0.0;
-    if (p_mean > prob_max)
-    {
-        prob_max = p_mean;
-    }
-
-    // calculate hc
+    // calculate hc    
     double hc = DEFAULT_HC;
-    if (w_sum > 0)
-    {
+    if (w_sum > 0) {
+        double p_mean = p_sum / w_sum;
+        prob_max = std::max(prob_max, p_mean);
         hc = (prob_max * confidence) + (p_mean * (1.0 - confidence));
     }
 

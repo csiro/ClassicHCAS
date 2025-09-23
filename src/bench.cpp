@@ -83,7 +83,7 @@ Rcpp::NumericMatrix bench_cpp(
     kdt::KDTree<XYPoints> kdtree(points);
 
     // output condition vector
-    std::vector<condition> condition_vect(nr);
+    std::vector<Condition> condition_vect(nr);
 
     // set the number of threads
     #ifdef _OPENMP
@@ -101,7 +101,7 @@ Rcpp::NumericMatrix bench_cpp(
         // Take care of NaN cells
         if ((cell_obs.array().isNaN()).any())
         {
-            condition cond { 
+            Condition cond { 
                 std::numeric_limits<double>::quiet_NaN(), 
                 std::numeric_limits<double>::quiet_NaN() 
             };
@@ -120,8 +120,8 @@ Rcpp::NumericMatrix bench_cpp(
             std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
             // now filter the matrix rows based on indices within 200km radius
             // this sub_sample contain all the points in this radius that can be several thousands
-            RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
             RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
+            RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
 
             // find the 50 nearest samples to the target point in ENV dist
             std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
@@ -134,10 +134,14 @@ Rcpp::NumericMatrix bench_cpp(
             int n = 0;
             for (const auto& j : knn_env)
             {
-                // vectorised L1 distance over all columns
-                double rsdist = (cell_obs.template cast<double>() - sub_obs.row(j).template cast<double>()).template lpNorm<1>();
-                // the xy coordinates should be ignored here so only, nvar right columns
-                double prdist = (cell_rem.rightCols(nvar).template cast<double>() - sub_rem.row(j).rightCols(nvar).template cast<double>()).template lpNorm<1>();
+                // Vectorised L1 distance over all columns
+                DTYPE rs_dist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
+                // the xy coordinates should be ignored for REM dist, so only rightCols(nvar)
+                DTYPE pr_dist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
+                
+                // For now, just cast them back to double for further calculations
+                double rsdist = static_cast<double>(rs_dist);
+                double prdist = static_cast<double>(pr_dist);
 
                 // skip the point if exclude-slef is true and
                 // prdist is in the first bin i.e < 1 * bw
@@ -168,7 +172,7 @@ Rcpp::NumericMatrix bench_cpp(
             }
 
             // calculate the Cauchy weighting condition
-            condition wcond = get_condition(prob_sorted, prob_sorted[0], pr_dist, confidence, lambda);
+            Condition wcond = get_condition(prob_sorted, pr_dist, prob_sorted[0], confidence, lambda);
 
             #pragma omp critical
             condition_vect[i] = wcond;
