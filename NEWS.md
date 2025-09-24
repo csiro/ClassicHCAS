@@ -1,11 +1,10 @@
 # Version 1.0.0
-* Complete rewrite of the main functions, histogram and benchmark with vectorised operations resulting in
-over 10x speed improvement
-* Change most data types from double to float-32 resulting in significant speed improvement with no accuracy compromise.
-* The histogram now does calculate only one-way pairwise distance calculation, meaning the raw histogram values will be exactly half before. This has zero impact on normalised histogram thus the condition output.
-* The select corner value that is the count of values is no longer calculate; that is just the number of samples.
+* Complete rewrite of the main functions (`histogram` and `benchmark`) using vectorised operations, resulting in more than a 10× speed improvement.
+* The distance calculations are now changed from double to float32, providing significant speed improvements with no loss of accuracy.
+* The histogram now performs only one-way pairwise distance calculations. As a result, the raw histogram values are exactly halved compared to before. This has no impact on the normalised histogram or the final output.
+* The "corner value” in histogram (previously calculated as the count of values) is no longer computed, since it is simply equal to the number of samples.
 * The `calibrate` function no longer performs interpolation. The output is now fully fitted using a monotonic spline.
-* Handling NAN pixels directly in the C++ side.
+* The NAN pixels are now directly handled in the C++ side.
 
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.
