@@ -50,7 +50,7 @@ Rcpp::NumericMatrix bench_cpp(
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<DTYPE> rstack = as_Matrix<DTYPE>(raster_vals);
     RowMajorMatrix<DTYPE> samples = as_Matrix<DTYPE>(sample_vals);
-    // Keep histo as double; not much processing cost with histo query for now... 
+    // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
 
     const int nr = rstack.rows();
@@ -100,11 +100,11 @@ Rcpp::NumericMatrix bench_cpp(
         // Take care of NaN cells
         if ((cell_obs.array().isNaN()).any())
         {
-            Condition nan_cond { 
-                std::numeric_limits<double>::quiet_NaN(), 
-                std::numeric_limits<double>::quiet_NaN() 
+            Condition nan_cond {
+                std::numeric_limits<double>::quiet_NaN(),
+                std::numeric_limits<double>::quiet_NaN()
             };
-            
+
             #pragma omp critical
             condition_vect[i] = nan_cond;
         }
@@ -136,7 +136,7 @@ Rcpp::NumericMatrix bench_cpp(
                 DTYPE rs_dist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
                 // the xy coordinates should be ignored for REM dist, so only rightCols(nvar)
                 DTYPE pr_dist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
-                
+
                 // For now, just cast them back to double for further calculations
                 double rsdist = static_cast<double>(rs_dist);
                 double prdist = static_cast<double>(pr_dist);

@@ -59,7 +59,7 @@ proximity <- function(
     tryCatch(
         {
             output <- terra::interpolate(
-                object = x,
+                object = x[[1]],
                 model = list(),
                 fun = proxy_count,
                 xy = samples_xy[, 1:2],
@@ -82,25 +82,12 @@ proximity <- function(
 
 # wrapper function for density_cpp
 proxy_count <- function(model, newdata, ...) {
-    # check for NAs
-    has_na <- anyNA(newdata)
     nr <- nrow(newdata)
-
-    if (has_na) {
-        idx <- which(stats::complete.cases(newdata))
-        out <- rep(NaN, nr)
-        # if all NA, return NaN vector
-        if (!length(idx)) return(out)
-        # subset the complete data
-        dat <- as.matrix(newdata[idx, ])
-    } else {
-        dat <- as.matrix(newdata)
-    }
 
     tryCatch(
         {
             pcount <- density_cpp(
-                rast = dat,
+                rast = as.matrix(newdata),
                 ...
             )
         },
@@ -113,16 +100,6 @@ proxy_count <- function(model, newdata, ...) {
         }
     )
 
-    # sort out possible NAs
-    if (has_na) {
-        out[idx] <- pcount
-        return(
-            out
-        )
-    } else {
-        return(
-            pcount
-        )
-    }
+    return(pcount)
 }
 

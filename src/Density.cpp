@@ -47,18 +47,27 @@ Rcpp::IntegerVector density_cpp(
     #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
     {
-        // get the target points xy from raster stack;
-        const auto x = raster(i, 0);
-        const auto y = raster(i, 1);
-        // define the query point of i; a cell in raster
-        XYPoints query(x, y);
-        // find all ref samples in a radius e.g. 200km
-        std::vector<int> indices = kdtree.radiusSearch(query, radius, 2);
-        const int count = indices.size();
+        const auto row = raster.row(i);
+        // Take care of NaN cells
+        if ((row.array().isNaN()).any())
+        {
+            #pragma omp critical
+            out[i] = NA_INTEGER;
+        }
+        else
+        {
+            // get the target points xy from raster stack;
+            const auto x = raster(i, 0);
+            const auto y = raster(i, 1);
+            // define the query point of i; a cell in raster
+            XYPoints query(x, y);
+            // find all ref samples in a radius e.g. 200km
+            std::vector<int> indices = kdtree.radiusSearch(query, radius, 2);
+            int count = indices.size();
 
-        #pragma omp critical
-        out[i] = count;
-
+            #pragma omp critical
+            out[i] = count;
+        }
     }
 
     return Rcpp::wrap(out);

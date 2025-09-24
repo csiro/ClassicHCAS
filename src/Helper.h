@@ -8,7 +8,7 @@ struct Condition
 };
 
 
-// Get a copy of XY in double to avoid losing accuracy
+// Get a copy of XY in double to avoid losing percision in distance calc
 RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
     int n = X.nrow();
     if (X.ncol() < 2) Rcpp::stop("Input must have at least 2 columns");
