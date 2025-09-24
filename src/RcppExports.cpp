@@ -38,19 +38,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// spline_rescale
-std::vector<double> spline_rescale(const Rcpp::NumericVector& x, const std::vector<double>& spline_x, const std::vector<double>& spline_y);
-RcppExport SEXP _ClassicHCAS_spline_rescale(SEXP xSEXP, SEXP spline_xSEXP, SEXP spline_ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_x(spline_xSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type spline_y(spline_ySEXP);
-    rcpp_result_gen = Rcpp::wrap(spline_rescale(x, spline_x, spline_y));
-    return rcpp_result_gen;
-END_RCPP
-}
 // density_cpp
 Rcpp::IntegerVector density_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, const double scale, int num_threads);
 RcppExport SEXP _ClassicHCAS_density_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP scaleSEXP, SEXP num_threadsSEXP) {
@@ -100,7 +87,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
-    {"_ClassicHCAS_spline_rescale", (DL_FUNC) &_ClassicHCAS_spline_rescale, 3},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},

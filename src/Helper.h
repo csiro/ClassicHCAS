@@ -41,6 +41,7 @@ std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
         dist_idx.resize(k);
     }
 
+    // Sorting the indiceis will help later in filtering
     std::sort(dist_idx.begin(), dist_idx.end());
 
     std::vector<int> result(dist_idx.size());

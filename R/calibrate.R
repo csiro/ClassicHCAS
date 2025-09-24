@@ -28,6 +28,7 @@ calibrate <- function(
         x,
         x_values,
         y_values = c(0, 0.101, 0.944, 1),
+        interpolate = FALSE,
         ...) {
 
     # some initial checks
@@ -83,8 +84,6 @@ calibrate <- function(
 
 
 # a general function to calibrate condition
-# NOTE: although this will repeat spline fitting when raster files are read in steps,
-#   the spline function is deterministic and very fast, 0.005 seconds
 .calib <- function(x, x_vals, y_vals) {
     # the monotonic spline function
     f <- stats::splinefun(
@@ -93,15 +92,10 @@ calibrate <- function(
         method = "monoH.FC"
     )
 
-    # equally placed values for x to be interpolated
-    x_range <- seq(0, max(x_vals), length.out = 150)
+    out <- f(x)
+    out[out > 1] <- 1
+    out[out < 0] <- 0
 
-    return(
-        spline_rescale(
-            x = x,
-            spline_x = x_range,
-            spline_y = f(x_range)
-        )
-    )
+    return(out)
 }
 
