@@ -29,7 +29,7 @@ Rcpp::IntegerMatrix histo_cpp(
     const Rcpp::NumericMatrix &samples_xy,
     const double within_km = 1000.0, // radius in kilometers to consider ref points
     const double scale = 100000.0,   // correction scale for CRS; 1 if metric, 100,000 otherwise
-    const float bin_width = 0.05,
+    const double bin_width = 0.05,
     const int bin_num = 650,
     int num_threads = -1)
 {
@@ -43,7 +43,7 @@ Rcpp::IntegerMatrix histo_cpp(
     const int nr = rs.rows();
 
     // the inverse of bin-width
-    const float bwi = 1.0 / bin_width;
+    const float bwi = 1.0 / static_cast<float>(bin_width);
 
     // squared distance for faster calculation
     // calculating distance squared is faster; one-time rather than many sqrt
@@ -55,8 +55,9 @@ Rcpp::IntegerMatrix histo_cpp(
         omp_set_num_threads(num_threads);
     #endif
 
-    // iterate over each row and compare it with all other rows (second loop)
-    #pragma omp parallel for
+    // iterate over each row and compare it with all other rows 
+    // dynamic schedule to balance the load
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
     {
         // get the XY from samples for the first sample
@@ -83,8 +84,7 @@ Rcpp::IntegerMatrix histo_cpp(
                 int jj = std::floor(rsdist * bwi); // they are both float
                 int ii = std::floor(prdist * bwi);
                 // for now, ignore the values overshooting; they'll be mostly noise
-                if (ii < bin_num && jj < bin_num)
-                {
+                if (ii < bin_num && jj < bin_num) {
                     #pragma omp atomic
                     histo_matrix(ii, jj)++;
                 }

@@ -67,7 +67,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // histo_cpp
-Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& samples_xy, const double within_km, const double scale, const float bin_width, const int bin_num, int num_threads);
+Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& samples_xy, const double within_km, const double scale, const double bin_width, const int bin_num, int num_threads);
 RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP samples_xySEXP, SEXP within_kmSEXP, SEXP scaleSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -77,7 +77,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type samples_xy(samples_xySEXP);
     Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
     Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< const float >::type bin_width(bin_widthSEXP);
+    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
     Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
     rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, samples_xy, within_km, scale, bin_width, bin_num, num_threads));

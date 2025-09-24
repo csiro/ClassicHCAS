@@ -53,7 +53,7 @@ The higher the value the more penalise the distant location will be. The value 0
 \item{scale_factor}{Numeric. A scaling factor to correct distance calculations by converting degrees to
 meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
 On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-function.}
+function. This will be ignored for projected coordinate systems.}
 
 \item{k_pred}{Integer. Number of nearest predicted RS samples to take.}
 

@@ -61,23 +61,21 @@ Rcpp::NumericMatrix bench_cpp(
     RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
     RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
 
-    // cast the values once; cleaner code
+    // Cast the values once; cleaner code
     DTYPE xypenalty = static_cast<DTYPE>(xy_penalty);
     std::vector<DTYPE> xystats(xy_stats.size());
     for (int s = 0; s < xy_stats.size(); s++) {
         xystats[s] = static_cast<DTYPE>(xy_stats[s]);
     }
 
-    // Normalise XY and apply weight to it; after filtering XY columns
+    // Normalise XY and apply weight to it
     REM.col(0) = ((REM.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
     REM.col(1) = ((REM.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
     rstack.col(0) = ((rstack.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
     rstack.col(1) = ((rstack.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
 
-
     // define radius in m and divide by scale because the search doesn't correct it
     const double radius = within_km * 1000.0 / scale;
-
     // convert points from matrix to vector of XYPoints
     std::vector<XYPoints> points = as_XYPoints(sample_xy);
     // build k-d tree for searching 200km points
@@ -120,7 +118,6 @@ Rcpp::NumericMatrix bench_cpp(
             // find all ref samples in a radius e.g. 200km
             std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
             // now filter the matrix rows based on indices within 200km radius
-            // this sub_sample contain all the points in this radius that can be several thousands
             RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
             RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
 
@@ -173,7 +170,7 @@ Rcpp::NumericMatrix bench_cpp(
             }
 
             // calculate the Cauchy weighting condition
-            Condition wcond = get_condition(prob_sorted, pr_dist, prob_sorted[0], confidence, lambda);
+            Condition wcond = get_Condition(prob_sorted, pr_dist, prob_sorted[0], confidence, lambda);
 
             #pragma omp critical
             condition_vect[i] = wcond;

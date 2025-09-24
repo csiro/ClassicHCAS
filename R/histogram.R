@@ -23,7 +23,7 @@
 #' correct order. For more see the details section.
 #' @param samples A matrix or data.frame containing the x and y coordinates (longitude and latitude)
 #' of the reference points used for the observed and predicted RS value extraction if \code{data} is a
-#' raster object. If \code{data} argument is matrix, this will not be used.
+#' raster object. If \code{data} argument is matrix, this will be ignored.
 #' @param radius_km Numeric. Specifies the search radius in kilometers for considering reference samples
 #' when creating the histogram.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
@@ -35,7 +35,7 @@
 #' @param scale_factor Numeric. A scaling factor to correct distance calculations by converting degrees to
 #' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
 #' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-#' function.
+#' function. This will be ignored for projected coordinate systems.
 #' @param drop_features Integer vector. Completely remove the RS variable from the histogram generation. For
 #' consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
 #' you have a specific reason not to.

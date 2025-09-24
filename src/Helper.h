@@ -52,7 +52,7 @@ std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
 
 
 // HCAS Cauchy weighted condition calculation using histogram values and env distances
-inline Condition get_condition(
+inline Condition get_Condition(
     const std::vector<double> &prob_values, // histo probability values
     const std::vector<double> &pred_dists,  // the predicted/modelled distance
     double prob_max,                        // max probability value of the 20 records
