@@ -12,10 +12,6 @@
 #' @param samples_xy A matrix or data.frame containing x and y coordinates (longitude and latitude)
 #' of the reference points used for density calculation.
 #' @param radius_km Numeric. Specifies the search radius (buffer) in kilometers.
-#' @param scale_factor Numeric. A scaling factor to correct distance calculations by converting degrees to
-#' meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
-#' On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-#' function.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
 #' below 1 indicates that all available threads will be utilized. Refer to the details section for
 #' more information.
@@ -38,7 +34,6 @@ proximity <- function(
         x,
         samples_xy,
         radius_km = 200,
-        scale_factor = 100000,
         num_threads = -1,
         ...) {
 
@@ -53,8 +48,6 @@ proximity <- function(
     .check_pkgs("terra")
     # get the raster layers
     x <- .check_rast(x)
-    # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(x), scale_factor, 1)
 
     tryCatch(
         {
@@ -64,7 +57,7 @@ proximity <- function(
                 fun = proxy_count,
                 xy = samples_xy[, 1:2],
                 radius_km = radius_km,
-                scale = correction,
+                geographic = .is_lonlat(x),
                 num_threads = num_threads,
                 ...
             )

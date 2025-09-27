@@ -39,17 +39,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // density_cpp
-Rcpp::IntegerVector density_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, const double scale, int num_threads);
-RcppExport SEXP _ClassicHCAS_density_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP scaleSEXP, SEXP num_threadsSEXP) {
+Rcpp::IntegerVector density_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, bool geographic, int num_threads);
+RcppExport SEXP _ClassicHCAS_density_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rast(rastSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy(xySEXP);
     Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
-    Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(density_cpp(rast, xy, radius_km, scale, num_threads));
+    rcpp_result_gen = Rcpp::wrap(density_cpp(rast, xy, radius_km, geographic, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }

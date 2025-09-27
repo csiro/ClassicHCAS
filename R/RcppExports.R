@@ -5,8 +5,8 @@ bench_cpp <- function(raster_vals, sample_vals, histogram, xy_stats, xy_penalty 
     .Call(`_ClassicHCAS_bench_cpp`, raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads)
 }
 
-density_cpp <- function(rast, xy, radius_km = 200.0, scale = 100000.0, num_threads = -1L) {
-    .Call(`_ClassicHCAS_density_cpp`, rast, xy, radius_km, scale, num_threads)
+density_cpp <- function(rast, xy, radius_km = 200.0, geographic = FALSE, num_threads = -1L) {
+    .Call(`_ClassicHCAS_density_cpp`, rast, xy, radius_km, geographic, num_threads)
 }
 
 histo_cpp <- function(rs_vals, pr_vals, samples_xy, within_km = 1000.0, scale = 100000.0, bin_width = 0.05, bin_num = 650L, num_threads = -1L) {
