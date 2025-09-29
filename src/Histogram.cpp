@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <cstdint>
+#include <stdfloat>
 #include "Matrix.h"
 #ifdef _OPENMP
 #include <omp.h>

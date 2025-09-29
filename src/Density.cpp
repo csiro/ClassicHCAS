@@ -22,14 +22,17 @@ and ±10-50 meters for distances over 100km, making it suitable for most density
 applications where computational speed is prioritized over sub-meter precision.
 */
 
+static constexpr double DEG_2_RAD = M_PI / 180.0;
+
 // Fast integer-based distance calculation for geographic coordinates
-inline int count_within_geo(
+inline int count_Within(
     const std::vector<int64_t>& x_data,
     const std::vector<int64_t>& y_data,
     int64_t query_x,
     int64_t query_y,
     int64_t r2,
-    int64_t cos_scale
+    int64_t cos_scale,
+    bool geo
 ) {
     int count = 0;
     const int size = x_data.size();
@@ -42,38 +45,15 @@ inline int count_within_geo(
         const int64_t dy2 = dy * dy;
         if (dy2 > r2) continue;
         
-        // Scale longitude for geographic coordinates
-        const int64_t dx_scaled = (dx * cos_scale) / 1000000;
-        const int64_t dist2 = dy2 + dx_scaled * dx_scaled;
-        
-        if (dist2 <= r2) count++;
-    }
-    
-    return count;
-}
-
-// Fast integer-based distance calculation for projected coordinates (Euclidean)
-inline int count_within_proj(
-    const std::vector<int64_t>& x_data,
-    const std::vector<int64_t>& y_data,
-    int64_t query_x,
-    int64_t query_y,
-    int64_t r2
-) {
-    int count = 0;
-    const int size = x_data.size();
-    
-    for (int i = 0; i < size; ++i) {
-        const int64_t dx = x_data[i] - query_x;
-        const int64_t dy = y_data[i] - query_y;
-        
-        // Early rejection based on y-coordinate
-        const int64_t dy2 = dy * dy;
-        if (dy2 > r2) continue;
-        
-        // Simple Euclidean distance for projected coordinates
-        const int64_t dx2 = dx * dx;
-        const int64_t dist2 = dy2 + dx2;
+        int64_t dist2;
+        if (geo) {
+            // Scale longitude for geographic coordinates
+            const int64_t dx_scaled = (dx * cos_scale) / 1000000;
+            dist2 = dy2 + dx_scaled * dx_scaled;
+        } else {
+            const int64_t dx2 = dx * dx;
+            dist2 = dy2 + dx2;
+        }
         
         if (dist2 <= r2) count++;
     }
@@ -140,16 +120,16 @@ Rcpp::IntegerVector density_cpp(
         const int64_t query_x = static_cast<int64_t>(row(0) * scale);
         const int64_t query_y = static_cast<int64_t>(row(1) * scale);
         
-        int count = 0;
+        int64_t cos_scale = 0;
+        bool geo = false;
         if (geographic) {
-            // Geographic: apply cosine scaling for longitude
-            int64_t cos_scale = static_cast<int64_t>(std::cos(row(1) * 0.01745329) * 1000000);
-            count = count_within_geo(sample_x, sample_y, query_x, query_y, r2, cos_scale);
-        } else {
-            // Projected: simple Euclidean distance
-            count = count_within_proj(sample_x, sample_y, query_x, query_y, r2);
+            cos_scale = static_cast<int64_t>(std::cos(row(1) * DEG_2_RAD) * 1000000);
+            geo = true;
         }
+        // Find number of samples within the radius
+        int count = count_Within(sample_x, sample_y, query_x, query_y, r2, cos_scale, geo);
         
+        #pragma omp critical
         out[i] = count;
     }
     

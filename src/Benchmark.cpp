@@ -7,6 +7,7 @@
 #include <vector>
 #include <limits>
 #include <cstdint>
+#include <stdfloat>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -17,11 +18,10 @@
 
 using namespace Rcpp;
 
-// Data type for all distance calcaulations
-// Use float (32bit) for speed imporvement (inputs are normalised)
-using DTYPE = float;
+static constexpr double DEG_2_RAD = M_PI / 180.0;
 
 
+// Data type for all distance calcaulations use float for speed imporvement (inputs are normalised)
 // [[Rcpp::export]]
 Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &raster_vals, // a raster stack to read everything at once: x,y,rs,env
@@ -44,8 +44,8 @@ Rcpp::NumericMatrix bench_cpp(
 {
     RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
-    RowMajorMatrix<DTYPE> raster = as_Matrix<DTYPE>(raster_vals);
-    RowMajorMatrix<DTYPE> samples = as_Matrix<DTYPE>(sample_vals);
+    RowMajorMatrix<float> raster = as_Matrix<float>(raster_vals);
+    RowMajorMatrix<float> samples = as_Matrix<float>(sample_vals);
     // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
 
@@ -58,7 +58,7 @@ Rcpp::NumericMatrix bench_cpp(
     int64_t r2;
     const double radius_m = radius_km * 1000.0;
     if (geographic) {
-        // Geographic coordinates: use micro-degrees
+        // Geographic coordinates: use micro-degrees; scale for precision 0.11 meter
         scale = 1000000.0;
         const double r_deg = radius_m / 111320.0; // METERS_PER_DEG_LAT
         const int64_t r_micro = static_cast<int64_t>(r_deg * scale);
@@ -79,15 +79,15 @@ Rcpp::NumericMatrix bench_cpp(
     }
 
     // Cast the values once; cleaner code
-    DTYPE xypenalty = static_cast<DTYPE>(xy_penalty);
-    std::vector<DTYPE> xystats(xy_stats.size());
+    float xypenalty = static_cast<float>(xy_penalty);
+    std::vector<float> xystats(xy_stats.size());
     for (int s = 0; s < xy_stats.size(); s++) {
-        xystats[s] = static_cast<DTYPE>(xy_stats[s]);
+        xystats[s] = static_cast<float>(xy_stats[s]);
     }
 
     // Copy OBS and MOD RS from raster cells and samples
-    RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
-    RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
+    RowMajorMatrix<float> REM = samples.leftCols(ndim);
+    RowMajorMatrix<float> OBS = samples.rightCols(nvar);
     // Normalise XY and apply weight to it
     REM.col(0) = ((REM.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
     REM.col(1) = ((REM.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
@@ -127,18 +127,19 @@ Rcpp::NumericMatrix bench_cpp(
             const int64_t x = static_cast<int64_t>(raster_xy(i, 0) * scale);
             const int64_t y = static_cast<int64_t>(raster_xy(i, 1) * scale);
 
-            std::vector<int> indices(ns);
+            int64_t cos_scale = 0;
+            bool geo = false;
             if (geographic) {
                 // Calcualte only 1 cos() for efficiency
-                const int64_t cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * 0.01745329) * 1000000);
-                indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, true);
-            } else {
-                indices = radius_Search(sample_x, sample_y, x, y, r2, 0, false);
+                cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * DEG_2_RAD) * 1000000);
+                geo = true;
             }
+            // Find all samples within the radius
+            std::vector<int> indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, geo);
 
             // now filter the matrix rows based on indices within 200km radius
-            RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
-            RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);
+            RowMajorMatrix<float> sub_obs = filter_Matrix(OBS, indices);
+            RowMajorMatrix<float> sub_rem = filter_Matrix(REM, indices);
 
             // find the 50 nearest samples to the target point in ENV dist
             std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
@@ -152,9 +153,9 @@ Rcpp::NumericMatrix bench_cpp(
             for (const auto& j : knn_env)
             {
                 // Vectorised L1 distance over all columns
-                DTYPE rs_dist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
+                float rs_dist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
                 // the xy coordinates should be ignored for REM dist, so only rightCols(nvar)
-                DTYPE pr_dist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
+                float pr_dist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
 
                 // For now, just cast them back to double for further calculations
                 double rsdist = static_cast<double>(rs_dist);
