@@ -11,6 +11,18 @@
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
 #'
+#' This function uses an integer-based distance checks for fast radius searches on either
+#' geographic or projected coordinates. In geographic mode, coordinates are
+#' stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+#'
+#'     distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+#'
+#' where cos(lat₁) is derived from the query latitude. This avoids floating-
+#' point overhead and provides substantial performance gains but introduces
+#' distortion at larger distances. For applications requiring higher accuracy,
+#' especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+#' use a projected coordinate system so distances in meters can be evaluated directly.
+#'
 #' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 #' to take advantage of parallel processing and accelerate computations. While most systems
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
@@ -28,10 +40,12 @@
 #' @param histogram A matrix or \strong{histo} object of normalised HCAS histogram
 #' see \code{\link{histogram}} and \code{\link{normalise}}).
 #' @param xy_stats A vector, mean and standard deviation of coordinates for centre and
-#' scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)
+#' scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y).
+#' This argument helps achieving consistent results when running benchmarking over multiple tiles.
 #' @param xy_penalty Numeric. The spatial distance penalty value for selecting benchmark points.
 #' The higher the value the more penalise the distant location will be. The value 0 means no penalty.
 #' @param radius_km Numeric. Search radius in kilometers for considering benchmark samples.
+#' See details section for more information on distance calculation.
 #' @param k_pred Integer. Number of nearest predicted RS samples to take.
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{histogram} is

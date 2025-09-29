@@ -10,18 +10,6 @@
 #include <omp.h>
 #endif
 
-/*
-Performs fast parallel point density calculations within circular buffers around raster cell locations. 
-The function uses optimized integer arithmetic by converting coordinates to micro-degrees (geographic mode) 
-or scaled meters (planar mode) to achieve approximately 10x performance improvement over standard 
-floating-point calculations. For geographic coordinates, distances are approximated using 
-distance² ≈ (dlat)² + (dlon × cos(lat₁))² where the cosine scaling uses the query point latitude 
-rather than the mean latitude between points. This approximation maintains accuracy 
-within ±0.1-0.5 meters for distances under 1km, ±0.5-2 meters for 1-10km distances, 
-and ±10-50 meters for distances over 100km, making it suitable for most density analysis 
-applications where computational speed is prioritized over sub-meter precision.
-*/
-
 static constexpr double DEG_2_RAD = M_PI / 180.0;
 
 // Fast integer-based distance calculation for geographic coordinates

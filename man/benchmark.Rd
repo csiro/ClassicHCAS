@@ -43,17 +43,14 @@ layers. Consider extra time for sample value extraction in this case.}
 see \code{\link{histogram}} and \code{\link{normalise}}).}
 
 \item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
-scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y)}
+scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y).
+This argument helps achieving consistent results when running benchmarking over multiple tiles.}
 
 \item{xy_penalty}{Numeric. The spatial distance penalty value for selecting benchmark points.
 The higher the value the more penalise the distant location will be. The value 0 means no penalty.}
 
-\item{radius_km}{Numeric. Search radius in kilometers for considering benchmark samples.}
-
-\item{scale_factor}{Numeric. A scaling factor to correct distance calculations by converting degrees to
-meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
-On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-function. This will be ignored for projected coordinate systems.}
+\item{radius_km}{Numeric. Search radius in kilometers for considering benchmark samples.
+See details section for more information on distance calculation.}
 
 \item{k_pred}{Integer. Number of nearest predicted RS samples to take.}
 
@@ -106,6 +103,18 @@ Ensure that the order of remote sensing variables is consistent between observed
 (for both raster and matrix formats). The RS variable values must be centered and scaled
 prior to prediction. Failure to do so may result in variables with larger ranges having
 disproportionate influence in the multi-dimensional distance calculations.
+
+This function uses an integer-based distance checks for fast radius searches on either
+geographic or projected coordinates. In geographic mode, coordinates are
+stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+
+    distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+
+where cos(lat₁) is derived from the query latitude. This avoids floating-
+point overhead and provides substantial performance gains but introduces
+distortion at larger distances. For applications requiring higher accuracy,
+especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+use a projected coordinate system so distances in meters can be evaluated directly.
 
 Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 to take advantage of parallel processing and accelerate computations. While most systems

@@ -10,7 +10,6 @@ histogram(
   radius_km = 1000,
   bin_width = 0.05,
   bin_num = 650,
-  scale_factor = 1e+05,
   drop_features = NULL,
   num_threads = -1,
   filename = ""
@@ -28,7 +27,7 @@ of the reference points used for the observed and predicted RS value extraction 
 raster object. If \code{data} argument is matrix, this will be ignored.}
 
 \item{radius_km}{Numeric. Specifies the search radius in kilometers for considering reference samples
-when creating the histogram.}
+when creating the histogram. See details section for more information on distance calculation.}
 
 \item{bin_width}{Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
 may require some experimentation to achieve the best results. The bin width is added as an attribute
@@ -37,11 +36,6 @@ to the output object, ensuring consistency and accuracy in subsequent benchmarki
 \item{bin_num}{Integer. Specifies the number of bins for the histogram. It is generally recommended
 to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 \code{bin_num}.}
-
-\item{scale_factor}{Numeric. A scaling factor to correct distance calculations by converting degrees to
-meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
-On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-function. This will be ignored for projected coordinate systems.}
 
 \item{drop_features}{Integer vector. Completely remove the RS variable from the histogram generation. For
 consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
@@ -68,6 +62,18 @@ Ensure that the order of remote sensing variables is consistent between observed
 (for both raster and matrix formats). The RS variable values must be centered and scaled
 prior to prediction. Failure to do so may result in variables with larger ranges having
 disproportionate influence in the multi-dimensional distance calculations.
+
+This function uses an integer-based distance checks for fast radius searches on either
+geographic or projected coordinates. In geographic mode, coordinates are
+stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+
+    distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+
+where cos(lat₁) is derived from the query latitude. This avoids floating-
+point overhead and provides substantial performance gains but introduces
+distortion at larger distances. For applications requiring higher accuracy,
+especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+use a projected coordinate system so distances in meters can be evaluated directly.
 
 Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 to take advantage of parallel processing and accelerate computations. While most systems

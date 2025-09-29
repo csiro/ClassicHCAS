@@ -1,7 +1,19 @@
 #' Number of samples within a proximity (radial search)
 #'
 #' This function calculates the number of samples (x, y coordinates) within a specified radius
-#' for each pixel in a raster map, using Euclidean distance.
+#' for each pixel in a raster map.
+#'
+#' This function uses an integer-based distance checks for fast radius searches on either
+#' geographic or projected coordinates. In geographic mode, coordinates are
+#' stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+#'
+#'     distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+#'
+#' where cos(lat₁) is derived from the query latitude. This avoids floating-
+#' point overhead and provides substantial performance gains but introduces
+#' distortion at larger distances. For applications requiring higher accuracy,
+#' especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+#' use a projected coordinate system so distances in meters can be evaluated directly.
 #'
 #' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 #' to take advantage of parallel processing and accelerate computations. While most systems

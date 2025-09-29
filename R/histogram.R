@@ -11,6 +11,18 @@
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
 #'
+#' This function uses an integer-based distance checks for fast radius searches on either
+#' geographic or projected coordinates. In geographic mode, coordinates are
+#' stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+#'
+#'     distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+#'
+#' where cos(lat₁) is derived from the query latitude. This avoids floating-
+#' point overhead and provides substantial performance gains but introduces
+#' distortion at larger distances. For applications requiring higher accuracy,
+#' especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+#' use a projected coordinate system so distances in meters can be evaluated directly.
+#'
 #' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 #' to take advantage of parallel processing and accelerate computations. While most systems
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
@@ -25,7 +37,7 @@
 #' of the reference points used for the observed and predicted RS value extraction if \code{data} is a
 #' raster object. If \code{data} argument is matrix, this will be ignored.
 #' @param radius_km Numeric. Specifies the search radius in kilometers for considering reference samples
-#' when creating the histogram.
+#' when creating the histogram. See details section for more information on distance calculation.
 #' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
 #' may require some experimentation to achieve the best results. The bin width is added as an attribute
 #' to the output object, ensuring consistency and accuracy in subsequent benchmarking steps.

@@ -4,7 +4,13 @@
 \alias{calibrate}
 \title{Calibrate habitat condition output}
 \usage{
-calibrate(x, x_values, y_values = c(0, 0.101, 0.944, 1), ...)
+calibrate(
+  x,
+  x_values,
+  y_values = c(0, 0.101, 0.944, 1),
+  interpolate = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{A SpatRaster, matrix, data.frame, or vector containing HCAS habitat condition values from

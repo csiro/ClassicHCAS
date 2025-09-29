@@ -4,14 +4,7 @@
 \alias{proximity}
 \title{Number of samples within a proximity (radial search)}
 \usage{
-proximity(
-  x,
-  samples_xy,
-  radius_km = 200,
-  scale_factor = 1e+05,
-  num_threads = -1,
-  ...
-)
+proximity(x, samples_xy, radius_km = 200, num_threads = -1, ...)
 }
 \arguments{
 \item{x}{A SpatRaster representing the study area over which sample density will be calculated.}
@@ -20,11 +13,6 @@ proximity(
 of the reference points used for density calculation.}
 
 \item{radius_km}{Numeric. Specifies the search radius (buffer) in kilometers.}
-
-\item{scale_factor}{Numeric. A scaling factor to correct distance calculations by converting degrees to
-meters in unprojected coordinate systems. The default is 100,000 for an average conversion in Australia.
-On the equator, this factor is approximately 111,235, and it varies with latitude according to a cosine
-function.}
 
 \item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
 below 1 indicates that all available threads will be utilized. Refer to the details section for
@@ -38,9 +26,21 @@ A SpatRaster
 }
 \description{
 This function calculates the number of samples (x, y coordinates) within a specified radius
-for each pixel in a raster map, using Euclidean distance.
+for each pixel in a raster map.
 }
 \details{
+This function uses an integer-based distance checks for fast radius searches on either
+geographic or projected coordinates. In geographic mode, coordinates are
+stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+
+    distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+
+where cos(lat₁) is derived from the query latitude. This avoids floating-
+point overhead and provides substantial performance gains but introduces
+distortion at larger distances. For applications requiring higher accuracy,
+especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
+use a projected coordinate system so distances in meters can be evaluated directly.
+
 Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
 to take advantage of parallel processing and accelerate computations. While most systems
 include OpenMP by default, you may need to load the appropriate module if you're using an HPC
