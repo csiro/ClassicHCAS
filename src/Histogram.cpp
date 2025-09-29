@@ -35,7 +35,7 @@ inline int64_t distance(
 
 
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix histo_test(
+Rcpp::IntegerMatrix histo_cpp(
     const Rcpp::NumericMatrix &rs_vals,
     const Rcpp::NumericMatrix &pr_vals,
     const Rcpp::NumericMatrix &xy,
@@ -88,7 +88,7 @@ Rcpp::IntegerMatrix histo_test(
         omp_set_num_threads(num_threads);
     #endif
 
-    int64_t cos_scale;
+    int64_t cos_scale = 0;
     // iterate over each row and compare it with all other rows 
     // dynamic schedule to balance the load
     #pragma omp parallel for schedule(dynamic)

@@ -53,9 +53,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// histo_test
-Rcpp::IntegerMatrix histo_test(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy, const double within_km, const double bin_width, const int bin_num, bool geographic, int num_threads);
-RcppExport SEXP _ClassicHCAS_histo_test(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xySEXP, SEXP within_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
+// histo_cpp
+Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy, const double within_km, const double bin_width, const int bin_num, bool geographic, int num_threads);
+RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xySEXP, SEXP within_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -67,7 +67,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
     Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(histo_test(rs_vals, pr_vals, xy, within_km, bin_width, bin_num, geographic, num_threads));
+    rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, xy, within_km, bin_width, bin_num, geographic, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -88,7 +88,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
-    {"_ClassicHCAS_histo_test", (DL_FUNC) &_ClassicHCAS_histo_test, 8},
+    {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
     {NULL, NULL, 0}
 };

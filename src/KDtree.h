@@ -9,6 +9,28 @@
 #include <functional>
 #include <cmath> // for sqrt
 
+
+// Haversine distance calcualtion for geographic coordinate system
+inline double haversine(double lon1, double lat1, double lon2, double lat2) {
+    const double r = 6371000.0; // mean Earth radius in meters
+    
+    // Convert degrees to radians
+    lat1 = lat1 * M_PI / 180.0;
+    lon1 = lon1 * M_PI / 180.0;
+    lat2 = lat2 * M_PI / 180.0;
+    lon2 = lon2 * M_PI / 180.0;
+    
+    double dlat = lat2 - lat1;
+    double dlon = lon2 - lon1;
+    
+    double a = pow(sin(dlat / 2.0), 2) 
+        + cos(lat1) * cos(lat2) * pow(sin(dlon / 2.0), 2);
+    double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
+    
+    return r * c;
+}
+
+
 namespace kdt
 {
     /** @brief k-d tree class.
@@ -225,7 +247,7 @@ namespace kdt
         {
             if (distanceType == 1)
             { // L1 distance
-                double dist = 0;
+                double dist = 0.0;
 
                 for (size_t i = 0; i < PointT::DIM; i++)
                     dist += std::abs(p[i] - q[i]);
@@ -234,12 +256,18 @@ namespace kdt
             }
             else if (distanceType == 2)
             { // L2 distance
-                double dist = 0;
+                double dist = 0.0;
 
                 for (size_t i = 0; i < PointT::DIM; i++)
                     dist += (p[i] - q[i]) * (p[i] - q[i]);
 
                 return sqrt(dist);
+            }
+            else if (distanceType == 3)
+            {
+                double dist = haversine(p[0], p[1], q[0], q[1]);
+
+                return dist;
             }
             else
             {

@@ -62,7 +62,6 @@ histogram <- function(
         radius_km = 1000,
         bin_width = 0.05,
         bin_num = 650,
-        scale_factor = 100000,
         drop_features = NULL,
         num_threads = -1,
         filename = "") {
@@ -103,9 +102,6 @@ histogram <- function(
     observed <- data_vals[, obs_layers]
     modelled <- data_vals[, mod_layers]
 
-    # correction scale for long-lat CRS
-    correction <- ifelse(.is_lonlat(samples_xy), scale_factor, 1)
-
     # some error checking
     if(any(dim(modelled) != dim(observed)))
         stop("Dimensions of RS and ENV datasets doesn't match!")
@@ -134,11 +130,11 @@ histogram <- function(
             out_table <- histo_cpp(
                 rs_vals = observed,
                 pr_vals = modelled,
-                samples_xy = samples_xy,
+                xy = samples_xy,
                 within_km = radius_km,
-                scale = correction,
                 bin_width = bin_width,
                 bin_num = bin_num,
+                geographic = .is_lonlat(samples_xy),
                 num_threads = num_threads
             )
         },
