@@ -1,4 +1,11 @@
 CXX_STD = CXX17
-PKG_CPPFLAGS = -Wno-ignored-attributes -mavx2 -mfma
+PKG_CPPFLAGS = -Wno-ignored-attributes
+
+UNAME_ARCH := $(shell uname -m)
+# Add AVX2/FMA only for Intel Macs
+ifeq ($(UNAME_ARCH), x86_64)
+  PKG_CPPFLAGS += -mavx2 -mfma
+endif
+
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
