@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <cstdint>
 
 // a struct to hold both condition and SU values
 struct Condition 
@@ -19,6 +21,47 @@ RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
         out(i, 1) = X(i, 1);
     }
     return out;
+}
+
+
+// finding points in a radius with a fast approximation for lat-long distance
+std::vector<int> radius_Search(
+    const std::vector<int64_t>& x_data,
+    const std::vector<int64_t>& y_data,
+    const int64_t query_x,
+    const int64_t query_y,
+    int64_t r2,
+    int64_t cos_scale,
+    bool geographic
+) {
+    const int size = x_data.size();
+
+    std::vector<int> within;
+    within.reserve(size);
+    
+    for (int i = 0; i < size; ++i) {
+        const int64_t dx = x_data[i] - query_x;
+        const int64_t dy = y_data[i] - query_y;
+        
+        // Early latitude rejection
+        const int64_t dy2 = dy * dy;
+        if (dy2 > r2) continue;
+        
+        int64_t dist2;
+        if (geographic) {
+            // Scale longitude for geographic coordinates
+            const int64_t dx_scaled = (dx * cos_scale) / 1000000;
+            dist2 = dy2 + dx_scaled * dx_scaled;
+        } else {
+            dist2 = dy2 + dx * dx;
+        }
+        
+        if (dist2 <= r2) {
+            within.push_back(i);
+        }
+    }
+    
+    return within;
 }
 
 

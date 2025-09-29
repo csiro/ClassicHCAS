@@ -14,7 +14,7 @@ using namespace Rcpp;
 // calculate squared distance using xy; keep distance as double
 inline int64_t distance(
     const int64_t x1, const int64_t y1, const int64_t x2, const int64_t y2,
-    int64_t cos_scale, bool geo, int64_t dist)
+    int64_t cos_scale, bool geo)
 {
     const int64_t dx = x2 - x1;
     const int64_t dy = y2 - y1;
@@ -110,7 +110,7 @@ Rcpp::IntegerMatrix histo_cpp(
             const auto yj = sample_y[j];
 
             // // calculate geographic squared distance
-            int64_t dist = distance(xi, yi, xj, yj, cos_scale, geographic, squared_dist);
+            int64_t dist = distance(xi, yi, xj, yj, cos_scale, geographic);
             // only calculate for point within e.g. 1000km distance
             if (dist < squared_dist)
             {

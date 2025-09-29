@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bench_cpp
-Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, const double xy_penalty, const double scale, const double within_km, const int k_env, const int k_rs, const double bin_width, const int bin_num, const int offset, const double confidence, const double lambda, const bool exclude_slef, const bool make_su, int num_threads);
-RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP scaleSEXP, SEXP within_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
+Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, bool make_su, int num_threads);
+RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,20 +21,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type sample_vals(sample_valsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type histogram(histogramSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type xy_stats(xy_statsSEXP);
-    Rcpp::traits::input_parameter< const double >::type xy_penalty(xy_penaltySEXP);
-    Rcpp::traits::input_parameter< const double >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
-    Rcpp::traits::input_parameter< const int >::type k_env(k_envSEXP);
-    Rcpp::traits::input_parameter< const int >::type k_rs(k_rsSEXP);
-    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
-    Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
-    Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
-    Rcpp::traits::input_parameter< const double >::type confidence(confidenceSEXP);
-    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const bool >::type exclude_slef(exclude_slefSEXP);
-    Rcpp::traits::input_parameter< const bool >::type make_su(make_suSEXP);
+    Rcpp::traits::input_parameter< double >::type xy_penalty(xy_penaltySEXP);
+    Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
+    Rcpp::traits::input_parameter< double >::type radius_km(radius_kmSEXP);
+    Rcpp::traits::input_parameter< int >::type k_env(k_envSEXP);
+    Rcpp::traits::input_parameter< int >::type k_rs(k_rsSEXP);
+    Rcpp::traits::input_parameter< double >::type bin_width(bin_widthSEXP);
+    Rcpp::traits::input_parameter< int >::type bin_num(bin_numSEXP);
+    Rcpp::traits::input_parameter< int >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< double >::type confidence(confidenceSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< bool >::type exclude_slef(exclude_slefSEXP);
+    Rcpp::traits::input_parameter< bool >::type make_su(make_suSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, scale, within_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
+    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }

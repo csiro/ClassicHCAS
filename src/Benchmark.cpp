@@ -6,12 +6,11 @@
 #include <cmath>
 #include <vector>
 #include <limits>
+#include <cstdint>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 // Local scripts
-#include "KDtree.h"
-#include "KDmethods.h"
 #include "Quickisort.h"
 #include "Matrix.h"
 #include "Helper.h"
@@ -26,40 +25,58 @@ using DTYPE = float;
 // [[Rcpp::export]]
 Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &raster_vals, // a raster stack to read everything at once: x,y,rs,env
-    const Rcpp::NumericMatrix &sample_vals, // extraction of values of rstack using smaples xy: x,y,RS,ENV
+    const Rcpp::NumericMatrix &sample_vals, // extraction of values of raster using smaples xy: x,y,RS,ENV
     const Rcpp::NumericMatrix &histogram,   // cleaned histogram
     const Rcpp::NumericVector &xy_stats,    // mean(x), mean(y), sd(x), sd(y); ORDER MATTERS
-    const double xy_penalty = 0.0,          // penalising env nearest neighbour searching for geographic distance
-    const double scale = 100000.0,          // correction scale for CRS; 1 if metric, 100,000 otherwise
-    const double within_km = 200,           // radius in kilometers to consider ref points
-    const int k_env = 50,                   // number of ENV nn to select
-    const int k_rs = 20,                    // number of RS/Prob values to select
-    const double bin_width = 0.05,          // histogram bin width
-    const int bin_num = 400,                // number of bins in histogram
-    const int offset = 0,                   // offset of histogram
-    const double confidence = 0.5,          // the LDC confidence index; default 0.5
-    const double lambda = 2.0,              // the lambda of the Cauchy weighting
-    const bool exclude_slef = true,         // whether to exclude a benchmark sample from assessing itself
-    const bool make_su = false,             // whether to produce SU map
+    double xy_penalty = 0.0,          // penalising env nearest neighbour searching for geographic distance
+    bool geographic = false,          // correction scale for CRS; 1 if metric, 100,000 otherwise
+    double radius_km = 200,           // radius in kilometers to consider ref points
+    int k_env = 50,                   // number of ENV nn to select
+    int k_rs = 20,                    // number of RS/Prob values to select
+    double bin_width = 0.05,          // histogram bin width
+    int bin_num = 400,                // number of bins in histogram
+    int offset = 0,                   // offset of histogram
+    double confidence = 0.5,          // the LDC confidence index; default 0.5
+    double lambda = 2.0,              // the lambda of the Cauchy weighting
+    bool exclude_slef = true,         // whether to exclude a benchmark sample from assessing itself
+    bool make_su = false,             // whether to produce SU map
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
-    // Copy XY before normalisation (and reading in DTYPE) to calculate the correct distances;
-    RowMajorMatrix<double> rast_xy = get_XY(raster_vals);
-    RowMajorMatrix<double> sample_xy = get_XY(sample_vals);
-
+    RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
-    RowMajorMatrix<DTYPE> rstack = as_Matrix<DTYPE>(raster_vals);
+    RowMajorMatrix<DTYPE> raster = as_Matrix<DTYPE>(raster_vals);
     RowMajorMatrix<DTYPE> samples = as_Matrix<DTYPE>(sample_vals);
     // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
 
-    const int nr = rstack.rows();
+    const int nr = raster.rows();
+    const int ns = samples.rows();
     int nvar = (samples.cols() - 2) / 2; // number of RS vars
     int ndim = nvar + 2; // number of multi-variate space REM + XY
 
-    // Copy OBS and MOD RS from raster cells and samples
-    RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
-    RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
+    double scale;
+    int64_t r2;
+    const double radius_m = radius_km * 1000.0;
+    if (geographic) {
+        // Geographic coordinates: use micro-degrees
+        scale = 1000000.0;
+        const double r_deg = radius_m / 111320.0; // METERS_PER_DEG_LAT
+        const int64_t r_micro = static_cast<int64_t>(r_deg * scale);
+        r2 = r_micro * r_micro;
+    } else {
+        // Projected coordinates: coordinates already in meters, scale for precision
+        scale = 100.0;  // 0.01 meter precision
+        const int64_t r_scaled = static_cast<int64_t>(radius_m * scale);
+        r2 = r_scaled * r_scaled;
+    }
+        
+    // Pre-compute sample coordinates as integers
+    std::vector<int64_t> sample_x(ns), sample_y(ns);
+    // Convert sample coordinates to integers
+    for (int i = 0; i < ns; ++i) {
+        sample_x[i] = static_cast<int64_t>(samples(i, 0) * scale);
+        sample_y[i] = static_cast<int64_t>(samples(i, 1) * scale);
+    }
 
     // Cast the values once; cleaner code
     DTYPE xypenalty = static_cast<DTYPE>(xy_penalty);
@@ -68,18 +85,14 @@ Rcpp::NumericMatrix bench_cpp(
         xystats[s] = static_cast<DTYPE>(xy_stats[s]);
     }
 
+    // Copy OBS and MOD RS from raster cells and samples
+    RowMajorMatrix<DTYPE> REM = samples.leftCols(ndim);
+    RowMajorMatrix<DTYPE> OBS = samples.rightCols(nvar);
     // Normalise XY and apply weight to it
     REM.col(0) = ((REM.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
     REM.col(1) = ((REM.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
-    rstack.col(0) = ((rstack.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
-    rstack.col(1) = ((rstack.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
-
-    // define radius in m and divide by scale because the search doesn't correct it
-    const double radius = within_km * 1000.0 / scale;
-    // convert points from matrix to vector of XYPoints
-    std::vector<XYPoints> points = as_XYPoints(sample_xy);
-    // build k-d tree for searching 200km points
-    kdt::KDTree<XYPoints> kdtree(points);
+    raster.col(0) = ((raster.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
+    raster.col(1) = ((raster.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
 
     // output condition vector
     std::vector<Condition> condition_vect(nr);
@@ -91,11 +104,11 @@ Rcpp::NumericMatrix bench_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(dynamic, 1024)
     for (int i = 0; i < nr; i++)
     {
-        const auto cell_rem = rstack.row(i).leftCols(ndim);
-        const auto cell_obs = rstack.row(i).rightCols(nvar);
+        const auto cell_rem = raster.row(i).leftCols(ndim);
+        const auto cell_obs = raster.row(i).rightCols(nvar);
 
         // Take care of NaN cells
         if ((cell_obs.array().isNaN()).any())
@@ -110,13 +123,19 @@ Rcpp::NumericMatrix bench_cpp(
         }
         else
         {
-            // get the target points xy from raster stack;
-            const auto x = rast_xy(i, 0);
-            const auto y = rast_xy(i, 1);
-            // define the query point of i; a cell in raster
-            XYPoints query(x, y);
-            // find all ref samples in a radius e.g. 200km
-            std::vector<int> indices = kdtree.radiusSearch(query, radius, 2); // 2 for L2 distance
+            // // get the target points xy from raster stack;
+            const int64_t x = static_cast<int64_t>(raster_xy(i, 0) * scale);
+            const int64_t y = static_cast<int64_t>(raster_xy(i, 1) * scale);
+
+            std::vector<int> indices(ns);
+            if (geographic) {
+                // Calcualte only 1 cos() for efficiency
+                const int64_t cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * 0.01745329) * 1000000);
+                indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, true);
+            } else {
+                indices = radius_Search(sample_x, sample_y, x, y, r2, 0, false);
+            }
+
             // now filter the matrix rows based on indices within 200km radius
             RowMajorMatrix<DTYPE> sub_obs = filter_Matrix(OBS, indices);
             RowMajorMatrix<DTYPE> sub_rem = filter_Matrix(REM, indices);

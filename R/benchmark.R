@@ -133,8 +133,6 @@ benchmark <- function(
     if (.is_mat(data)) {
         # check and convert to matrix
         data <- .check_mat(data)
-        # correction scale for long-lat CRS
-        correction <- ifelse(.is_lonlat(data), scale_factor, 1)
 
         if (ncol(samples) != ncol(data)) {
             stop("Samples must include all raster values (matching column count with 'data').")
@@ -152,8 +150,8 @@ benchmark <- function(
                     histogram = histogram,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
-                    within_km = radius_km,
-                    scale = correction,
+                    radius_km = radius_km,
+                    geographic = .is_lonlat(data),
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
                     offset = ifelse(interpolate, offset * 2, offset),
@@ -176,9 +174,6 @@ benchmark <- function(
         .check_pkgs("terra")
         # check and convert to SpatRaster object
         data <- .check_rast(data)
-
-        # correction scale for long-lat CRS
-        correction <- ifelse(.is_lonlat(data), scale_factor, 1)
 
         # sample extraction if needed
         if (ncol(samples) == 2) {
@@ -203,8 +198,8 @@ benchmark <- function(
                     histogram = histogram,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
-                    within_km = radius_km,
-                    scale = correction,
+                    radius_km = radius_km,
+                    geographic = .is_lonlat(data),
                     bin_width = ifelse(interpolate, bin_width / 2, bin_width),
                     bin_num = bin_num,
                     offset = ifelse(interpolate, offset * 2, offset),
