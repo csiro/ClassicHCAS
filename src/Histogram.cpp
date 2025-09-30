@@ -103,8 +103,8 @@ Rcpp::IntegerMatrix histo_cpp(
         int64_t cos_scale = 0;
         if (geographic) {
             // Geographic: apply cosine scaling for longitude; only on i sample
-            const double ya = xy(i, 1); // needs to be in original scale
-            cos_scale = static_cast<int64_t>(std::cos(ya * DEG_2_RAD) * 1000000);
+            const double y1 = xy(i, 1); // needs to be in original scale
+            cos_scale = static_cast<int64_t>(std::cos(y1 * DEG_2_RAD) * 1000000);
         }
         // second iteration over rows skipping double counting, (i,j) is equal to (j,i)
         for (int j = i + 1; j < nr; j++)

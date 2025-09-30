@@ -8,7 +8,7 @@
 * The NAN pixels are now directly handled in the C++ side.
 * The fast geographic distance calculation is implemented (no difference for projected CRS with 0.01 meters accuracy).
 * The geographic distance for lat/long is now corrected for the latitude of the source cell, not only with radius transformation.
-*
+* Added a new function (`tessellate`) for making raster tiles using raster or matrix data 
 
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.

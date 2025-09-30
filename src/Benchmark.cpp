@@ -128,14 +128,12 @@ Rcpp::NumericMatrix bench_cpp(
             const int64_t y = static_cast<int64_t>(raster_xy(i, 1) * scale);
 
             int64_t cos_scale = 0;
-            bool geo = false;
             if (geographic) {
                 // Calcualte only 1 cos() for efficiency
                 cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * DEG_2_RAD) * 1000000);
-                geo = true;
             }
             // Find all samples within the radius
-            std::vector<int> indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, geo);
+            std::vector<int> indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, geographic);
 
             // now filter the matrix rows based on indices within 200km radius
             RowMajorMatrix<float> sub_obs = filter_Matrix(OBS, indices);

@@ -13,7 +13,7 @@
 static constexpr double DEG_2_RAD = M_PI / 180.0;
 
 // Fast integer-based distance calculation for geographic coordinates
-inline int count_Within(
+inline int radius_Count(
     const std::vector<int64_t>& x_data,
     const std::vector<int64_t>& y_data,
     int64_t query_x,
@@ -115,7 +115,7 @@ Rcpp::IntegerVector density_cpp(
             geo = true;
         }
         // Find number of samples within the radius
-        int count = count_Within(sample_x, sample_y, query_x, query_y, r2, cos_scale, geo);
+        int count = radius_Count(sample_x, sample_y, query_x, query_y, r2, cos_scale, geo);
         
         #pragma omp critical
         out[i] = count;
