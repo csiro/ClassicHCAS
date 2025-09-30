@@ -33,17 +33,19 @@ inline RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
     return out;
 }
 
-template <typename T>
-RowMajorMatrix<T> filter_Matrix(const RowMajorMatrix<T> &matrix,
-                                const std::vector<int> &indices) {
+
+// Filter a matrix view
+template <typename Derived>
+auto filter_Matrix(const Eigen::MatrixBase<Derived> &matrix,
+                   const std::vector<int> &indices) {
+    using T = typename Derived::Scalar;
     const int new_rows = indices.size();
     const int new_cols = matrix.cols();
     RowMajorMatrix<T> filtered(new_rows, new_cols);
-
+    
     for (int i = 0; i < new_rows; ++i) {
-        int orig = indices[i];
         // copy whole row at once (contiguous in row-major!)
-        filtered.row(i) = matrix.row(orig);
+        filtered.row(i) = matrix.row(indices[i]);
     }
 
     return filtered;

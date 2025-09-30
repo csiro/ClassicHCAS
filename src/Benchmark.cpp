@@ -85,12 +85,9 @@ Rcpp::NumericMatrix bench_cpp(
         xystats[s] = static_cast<float>(xy_stats[s]);
     }
 
-    // Copy OBS and MOD RS from raster cells and samples
-    RowMajorMatrix<float> REM = samples.leftCols(ndim);
-    RowMajorMatrix<float> OBS = samples.rightCols(nvar);
     // Normalise XY and apply weight to it
-    REM.col(0) = ((REM.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
-    REM.col(1) = ((REM.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
+    samples.col(0) = ((samples.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
+    samples.col(1) = ((samples.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
     raster.col(0) = ((raster.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
     raster.col(1) = ((raster.col(1).array() - xystats[1]) / xystats[3]) * xypenalty;
 
@@ -135,9 +132,9 @@ Rcpp::NumericMatrix bench_cpp(
             // Find all samples within the radius
             std::vector<int> indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, geographic);
 
-            // now filter the matrix rows based on indices within 200km radius
-            RowMajorMatrix<float> sub_obs = filter_Matrix(OBS, indices);
-            RowMajorMatrix<float> sub_rem = filter_Matrix(REM, indices);
+            // now filter samples rows based on indices within 200km radius
+            RowMajorMatrix<float> sub_rem = filter_Matrix(samples.leftCols(ndim), indices);
+            RowMajorMatrix<float> sub_obs = filter_Matrix(samples.rightCols(nvar), indices);
 
             // find the 50 nearest samples to the target point in ENV dist
             std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);

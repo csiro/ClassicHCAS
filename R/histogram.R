@@ -6,7 +6,7 @@
 #' sites used for the \code{histogram} do not need to be the same as those used in
 #' the \code{\link{benchmark}} function. See more in details.
 #'
-#' Ensure that the order of remote sensing variables is consistent between observed and predicted inputs
+#' Ensure that the order of remote sensing variables is consistent between predicted and observed inputs
 #' (for both raster and matrix formats). The RS variable values must be centered and scaled
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
@@ -29,8 +29,8 @@
 #' system.
 #'
 #' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
-#' The data must be organised in the following order: \strong{x}, \strong{y}, \strong{observed-RS},
-#' \strong{predicted-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
+#' The data \strong{must} be organised in the following order: \strong{x}, \strong{y}, \strong{predicted-RS},
+#' \strong{observed-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
 #' If using a matrix or data.frame, ensure that the variables are in the
 #' correct order. For more see the details section.
 #' @param samples A matrix or data.frame containing the x and y coordinates (longitude and latitude)
@@ -104,8 +104,8 @@ histogram <- function(
     # number of observed RS vars
     num_layers <- (ncol(data_vals) - 2) / 2
     # id of obs and mod for saving
-    obs_layers <- seq_len(num_layers) + 2
-    mod_layers <- obs_layers + num_layers
+    mod_layers <- seq_len(num_layers) + 2
+    obs_layers <- mod_layers + num_layers
 
     # get the correct columns for the C++ code
     samples_xy <- data_vals[, 1:2]

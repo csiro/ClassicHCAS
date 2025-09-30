@@ -6,7 +6,7 @@
 #' over time. This function is designed to help researchers and conservationists quantify the
 #' impacts of environmental changes and management interventions on habitat condition.
 #'
-#' Ensure that the order of remote sensing variables is consistent between observed and predicted inputs
+#' Ensure that the order of remote sensing variables is consistent between predicted and observed inputs
 #' (for both raster and matrix formats). The RS variable values must be centered and scaled
 #' prior to prediction. Failure to do so may result in variables with larger ranges having
 #' disproportionate influence in the multi-dimensional distance calculations.
@@ -32,7 +32,7 @@
 #' regions.
 #'
 #' @inheritParams histogram
-#' @param samples A matrix or data.frame containing x, y, observed-RS, and predicted-RS values
+#' @param samples A matrix or data.frame containing x, y, predicted-RS, and observed-RS values
 #' (in that specific order) for benchmark samples (also known as reference sites). If the
 #' \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
 #' benchmark samples. In this case, the corresponding values will be extracted from the raster
@@ -106,7 +106,7 @@ benchmark <- function(
     # check samples and histograms
     samples <- if (.is_mat(samples)) .check_mat(samples) else stop("'samples' must be a matrix or convertible to one.")
     histogram <- if (.is_mat(histogram)) .check_mat(histogram) else stop("'histogram' must be a matrix or convertible to one.")
-    if (nrow(histogram) != ncol(histogram)) warning("Historgram dimensions are not the same!\n")
+    if (nrow(histogram) != ncol(histogram)) warning("Historgram dimensions are not equal!\n")
 
     if (methods::is(histogram, "histo")) {
         # check for histo bin_width consistency
@@ -133,6 +133,9 @@ benchmark <- function(
             terra::disagg(terra::rast(histogram), fact = 2, method = "bilinear"),
             wide = TRUE
         )
+        # update the binwidth and offset
+        bin_width <- bin_width / 2
+        offset <- offset * 2
     }
     # get the bin number after interpolation
     bin_num <- min(dim(histogram))
@@ -166,9 +169,9 @@ benchmark <- function(
                     xy_penalty = xy_penalty,
                     radius_km = radius_km,
                     geographic = .is_lonlat(data),
-                    bin_width = ifelse(interpolate, bin_width / 2, bin_width),
+                    bin_width = bin_width,
                     bin_num = bin_num,
-                    offset = ifelse(interpolate, offset * 2, offset),
+                    offset = offset,
                     k_env = k_pred,
                     k_rs = k_obs,
                     confidence = confidence,
@@ -214,9 +217,9 @@ benchmark <- function(
                     xy_penalty = xy_penalty,
                     radius_km = radius_km,
                     geographic = .is_lonlat(data),
-                    bin_width = ifelse(interpolate, bin_width / 2, bin_width),
+                    bin_width = bin_width,
                     bin_num = bin_num,
-                    offset = ifelse(interpolate, offset * 2, offset),
+                    offset = offset,
                     k_env = k_pred,
                     k_rs = k_obs,
                     confidence = confidence,

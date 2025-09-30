@@ -1,14 +1,15 @@
 # Version 1.0.0
-* Complete rewrite of the main functions (`histogram` and `benchmark`) using vectorised operations, resulting in more than a 10× speed improvement.
-* The distance calculations are now changed from double to float32, providing significant speed improvements with no loss of accuracy.
+* The order of input data has completely changed and both `histogram` and `benchmark` functions require data with *x**, *y**, **predicted**, **observed** order.
+* Complete rewrite of the main functions (`histogram`, `benchmark`, and `proximity`) using vectorised operations, resulting in significant speed improvement.
+* The feature space distance calculations are now changed from double to float32, for performance improvement with no loss of accuracy.
 * The dependency on KDtrees is dropped while keeping or even improving the speed.
 * The histogram now performs only one-way pairwise distance calculations. As a result, the raw histogram values are exactly halved compared to before. This has no impact on the normalised histogram or the final output.
 * The "corner value” in histogram (previously calculated as the count of values) is no longer computed, since it is simply equal to the number of samples.
 * The `calibrate` function no longer performs interpolation. The output is now fully fitted using a monotonic spline.
-* The NAN pixels are now directly handled in the C++ side.
-* The fast geographic distance calculation is implemented (no difference for projected CRS with 0.01 meters accuracy).
-* The geographic distance for lat/long is now corrected for the latitude of the source cell, not only with radius transformation.
-* Added a new function (`tessellate`) for making raster tiles using raster or matrix data 
+* The NaN pixels are now directly handled in the C++ side.
+* The fast spatial distance calculation is implemented (no difference for projected CRS with 0.01 meters accuracy).
+* The geographic distance for lat/long is now corrected for the latitude of the source cell, not just the radius transformation to degrees.
+* A new function (`tessellate`) is added for making raster tiles using raster or matrix data.
 
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.

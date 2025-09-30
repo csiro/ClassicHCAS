@@ -53,7 +53,7 @@ std::vector<int> radius_Search(
 
 // Compute indices of k nearest rows in L1 distance
 template <typename T, typename Q>
-std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {
+std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {    
     const int n = X.rows();
     std::vector<std::pair<T,int>> dist_idx;
     dist_idx.reserve(n);
