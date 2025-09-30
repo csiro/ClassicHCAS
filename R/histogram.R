@@ -74,6 +74,8 @@ histogram <- function(
         num_threads = -1,
         filename = "") {
 
+    if (radius_km <= 0) stop("radius_km must a postive non-zero number.")
+
     # check for data variables
     if (.is_mat(data)) {
         data_vals <- .check_mat(data)
@@ -138,7 +140,7 @@ histogram <- function(
             out_table <- histo_cpp(
                 rs_vals = observed,
                 pr_vals = modelled,
-                xy = samples_xy,
+                xy_vals = samples_xy,
                 within_km = radius_km,
                 bin_width = bin_width,
                 bin_num = bin_num,

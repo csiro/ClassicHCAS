@@ -10,20 +10,6 @@ struct Condition
 };
 
 
-// Get a copy of XY in double to avoid losing percision in distance calc
-RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
-    int n = X.nrow();
-    if (X.ncol() < 2) Rcpp::stop("Input must have at least 2 columns");
-
-    RowMajorMatrix<double> out(n, 2);
-    for (int i = 0; i < n; ++i) {
-        out(i, 0) = X(i, 0);
-        out(i, 1) = X(i, 1);
-    }
-    return out;
-}
-
-
 // finding points in a radius with a fast approximation for lat-long distance
 std::vector<int> radius_Search(
     const std::vector<int64_t>& x_data,

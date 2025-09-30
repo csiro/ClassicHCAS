@@ -20,6 +20,19 @@ RowMajorMatrix<T> as_Matrix(const Rcpp::NumericMatrix &X) {
 }
 
 
+// Get a copy of XY in double to avoid losing percision in distance calc
+inline RowMajorMatrix<double> get_XY(const Rcpp::NumericMatrix& X) {
+    int n = X.nrow();
+    if (X.ncol() < 2) Rcpp::stop("Input must have at least 2 columns");
+
+    RowMajorMatrix<double> out(n, 2);
+    for (int i = 0; i < n; ++i) {
+        out(i, 0) = X(i, 0);
+        out(i, 1) = X(i, 1);
+    }
+    return out;
+}
+
 template <typename T>
 RowMajorMatrix<T> filter_Matrix(const RowMajorMatrix<T> &matrix,
                                 const std::vector<int> &indices) {

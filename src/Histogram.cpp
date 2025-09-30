@@ -4,7 +4,6 @@
 #include <cmath>
 #include <vector>
 #include <cstdint>
-#include <stdfloat>
 #include "Matrix.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -12,7 +11,9 @@
 
 using namespace Rcpp;
 
-// calculate squared distance using xy; keep distance as double
+static constexpr double DEG_2_RAD = M_PI / 180.0;
+
+// calculate squared distance using integer xy
 inline int64_t distance(
     const int64_t x1, const int64_t y1, const int64_t x2, const int64_t y2,
     int64_t cos_scale, bool geo)
@@ -39,24 +40,25 @@ inline int64_t distance(
 Rcpp::IntegerMatrix histo_cpp(
     const Rcpp::NumericMatrix &rs_vals,
     const Rcpp::NumericMatrix &pr_vals,
-    const Rcpp::NumericMatrix &xy,
+    const Rcpp::NumericMatrix &xy_vals,
     const double within_km = 1000.0, // radius in kilometers to consider ref points
     const double bin_width = 0.05,
     const int bin_num = 650,
     bool geographic = false,
     int num_threads = -1)
 {
-    // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
+    // Convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float> rs = as_Matrix<float>(rs_vals);
     RowMajorMatrix<float> pr = as_Matrix<float>(pr_vals);
+    // Get xy in double for calculating cos in degrees
+    RowMajorMatrix<double> xy = get_XY(xy_vals);
     // define the output matrix;
     RowMajorMatrix<uint64_t> histo_matrix(bin_num, bin_num);
 
     const int nr = rs.rows();
-    const int ns = xy.nrow();
 
     // Pre-compute sample coordinates as integers
-    std::vector<int64_t> sample_x(ns), sample_y(ns);
+    std::vector<int64_t> sample_x(nr), sample_y(nr);
 
     double scale;
     int64_t squared_dist;
@@ -76,7 +78,7 @@ Rcpp::IntegerMatrix histo_cpp(
     }
     
     // Convert sample coordinates to integers
-    for (int i = 0; i < ns; ++i) {
+    for (int i = 0; i < nr; ++i) {
         sample_x[i] = static_cast<int64_t>(xy(i, 0) * scale);
         sample_y[i] = static_cast<int64_t>(xy(i, 1) * scale);
     }
@@ -89,7 +91,6 @@ Rcpp::IntegerMatrix histo_cpp(
         omp_set_num_threads(num_threads);
     #endif
 
-    int64_t cos_scale = 0;
     // iterate over each row and compare it with all other rows 
     // dynamic schedule to balance the load
     #pragma omp parallel for schedule(dynamic)
@@ -98,10 +99,12 @@ Rcpp::IntegerMatrix histo_cpp(
         // get the XY from samples for the first sample
         const auto xi = sample_x[i];
         const auto yi = sample_y[i];
+
+        int64_t cos_scale = 0;
         if (geographic) {
             // Geographic: apply cosine scaling for longitude; only on i sample
-            const double ya = static_cast<double>(yi);
-            cos_scale = static_cast<int64_t>(std::cos(ya * 0.01745329) * 1000000);
+            const double ya = xy(i, 1); // needs to be in original scale
+            cos_scale = static_cast<int64_t>(std::cos(ya * DEG_2_RAD) * 1000000);
         }
         // second iteration over rows skipping double counting, (i,j) is equal to (j,i)
         for (int j = i + 1; j < nr; j++)

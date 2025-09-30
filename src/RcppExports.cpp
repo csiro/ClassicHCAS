@@ -54,20 +54,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // histo_cpp
-Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy, const double within_km, const double bin_width, const int bin_num, bool geographic, int num_threads);
-RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xySEXP, SEXP within_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
+Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy_vals, const double within_km, const double bin_width, const int bin_num, bool geographic, int num_threads);
+RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xy_valsSEXP, SEXP within_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rs_vals(rs_valsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type pr_vals(pr_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy(xySEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy_vals(xy_valsSEXP);
     Rcpp::traits::input_parameter< const double >::type within_km(within_kmSEXP);
     Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
     Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
     Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, xy, within_km, bin_width, bin_num, geographic, num_threads));
+    rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, xy_vals, within_km, bin_width, bin_num, geographic, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }

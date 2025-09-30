@@ -7,7 +7,6 @@
 #include <vector>
 #include <limits>
 #include <cstdint>
-#include <stdfloat>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -42,12 +41,13 @@ Rcpp::NumericMatrix bench_cpp(
     bool make_su = false,             // whether to produce SU map
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
-    RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float> raster = as_Matrix<float>(raster_vals);
     RowMajorMatrix<float> samples = as_Matrix<float>(sample_vals);
     // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
+    // Get xy in double for calculating cos in degrees 
+    RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
 
     const int nr = raster.rows();
     const int ns = samples.rows();
@@ -104,7 +104,7 @@ Rcpp::NumericMatrix bench_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for schedule(dynamic, 1024)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
     {
         const auto cell_rem = raster.row(i).leftCols(ndim);
