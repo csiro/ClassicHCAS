@@ -104,7 +104,7 @@ Rcpp::NumericMatrix bench_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
     {
         const auto cell_rem = raster.row(i).leftCols(ndim);
