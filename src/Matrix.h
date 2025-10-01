@@ -42,9 +42,9 @@ auto filter_Matrix(const Eigen::MatrixBase<Derived> &matrix,
     const int new_rows = indices.size();
     const int new_cols = matrix.cols();
     RowMajorMatrix<T> filtered(new_rows, new_cols);
-    
+
     for (int i = 0; i < new_rows; ++i) {
-        // copy whole row at once (contiguous in row-major!)
+        // get the whole row at once (contiguous in row-major!)
         filtered.row(i) = matrix.row(indices[i]);
     }
 

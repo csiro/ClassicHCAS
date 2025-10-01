@@ -47,22 +47,22 @@
 #' values(r) <- runif(ncell(r))
 #'
 #' # Balanced tiles
-#' tiles_poly <- tessellate(r, n_tiles = 4, balanced = TRUE, spatial = TRUE)
+#' tiles_poly <- ClassicHCAS::tiling(r, n_tiles = 4, balanced = TRUE, spatial = TRUE)
 #'
 #' # Rectangular tiles
-#' tiles_rect <- tessellate(r, n_tiles = 4, balanced = FALSE)
+#' tiles_rect <- ClassicHCAS::tiling(r, n_tiles = 4, balanced = FALSE)
 #'
 #' # Balanced tiles from a matrix
 #' mat <- as.matrix(r)
 #' ext <- ext(r)
-#' tiles_from_matrix <- tessellate(mat, n_tiles = 4, balanced = TRUE, extent = ext)
+#' tiles_from_matrix <- ClassicHCAS::tiling(mat, n_tiles = 4, balanced = TRUE, extent = ext)
 #' }
 #'
 #' @seealso
 #' \code{\link[terra]{rast}}, \code{\link[terra]{as.polygons}}, \code{\link[terra]{ext}}
 #'
 #' @export
-tessellate <- function(
+tiling <- function(
         data,            # matrix (only for balanced) or raster for creating the tiles
         n_tiles,         # number of tiles
         balanced = TRUE, # should it be balanced tiles, otherwise rectangular

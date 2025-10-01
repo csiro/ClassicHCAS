@@ -77,7 +77,7 @@ Rcpp::IntegerMatrix histo_cpp(
         squared_dist = r_scaled * r_scaled;
     }
     
-    // Convert sample coordinates to integers
+    // Convert sample coordinates to integers once before the for loops
     for (int i = 0; i < nr; ++i) {
         sample_x[i] = static_cast<int64_t>(xy(i, 0) * scale);
         sample_y[i] = static_cast<int64_t>(xy(i, 1) * scale);
