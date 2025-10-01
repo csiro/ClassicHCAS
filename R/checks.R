@@ -1,35 +1,36 @@
 # Author: Roozbeh Valavi
 # contact: roozbeh.valavi@csiro.au
 # Date : Aug-2024
-# Version 0.1
+# Version 0.2
 
 # are sample points lat-log?
 .is_lonlat <- function(x) {
     return(
-        if (methods::is(x, "SpatRaster")) {
+        if (inherits(x, "SpatRaster")) {
             terra::is.lonlat(x = x, perhaps = TRUE, warn = FALSE)
-        } else if (methods::is(x, "matrix")) {
-            terra::is.lonlat(x = terra::vect(x[, 1:2]), perhaps = TRUE, warn = FALSE)
+        } else if (inherits(x, "matrix")) {
+            # Limit to 100 rows to speed up CRS checks
+            # Sampling ensures we don’t rely on few points accidentally fall near the projection origin
+            rows <- sample(nrow(x), 100, replace = TRUE)
+            terra::is.lonlat(x = terra::vect(x[rows, 1:2]), perhaps = TRUE, warn = FALSE)
         } else {
             stop("The 'x' must be a matrix or terra object!")
         }
     )
 }
 
+
 # is matrix or data.frame or data.table
 .is_mat <- function(x){
-    z <- class(x)
     return(
-        any(
-            z %in% c("matrix", "data.table", "data.frame")
-        )
+        inherits(x, c("matrix", "data.table", "data.frame"))
     )
 }
 
 # check if it's a matrix if not convert it
 .check_mat <- function(x, name = "x") {
     if (.is_mat(x)) {
-        if (methods::is(x, "matrix")) {
+        if (inherits(x, "matrix")) {
             return(x)
         } else {
             return(
@@ -43,10 +44,10 @@
 
 # is it a raster object
 .is_rast <- function(x){
-    z <- class(x)
     return(
-        any(
-            z %in% c(
+        inherits(
+            x,
+            c(
                 "SpatRaster",
                 "RasterStack", "RasterLayer", "RasterBrick",
                 "stars",
@@ -58,7 +59,7 @@
 
 # is it a raster or convertible to raster?
 .check_rast <- function(r, name = "x"){
-    if(!methods::is(r, "SpatRaster")){
+    if(!inherits(r, "SpatRaster")){
         tryCatch(
             {
                 r <- terra::rast(r)
