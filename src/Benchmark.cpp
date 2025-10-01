@@ -49,6 +49,9 @@ Rcpp::NumericMatrix bench_cpp(
     // Get xy in double for calculating cos in degrees 
     RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
 
+    // Ensure numeric value coming from R is float
+    const float binwidth = static_cast<float>(bin_width);
+
     const int nr = raster.rows();
     const int ns = samples.rows();
     int nvar = (samples.cols() - 2) / 2; // number of RS vars
@@ -101,7 +104,7 @@ Rcpp::NumericMatrix bench_cpp(
     #endif
 
     // iterate over the raster cells (rows of matrix)
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < nr; i++)
     {
         const auto cell_rem = raster.row(i).leftCols(ndim);
@@ -148,26 +151,20 @@ Rcpp::NumericMatrix bench_cpp(
             for (const auto& j : knn_env)
             {
                 // Vectorised L1 distance over all columns
-                float rs_dist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
+                float rsdist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
                 // the xy coordinates should be ignored for REM dist, so only rightCols(nvar)
-                float pr_dist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
-
-                // For now, just cast them back to double for further calculations
-                double rsdist = static_cast<double>(rs_dist);
-                double prdist = static_cast<double>(pr_dist);
+                float prdist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
 
                 // skip the point if exclude-slef is true and
                 // prdist is in the first bin i.e < 1 * bw
-                if (exclude_slef && prdist < bin_width)
+                if (exclude_slef && prdist < binwidth)
                 {
                     continue;
                 }
-                else
-                {
-                    prdist_vect[n] = prdist;
-                    histo_vect[n] = get_prob(histo, prdist, rsdist, bin_width, bin_num, offset);
-                    n++;
-                }
+
+                prdist_vect[n] = static_cast<double>(prdist);
+                histo_vect[n] = get_Prob(histo, prdist, rsdist, binwidth, bin_num, offset);
+                n++;
             }
 
             // descending sort prob values for selecting the 20 highest values

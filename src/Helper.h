@@ -124,15 +124,15 @@ inline Condition get_Condition(
 
 
 // get the probability value from histogram
-inline double get_prob(const RowMajorMatrix<double>& histo,
-                       const double dist_pre,
-                       const double dist_obs,
-                       const double w_bin,
+inline double get_Prob(const RowMajorMatrix<double>& histo,
+                       const float dist_pre,
+                       const float dist_obs,
+                       const float w_bin,
                        const int n_bin,
                        const int offset)
 {
     static const int max_bin = n_bin - 1;
-    static const double inverse_w_bin = 1.0 / w_bin;
+    static const float inverse_w_bin = 1.0 / w_bin;
 
     // static_cast over std::floor??
     int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_bin);

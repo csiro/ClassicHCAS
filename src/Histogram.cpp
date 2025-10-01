@@ -41,7 +41,7 @@ Rcpp::IntegerMatrix histo_cpp(
     const Rcpp::NumericMatrix &rs_vals,
     const Rcpp::NumericMatrix &pr_vals,
     const Rcpp::NumericMatrix &xy_vals,
-    const double within_km = 1000.0, // radius in kilometers to consider ref points
+    const double radius_km = 1000.0, // radius in kilometers to consider ref points
     const double bin_width = 0.05,
     const int bin_num = 650,
     bool geographic = false,
@@ -62,7 +62,7 @@ Rcpp::IntegerMatrix histo_cpp(
 
     double scale;
     int64_t squared_dist;
-    const double radius_m = within_km * 1000.0;
+    const double radius_m = radius_km * 1000.0;
     
     if (geographic) {
         // Geographic coordinates: use micro-degrees

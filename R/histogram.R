@@ -109,8 +109,8 @@ histogram <- function(
 
     # get the correct columns for the C++ code
     samples_xy <- data_vals[, 1:2]
-    observed <- data_vals[, obs_layers]
     modelled <- data_vals[, mod_layers]
+    observed <- data_vals[, obs_layers]
 
     # some error checking
     if(any(dim(modelled) != dim(observed)))
@@ -141,7 +141,7 @@ histogram <- function(
                 rs_vals = observed,
                 pr_vals = modelled,
                 xy_vals = samples_xy,
-                within_km = radius_km,
+                radius_km = radius_km,
                 bin_width = bin_width,
                 bin_num = bin_num,
                 geographic = .is_lonlat(samples_xy),
@@ -175,10 +175,9 @@ histogram <- function(
     class(out_table) <- c("matrix", "array", "histo")
     attr(out_table, "bin.width") <- bin_width
 
-    return(
-        out_table
-    )
+    return(out_table)
 }
+
 
 #' @export
 #' @method print histo

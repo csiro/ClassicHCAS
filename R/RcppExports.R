@@ -9,8 +9,8 @@ density_cpp <- function(rast, xy, radius_km = 200.0, geographic = FALSE, num_thr
     .Call(`_ClassicHCAS_density_cpp`, rast, xy, radius_km, geographic, num_threads)
 }
 
-histo_cpp <- function(rs_vals, pr_vals, xy_vals, within_km = 1000.0, bin_width = 0.05, bin_num = 650L, geographic = FALSE, num_threads = -1L) {
-    .Call(`_ClassicHCAS_histo_cpp`, rs_vals, pr_vals, xy_vals, within_km, bin_width, bin_num, geographic, num_threads)
+histo_cpp <- function(rs_vals, pr_vals, xy_vals, radius_km = 1000.0, bin_width = 0.05, bin_num = 650L, geographic = FALSE, num_threads = -1L) {
+    .Call(`_ClassicHCAS_histo_cpp`, rs_vals, pr_vals, xy_vals, radius_km, bin_width, bin_num, geographic, num_threads)
 }
 
 norm_cpp <- function(x, trim_size = 400L, offset = 0L) {
