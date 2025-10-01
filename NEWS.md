@@ -1,5 +1,5 @@
 # Version 1.0.0
-* The order of input data has completely changed and both `histogram` and `benchmark` functions require data with *x**, *y**, **predicted**, **observed** order.
+* The order of input data has completely changed and both `histogram` and `benchmark` functions require data with **x**, **y**, **predicted**, and **observed** remote sensing variable order.
 * Complete rewrite of the main functions (`histogram`, `benchmark`, and `proximity`) using vectorised operations, resulting in significant speed improvement.
 * The feature space distance calculations are now changed from double to float32, for performance improvement with no loss of accuracy.
 * The dependency on KDtrees is dropped while keeping or even improving the speed.

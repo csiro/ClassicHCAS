@@ -276,8 +276,6 @@ tiling <- function(
         out[i, ] <- terra::ext(x[i, ])[1:4]
     }
 
-    return(
-        out
-    )
+    return(out)
 }
 
