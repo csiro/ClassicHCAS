@@ -1,82 +1,87 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <cmath>
+#include <limits>
+#include <algorithm>
+#include <utility> // for std::pair
 
 // a struct to hold both condition and SU values
-struct Condition 
+struct Condition
 {
     double hc;
     double su;
 };
 
 
-// finding points in a radius with a fast approximation for lat-long distance
-std::vector<int> radius_Search(
-    const std::vector<int64_t>& x_data,
-    const std::vector<int64_t>& y_data,
+// Combine Radius Search (XY) and KNN Search (ENV)
+template <typename Q>
+std::vector<int> combined_Search(
+    const std::vector<int64_t>& sample_x, // Integer and scaled sample coordinates
+    const std::vector<int64_t>& sample_y,
+    const RowMajorMatrix<float>& samples, // The full original samples matrix
+    const Eigen::MatrixBase<Q>& cell_rem, // The target REM row of the raster
     const int64_t query_x,
     const int64_t query_y,
-    int64_t r2,
+    int64_t r2, // Integer and scaled squared radius
+    int k_env, // K for KNN
+    int ndim, // Number of REM (Environmental) columns
     int64_t cos_scale,
     bool geographic
 ) {
-    const int size = x_data.size();
+    const int size = sample_x.size();
+    // Use pair<ENV_Distance, Original_Index>
+    std::vector<std::pair<float, int>> dist_idx;
+    // Reserve 10000; it's a heuristic, but better than nothing
+    dist_idx.reserve(10000);
 
-    std::vector<int> within;
-    within.reserve(size);
-    
+    // 1. Perform radius check, and calculate ENV distance for KNN later
     for (int i = 0; i < size; ++i) {
-        const int64_t dx = x_data[i] - query_x;
-        const int64_t dy = y_data[i] - query_y;
-        
-        // Early latitude rejection
+        const int64_t dx = sample_x[i] - query_x;
+        const int64_t dy = sample_y[i] - query_y;
+
         const int64_t dy2 = dy * dy;
+        // Early latitude rejection
         if (dy2 > r2) continue;
-        
+
         int64_t dist2;
         if (geographic) {
-            // Scale longitude for geographic coordinates
             const int64_t dx_scaled = (dx * cos_scale) / 1000000;
             dist2 = dy2 + dx_scaled * dx_scaled;
         } else {
             dist2 = dy2 + dx * dx;
         }
-        
+
+        // 2. If within radius, calculate ENV L1 Distance
         if (dist2 <= r2) {
-            within.push_back(i);
+            // Get the REM part of the sample row (first ndim columns)
+            // This is for KNN and contain both XY and REM
+            const auto sample_rem = samples.row(i).leftCols(ndim);
+
+            // Calculate L1 distance (Minkowski p-norm with p=1)
+            float env_dist = (sample_rem - cell_rem).template lpNorm<1>();
+
+            // Store the ENV distance and the *original* sample index (i)
+            dist_idx.emplace_back(env_dist, i);
         }
     }
-    
-    return within;
-}
 
-
-// Compute indices of k nearest rows in L1 distance
-template <typename T, typename Q>
-std::vector<int> KNN_Search(const RowMajorMatrix<T> &X, const Q &q, int k) {    
-    const int n = X.rows();
-    std::vector<std::pair<T,int>> dist_idx;
-    dist_idx.reserve(n);
-
-    for (int i = 0; i < n; ++i) {
-        auto row_i = X.row(i);
-        // Cast both to double for consistent arithmetic and avoid precision issues
-        T dist = (row_i - q).template lpNorm<1>();
-        dist_idx.emplace_back(dist, i);
+    // 3. Find the K nearest using std::nth_element
+    const int n_found = dist_idx.size();
+    // If we found more than k_env samples, use nth_element to find the k smallest
+    if (k_env < n_found) {
+        // Find the k_env'th smallest element (0-indexed)
+        std::nth_element(dist_idx.begin(), dist_idx.begin() + k_env, dist_idx.end());
+        dist_idx.resize(k_env);
     }
 
-    if (k < n) {
-        std::nth_element(dist_idx.begin(), dist_idx.begin() + k, dist_idx.end());
-        dist_idx.resize(k);
-    }
-
-    // Sorting the indiceis will help later in filtering
-    std::sort(dist_idx.begin(), dist_idx.end());
-
+    // 4. Extract final indices
     std::vector<int> result(dist_idx.size());
+    // result[i] is the original index 'i' into the full 'samples' matrix
     for (size_t i = 0; i < dist_idx.size(); ++i) {
         result[i] = dist_idx[i].second;
     }
+
     return result;
 }
 
@@ -111,7 +116,7 @@ inline Condition get_Condition(
         w_sum += weight;
     }
 
-    // calculate hc    
+    // calculate hc
     double hc = DEFAULT_HC;
     if (w_sum > 0) {
         double p_mean = p_sum / w_sum;

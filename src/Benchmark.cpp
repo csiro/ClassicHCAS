@@ -46,7 +46,7 @@ Rcpp::NumericMatrix bench_cpp(
     RowMajorMatrix<float> samples = as_Matrix<float>(sample_vals);
     // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
-    // Get xy in double for calculating cos in degrees 
+    // Get xy in double for calculating cos in degrees
     RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
 
     // Ensure numeric value coming from R is float
@@ -72,7 +72,7 @@ Rcpp::NumericMatrix bench_cpp(
         const int64_t r_scaled = static_cast<int64_t>(radius_m * scale);
         r2 = r_scaled * r_scaled;
     }
-        
+
     // Pre-compute sample coordinates as integers
     std::vector<int64_t> sample_x(ns), sample_y(ns);
     // Convert sample coordinates to integers
@@ -117,8 +117,7 @@ Rcpp::NumericMatrix bench_cpp(
                 std::numeric_limits<double>::quiet_NaN(),
                 std::numeric_limits<double>::quiet_NaN()
             };
-
-            #pragma omp critical
+            // since i is unique for each thread, there's no need for #pragma omp critical
             condition_vect[i] = nan_cond;
         }
         else
@@ -132,38 +131,38 @@ Rcpp::NumericMatrix bench_cpp(
                 // Calcualte only 1 cos() for efficiency
                 cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * DEG_2_RAD) * 1000000);
             }
-            // Find all samples within the radius
-            std::vector<int> indices = radius_Search(sample_x, sample_y, x, y, r2, cos_scale, geographic);
 
-            // now filter samples rows based on indices within 200km radius
-            RowMajorMatrix<float> sub_rem = filter_Matrix(samples.leftCols(ndim), indices);
-            RowMajorMatrix<float> sub_obs = filter_Matrix(samples.rightCols(nvar), indices);
-
-            // find the 50 nearest samples to the target point in ENV dist
-            std::vector<int> knn_env = KNN_Search(sub_rem, cell_rem, k_env);
+            // A combined search of raduis and k nearest samples to avoid data copying in memory
+            std::vector<int> knn_env = combined_Search(
+                sample_x, sample_y, samples, cell_rem,
+                x, y, r2, k_env, ndim, cos_scale, geographic
+            );
 
             // rs and env distance of the 50 nearest env neighbour
-            std::vector<double> prdist_vect(k_env);
-            std::vector<double> histo_vect(k_env);
+            std::vector<double> prdist_vect(knn_env.size());
+            std::vector<double> histo_vect(knn_env.size());
 
-            // to avoid complexity and overhead of kdtree, use for loop for the 50 records
             int n = 0;
+            // 'j' is the original index into the full 'samples' matrix
             for (const auto& j : knn_env)
             {
-                // Vectorised L1 distance over all columns
-                float rsdist = (cell_obs - sub_obs.row(j)).template lpNorm<1>();
-                // the xy coordinates should be ignored for REM dist, so only rightCols(nvar)
-                float prdist = (cell_rem.rightCols(nvar) - sub_rem.row(j).rightCols(nvar)).template lpNorm<1>();
+                // Get the OBS part of the sample row for RS distance calculation
+                const auto sub_obs_row = samples.row(j).rightCols(nvar);
+                // Vectorised L1 distance over all columns for RS (OBS)
+                float rsdist = (cell_obs - sub_obs_row).template lpNorm<1>();
 
-                // skip the point if exclude-slef is true and
-                // prdist is in the first bin i.e < 1 * bw
+                // The xy coordinates should be ignored for REM dist, so only middleCols(2, nvar)
+                const auto sub_rem_row = samples.row(j).middleCols(2, nvar);
+                float prdist = (cell_rem.rightCols(nvar) - sub_rem_row).template lpNorm<1>();
+
                 if (exclude_slef && prdist < binwidth)
                 {
                     continue;
                 }
 
-                prdist_vect[n] = static_cast<double>(prdist);
+                prdist_vect[n] =  static_cast<double>(prdist);
                 histo_vect[n] = get_Prob(histo, prdist, rsdist, binwidth, bin_num, offset);
+
                 n++;
             }
 
@@ -183,8 +182,6 @@ Rcpp::NumericMatrix bench_cpp(
 
             // calculate the Cauchy weighting condition
             Condition wcond = get_Condition(prob_sorted, pr_dist, prob_sorted[0], confidence, lambda);
-
-            #pragma omp critical
             condition_vect[i] = wcond;
         }
     }
