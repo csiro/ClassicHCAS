@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <cstdint>
+#include "Float32_t.h" // importing float32_t
 #include "Matrix.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -48,8 +49,8 @@ Rcpp::IntegerMatrix histo_cpp(
     int num_threads = -1)
 {
     // Convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
-    RowMajorMatrix<float> rs = as_Matrix<float>(rs_vals);
-    RowMajorMatrix<float> pr = as_Matrix<float>(pr_vals);
+    RowMajorMatrix<float32_t> rs = as_Matrix<float32_t>(rs_vals);
+    RowMajorMatrix<float32_t> pr = as_Matrix<float32_t>(pr_vals);
     // Get xy in double for calculating cos in degrees
     RowMajorMatrix<double> xy = get_XY(xy_vals);
     // define the output matrix;
@@ -84,7 +85,7 @@ Rcpp::IntegerMatrix histo_cpp(
     }
 
     // the inverse of bin-width
-    const float bwi = 1.0 / static_cast<float>(bin_width);
+    const float32_t bwi = 1.0 / static_cast<float32_t>(bin_width);
     // set the number of threads
     #ifdef _OPENMP
         if (num_threads < 1) num_threads = omp_get_max_threads();
@@ -119,12 +120,12 @@ Rcpp::IntegerMatrix histo_cpp(
             if (dist < squared_dist)
             {
                 // Vectorised L1 distance over all columns
-                float rsdist = (rs.row(i) - rs.row(j)).template lpNorm<1>();
-                float prdist = (pr.row(i) - pr.row(j)).template lpNorm<1>();
+                float32_t rsdist = (rs.row(i) - rs.row(j)).template lpNorm<1>();
+                float32_t prdist = (pr.row(i) - pr.row(j)).template lpNorm<1>();
 
                 // now update the hist with the distances
                 // calculate the row and column; must be floor to correctly get bin number
-                int jj = std::floor(rsdist * bwi); // they are both float
+                int jj = std::floor(rsdist * bwi); // they are both float32_t
                 int ii = std::floor(prdist * bwi);
                 // for now, ignore the values overshooting; they'll be mostly noise
                 if (ii < bin_num && jj < bin_num) {

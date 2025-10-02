@@ -87,7 +87,6 @@ benchmark <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
-        scale_factor = 100000,
         k_pred = 50,
         k_obs = 20,
         bin_width = NULL,

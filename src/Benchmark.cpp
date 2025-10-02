@@ -14,6 +14,7 @@
 #include "Quickisort.h"
 #include "Matrix.h"
 #include "Helper.h"
+#include "Float32_t.h" // importing float32_t
 
 using namespace Rcpp;
 
@@ -42,15 +43,15 @@ Rcpp::NumericMatrix bench_cpp(
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
-    RowMajorMatrix<float> raster = as_Matrix<float>(raster_vals);
-    RowMajorMatrix<float> samples = as_Matrix<float>(sample_vals);
+    RowMajorMatrix<float32_t> raster = as_Matrix<float32_t>(raster_vals);
+    RowMajorMatrix<float32_t> samples = as_Matrix<float32_t>(sample_vals);
     // Keep histo as double; not much processing cost with histo query for now...
     RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
     // Get xy in double for calculating cos in degrees
     RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
 
-    // Ensure numeric value coming from R is float
-    const float binwidth = static_cast<float>(bin_width);
+    // Ensure numeric value coming from R is float32_t
+    const float32_t binwidth = static_cast<float32_t>(bin_width);
 
     const int nr = raster.rows();
     const int ns = samples.rows();
@@ -82,11 +83,8 @@ Rcpp::NumericMatrix bench_cpp(
     }
 
     // Cast the values once; cleaner code
-    float xypenalty = static_cast<float>(xy_penalty);
-    std::vector<float> xystats(xy_stats.size());
-    for (int s = 0; s < xy_stats.size(); s++) {
-        xystats[s] = static_cast<float>(xy_stats[s]);
-    }
+    const float32_t xypenalty = static_cast<float32_t>(xy_penalty);
+    std::vector<float32_t> xystats(xy_stats.begin(), xy_stats.end());
 
     // Normalise XY and apply weight to it
     samples.col(0) = ((samples.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
@@ -149,11 +147,11 @@ Rcpp::NumericMatrix bench_cpp(
                 // Get the OBS part of the sample row for RS distance calculation
                 const auto sub_obs_row = samples.row(j).rightCols(nvar);
                 // Vectorised L1 distance over all columns for RS (OBS)
-                float rsdist = (cell_obs - sub_obs_row).template lpNorm<1>();
+                float32_t rsdist = (cell_obs - sub_obs_row).template lpNorm<1>();
 
                 // The xy coordinates should be ignored for REM dist, so only middleCols(2, nvar)
                 const auto sub_rem_row = samples.row(j).middleCols(2, nvar);
-                float prdist = (cell_rem.rightCols(nvar) - sub_rem_row).template lpNorm<1>();
+                float32_t prdist = (cell_rem.rightCols(nvar) - sub_rem_row).template lpNorm<1>();
 
                 if (exclude_slef && prdist < binwidth)
                 {

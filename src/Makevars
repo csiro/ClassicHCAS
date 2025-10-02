@@ -1,11 +1,28 @@
 CXX_STD = CXX17
 PKG_CPPFLAGS = -Wno-ignored-attributes
 
-UNAME_ARCH := $(shell uname -m)
-# Add AVX2/FMA only for Intel Macs
-ifeq ($(UNAME_ARCH), x86_64)
-  PKG_CPPFLAGS += -mavx2 -mfma
+UNAME := $(shell uname -s)
+ARCH := $(shell uname -m)
+# Add SIMD flags for x86_64
+ifeq ($(ARCH), x86_64)
+    PKG_CPPFLAGS += -mavx2 -mfma
 endif
 
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
+# Try to detect OpenMP support
+ifeq ($(UNAME), Darwin)
+    # Check if libomp is available (installed via Homebrew)
+    LIBOMP_AVAILABLE := $(shell brew --prefix libomp 2>/dev/null)
+    ifneq ($(LIBOMP_AVAILABLE),)
+        PKG_CXXFLAGS = -std=c++1y -Xclang -fopenmp
+        PKG_CPPFLAGS += -I$(LIBOMP_AVAILABLE)/include
+        PKG_LIBS = -L$(LIBOMP_AVAILABLE)/lib -lomp
+    else
+        # No OpenMP on macOS
+        PKG_CXXFLAGS = -std=c++1y
+        PKG_LIBS =
+    endif
+else
+    # Linux - use standard OpenMP
+    PKG_CXXFLAGS = -std=c++1y $(SHLIB_OPENMP_CXXFLAGS)
+    PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
+endif

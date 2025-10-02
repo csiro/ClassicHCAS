@@ -5,6 +5,7 @@
 #include <limits>
 #include <algorithm>
 #include <utility> // for std::pair
+#include "Float32_t.h" // importing float32_t
 
 // a struct to hold both condition and SU values
 struct Condition
@@ -19,7 +20,7 @@ template <typename Q>
 std::vector<int> combined_Search(
     const std::vector<int64_t>& sample_x, // Integer and scaled sample coordinates
     const std::vector<int64_t>& sample_y,
-    const RowMajorMatrix<float>& samples, // The full original samples matrix
+    const RowMajorMatrix<float32_t>& samples, // The full original samples matrix
     const Eigen::MatrixBase<Q>& cell_rem, // The target REM row of the raster
     const int64_t query_x,
     const int64_t query_y,
