@@ -64,10 +64,7 @@ Rcpp::IntegerVector density_cpp(
     const int nr = raster.rows();
     const int ns = samples.rows();
     std::vector<int> out(nr);
-    
-    // Pre-compute sample coordinates as integers
-    std::vector<int64_t> sample_x(ns), sample_y(ns);
-    
+        
     double scale;
     int64_t r2;
     const double radius_m = radius_km * 1000.0;
@@ -85,6 +82,8 @@ Rcpp::IntegerVector density_cpp(
         r2 = r_scaled * r_scaled;
     }
     
+    // Pre-compute sample coordinates as integers
+    std::vector<int64_t> sample_x(ns), sample_y(ns);
     // Convert sample coordinates to integers
     for (int i = 0; i < ns; ++i) {
         sample_x[i] = static_cast<int64_t>(samples(i, 0) * scale);
