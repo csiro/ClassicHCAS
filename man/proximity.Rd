@@ -45,6 +45,9 @@ Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on 
 to take advantage of parallel processing and accelerate computations. While most systems
 include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 system.
+
+\strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
+before installing this package.
 }
 \examples{
 \donttest{

@@ -11,7 +11,6 @@ benchmark(
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
   radius_km = 200,
-  scale_factor = 1e+05,
   k_pred = 50,
   k_obs = 20,
   bin_width = NULL,
@@ -120,6 +119,9 @@ Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on 
 to take advantage of parallel processing and accelerate computations. While most systems
 include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 system.
+
+\strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
+before installing this package.
 
 Note that the default parameters are tailored for Australia and may not be suitable for other
 regions.

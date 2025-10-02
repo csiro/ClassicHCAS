@@ -20,6 +20,9 @@
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
+#' \strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
+#' before installing this package.
+#'
 #' @param x A SpatRaster representing the study area over which sample density will be calculated.
 #' @param samples_xy A matrix or data.frame containing x and y coordinates (longitude and latitude)
 #' of the reference points used for density calculation.

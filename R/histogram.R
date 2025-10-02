@@ -28,6 +28,9 @@
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
+#' \strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
+#' before installing this package.
+#'
 #' @param data A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
 #' The data \strong{must} be organised in the following order: \strong{x}, \strong{y}, \strong{predicted-RS},
 #' \strong{observed-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.

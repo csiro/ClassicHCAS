@@ -28,6 +28,9 @@
 #' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
 #' system.
 #'
+#' \strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
+#' before installing this package.
+#'
 #' Note that the default parameters are tailored for Australia and may not be suitable for other
 #' regions.
 #'
