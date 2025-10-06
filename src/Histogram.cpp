@@ -27,7 +27,7 @@ inline int64_t distance(
     int64_t dist2;
     if (geo) {
         // Scale longitude for geographic coordinates
-        const int64_t dx_scaled = (dx * cos_scale) / 1000000;
+        const int64_t dx_scaled = static_cast<int64_t>((dx * cos_scale) / 1000000);
         dist2 = dy2 + dx_scaled * dx_scaled;
     } else {
         dist2 = dy2 + dx * dx;

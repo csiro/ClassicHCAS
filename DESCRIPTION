@@ -2,7 +2,7 @@ Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS).
 Version: 1.0.0
-Date: 2025-10-02
+Date: 2025-10-03
 Author: Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 Maintainer: <roozbeh.valavi@csiro.au>
 Description: The HCAS evaluates habitat condition by comparing observed and 
@@ -14,9 +14,9 @@ Depends:
   R (>= 4.1.0)
 Imports:
   Rcpp (>= 1.0.2),
-  RcppEigen (>= 0.3.3.9.1)
+  RcppEigen (>= 0.3.3.9.1),
+  terra (>= 1.7.71)
 Suggests:
-  terra (>= 1.7.71),
   methods,
   knitr,
   rmarkdown,

@@ -166,7 +166,8 @@ histogram <- function(
                     file = filename,
                     sep = "\t",
                     row.names = FALSE,
-                    col.names = FALSE
+                    col.names = FALSE,
+                    quote = FALSE
                 )
             },
             error = function(cond) {
