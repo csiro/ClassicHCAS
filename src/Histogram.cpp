@@ -15,9 +15,9 @@ using namespace Rcpp;
 static constexpr double DEG_2_RAD = M_PI / 180.0;
 
 // calculate squared distance using integer xy
-inline int64_t distance(
+inline int64_t distance_sq(
     const int64_t x1, const int64_t y1, const int64_t x2, const int64_t y2,
-    int64_t cos_scale, bool geo)
+    int64_t cos_scale, bool is_geo)
 {
     const int64_t dx = x2 - x1;
     const int64_t dy = y2 - y1;
@@ -25,7 +25,7 @@ inline int64_t distance(
     const int64_t dy2 = dy * dy;
 
     int64_t dist2;
-    if (geo) {
+    if (is_geo) {
         // Scale longitude for geographic coordinates
         const int64_t dx_scaled = static_cast<int64_t>((dx * cos_scale) / 1000000);
         dist2 = dy2 + dx_scaled * dx_scaled;
@@ -45,7 +45,7 @@ Rcpp::IntegerMatrix histo_cpp(
     const double radius_km = 1000.0, // radius in kilometers to consider ref points
     const double bin_width = 0.05,
     const int bin_num = 650,
-    bool geographic = false,
+    const bool geographic = false, // geographic/unprojected crs?
     int num_threads = -1)
 {
     // Convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
@@ -55,6 +55,8 @@ Rcpp::IntegerMatrix histo_cpp(
     RowMajorMatrix<double> xy = get_XY(xy_vals);
     // define the output matrix;
     RowMajorMatrix<uint64_t> histo_matrix(bin_num, bin_num);
+    // Matrix MUST be initialised with zero
+    histo_matrix.setZero();
 
     const int nr = rs.rows();
 
@@ -64,7 +66,7 @@ Rcpp::IntegerMatrix histo_cpp(
     double scale;
     int64_t squared_dist;
     const double radius_m = radius_km * 1000.0;
-    
+
     if (geographic) {
         // Geographic coordinates: use micro-degrees
         scale = 1000000.0;
@@ -77,7 +79,7 @@ Rcpp::IntegerMatrix histo_cpp(
         const int64_t r_scaled = static_cast<int64_t>(radius_m * scale);
         squared_dist = r_scaled * r_scaled;
     }
-    
+
     // Convert sample coordinates to integers once before the for loops
     for (int i = 0; i < nr; ++i) {
         sample_x[i] = static_cast<int64_t>(xy(i, 0) * scale);
@@ -92,7 +94,7 @@ Rcpp::IntegerMatrix histo_cpp(
         omp_set_num_threads(num_threads);
     #endif
 
-    // iterate over each row and compare it with all other rows 
+    // iterate over each row and compare it with all other rows
     // dynamic schedule to balance the load
     #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < nr; i++)
@@ -115,7 +117,7 @@ Rcpp::IntegerMatrix histo_cpp(
             const auto yj = sample_y[j];
 
             // // calculate geographic squared distance
-            int64_t dist = distance(xi, yi, xj, yj, cos_scale, geographic);
+            int64_t dist = distance_sq(xi, yi, xj, yj, cos_scale, geographic);
             // only calculate for point within e.g. 1000km distance
             if (dist < squared_dist)
             {

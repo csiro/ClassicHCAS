@@ -28,7 +28,7 @@ std::vector<int> combined_Search(
     int k_env, // K for KNN
     int ndim, // Number of REM (Environmental) columns
     int64_t cos_scale,
-    bool geographic
+    bool is_geo
 ) {
     const int size = sample_x.size();
     // Use pair<ENV_Distance, Original_Index>
@@ -46,7 +46,7 @@ std::vector<int> combined_Search(
         if (dy2 > r2) continue;
 
         int64_t dist2;
-        if (geographic) {
+        if (is_geo) {
             const int64_t dx_scaled = (dx * cos_scale) / 1000000;
             dist2 = dy2 + dx_scaled * dx_scaled;
         } else {

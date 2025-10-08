@@ -54,7 +54,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // histo_cpp
-Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy_vals, const double radius_km, const double bin_width, const int bin_num, bool geographic, int num_threads);
+Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy_vals, const double radius_km, const double bin_width, const int bin_num, const bool geographic, int num_threads);
 RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xy_valsSEXP, SEXP radius_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -65,7 +65,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
     Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
     Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
-    Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
+    Rcpp::traits::input_parameter< const bool >::type geographic(geographicSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
     rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, xy_vals, radius_km, bin_width, bin_num, geographic, num_threads));
     return rcpp_result_gen;

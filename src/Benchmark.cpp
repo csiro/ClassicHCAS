@@ -29,7 +29,7 @@ Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &histogram,   // cleaned histogram
     const Rcpp::NumericVector &xy_stats,    // mean(x), mean(y), sd(x), sd(y); ORDER MATTERS
     double xy_penalty = 0.0,          // penalising env nearest neighbour searching for geographic distance
-    bool geographic = false,          // correction scale for CRS; 1 if metric, 100,000 otherwise
+    bool geographic = false,          // geographic/unprojected crs?
     double radius_km = 200,           // radius in kilometers to consider ref points
     int k_env = 50,                   // number of ENV nn to select
     int k_rs = 20,                    // number of RS/Prob values to select
