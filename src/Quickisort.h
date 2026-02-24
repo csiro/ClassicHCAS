@@ -41,7 +41,7 @@ inline void quicksort(std::vector<double>& arr, std::vector<int>& indices, int l
 }
 
 // wrapper function to sort array and return sorted indices
-inline std::vector<int> qsort_index(const std::vector<double>& arr, bool descending = true)
+inline std::vector<int> qsort_index(std::vector<double>& arr, bool descending = true)
 {
     std::vector<int> indices(arr.size());
     for (size_t i = 0; i < arr.size(); ++i)
@@ -49,7 +49,7 @@ inline std::vector<int> qsort_index(const std::vector<double>& arr, bool descend
         indices[i] = i;
     }
     std::vector<int> sortedIndices = indices; // Copy indices to maintain original order
-    quicksort(const_cast<std::vector<double> &>(arr), sortedIndices, 0, arr.size() - 1, descending);
+    quicksort(arr, sortedIndices, 0, arr.size() - 1, descending);
 
     return sortedIndices;
 }

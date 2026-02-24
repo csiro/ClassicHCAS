@@ -28,20 +28,36 @@ Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &sample_vals, // extraction of values of raster using smaples xy: x,y,RS,ENV
     const Rcpp::NumericMatrix &histogram,   // cleaned histogram
     const Rcpp::NumericVector &xy_stats,    // mean(x), mean(y), sd(x), sd(y); ORDER MATTERS
-    double xy_penalty = 0.0,          // penalising env nearest neighbour searching for geographic distance
-    bool geographic = false,          // geographic/unprojected crs?
-    double radius_km = 200,           // radius in kilometers to consider ref points
-    int k_env = 50,                   // number of ENV nn to select
-    int k_rs = 20,                    // number of RS/Prob values to select
-    double bin_width = 0.05,          // histogram bin width
-    int bin_num = 400,                // number of bins in histogram
-    int offset = 0,                   // offset of histogram
-    double confidence = 0.5,          // the LDC confidence index; default 0.5
-    double lambda = 2.0,              // the lambda of the Cauchy weighting
-    bool exclude_slef = true,         // whether to exclude a benchmark sample from assessing itself
-    bool make_su = false,             // whether to produce SU map
+    double xy_penalty = 0.0,                // penalising env nearest neighbour searching for geographic distance
+    bool geographic = false,                // geographic/unprojected crs?
+    double radius_km = 200,                 // radius in kilometers to consider ref points
+    int k_env = 50,                         // number of ENV nn to select
+    int k_rs = 20,                          // number of RS/Prob values to select
+    double bin_width = 0.05,                // histogram bin width
+    int bin_num = 400,                      // number of bins in histogram
+    int offset = 0,                         // offset of histogram
+    double confidence = 0.5,                // the LDC confidence index; default 0.5
+    double lambda = 2.0,                    // the lambda of the Cauchy weighting
+    bool exclude_slef = true,               // whether to exclude a benchmark sample from assessing itself
+    bool make_su = false,                   // whether to produce SU map
     int num_threads = -1)                   // -1 or 0 utilises all available threads
 {
+    if (xy_stats.size() != 4) {
+        Rcpp::stop("'xy_stats' must contain exactly four values: mean(x), mean(y), sd(x), sd(y).");
+    }
+    if (k_env < 1) {
+        Rcpp::stop("'k_env' must be >= 1.");
+    }
+    if (k_rs < 1) {
+        Rcpp::stop("'k_rs' must be >= 1.");
+    }
+    if (bin_num < 2) {
+        Rcpp::stop("'bin_num' must be >= 2.");
+    }
+    if (bin_width <= 0.0) {
+        Rcpp::stop("'bin_width' must be > 0.");
+    }
+
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float32_t> raster = as_Matrix<float32_t>(raster_vals);
     RowMajorMatrix<float32_t> samples = as_Matrix<float32_t>(sample_vals);
@@ -85,6 +101,9 @@ Rcpp::NumericMatrix bench_cpp(
     // Cast the values once; cleaner code
     const float32_t xypenalty = static_cast<float32_t>(xy_penalty);
     std::vector<float32_t> xystats(xy_stats.begin(), xy_stats.end());
+    if (xystats[2] == 0.0f || xystats[3] == 0.0f) {
+        Rcpp::stop("'xy_stats' standard deviations (3rd and 4th elements) must be non-zero.");
+    }
 
     // Normalise XY and apply weight to it
     samples.col(0) = ((samples.col(0).array() - xystats[0]) / xystats[2]) * xypenalty;
@@ -136,11 +155,12 @@ Rcpp::NumericMatrix bench_cpp(
                 x, y, r2, k_env, ndim, cos_scale, geographic
             );
 
-            // rs and env distance of the 50 nearest env neighbour
-            std::vector<double> prdist_vect(knn_env.size());
-            std::vector<double> histo_vect(knn_env.size());
+            // rs and env distance of nearest env neighbours
+            std::vector<double> prdist_vect;
+            std::vector<double> histo_vect;
+            prdist_vect.reserve(knn_env.size());
+            histo_vect.reserve(knn_env.size());
 
-            int n = 0;
             // 'j' is the original index into the full 'samples' matrix
             for (const auto& j : knn_env)
             {
@@ -158,20 +178,31 @@ Rcpp::NumericMatrix bench_cpp(
                     continue;
                 }
 
-                prdist_vect[n] =  static_cast<double>(prdist);
-                histo_vect[n] = get_Prob(histo, prdist, rsdist, binwidth, bin_num, offset);
+                prdist_vect.push_back(static_cast<double>(prdist));
+                histo_vect.push_back(get_Prob(histo, prdist, rsdist, binwidth, bin_num, offset));
+            }
 
-                n++;
+            // Not enough candidates for this cell (e.g., sparse/edge tiles).
+            if (histo_vect.empty())
+            {
+                Condition nan_cond {
+                    std::numeric_limits<double>::quiet_NaN(),
+                    std::numeric_limits<double>::quiet_NaN()
+                };
+                condition_vect[i] = nan_cond;
+                continue;
             }
 
             // descending sort prob values for selecting the 20 highest values
             // the histo_vect itself will also be sorted
             std::vector<int> sorted_index = qsort_index(histo_vect, true);
 
-            std::vector<double> pr_dist(k_rs);     // ENV distances
-            std::vector<double> prob_sorted(k_rs); // probability values
-            // get the values of 20 nearest RS neighbors
-            for (int k = 0; k < k_rs; k++)
+            const int n_keep = std::min(k_rs, static_cast<int>(sorted_index.size()));
+            std::vector<double> pr_dist(n_keep);     // ENV distances
+            std::vector<double> prob_sorted(n_keep); // probability values
+
+            // get the values of the available nearest RS neighbors
+            for (int k = 0; k < n_keep; k++)
             {
                 int id = sorted_index[k];
                 pr_dist[k] = prdist_vect[id];
@@ -196,7 +227,7 @@ Rcpp::NumericMatrix bench_cpp(
         for (const auto& cval : condition_vect)
         {
             out_mat(i, 0) = cval.hc;
-            out_mat(i, 1) = std::log(cval.su);
+            out_mat(i, 1) = (cval.su > 0.0) ? std::log(cval.su) : NA_REAL;
             i++;
         }
     }
@@ -212,4 +243,3 @@ Rcpp::NumericMatrix bench_cpp(
 
     return out_mat;
 }
-

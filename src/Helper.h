@@ -137,12 +137,17 @@ inline double get_Prob(const RowMajorMatrix<double>& histo,
                        const int n_bin,
                        const int offset)
 {
-    static const int max_bin = n_bin - 1;
-    static const float inverse_w_bin = 1.0 / w_bin;
+    if (w_bin <= 0.0f || histo.rows() == 0 || histo.cols() == 0) {
+        return 0.0;
+    }
+
+    const float inverse_w_bin = 1.0f / w_bin;
+    const int max_i = std::min(n_bin - 1, static_cast<int>(histo.rows()) - 1);
+    const int max_j = std::min(n_bin - 1, static_cast<int>(histo.cols()) - 1);
 
     // static_cast over std::floor??
-    int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_bin);
-    int jj = std::min(static_cast<int>(dist_obs * inverse_w_bin), max_bin);
+    int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_i);
+    int jj = std::min(static_cast<int>(dist_obs * inverse_w_bin), max_j);
     // make sure there won't be negative values of i and j
     ii = std::max(ii - offset, 0);
     jj = std::max(jj - offset, 0);
