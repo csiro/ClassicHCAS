@@ -92,7 +92,9 @@ calibrate <- function(
         method = "monoH.FC"
     )
 
-    out <- f(x)
+    out <- rep(NA_real_, length(x))
+    ok <- is.finite(x)
+    if (any(ok)) out[ok] <- f(x[ok])
     out[out > 1] <- 1
     out[out < 0] <- 0
 
