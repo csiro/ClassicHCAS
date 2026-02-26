@@ -27,7 +27,7 @@ If `FALSE`, rectangular tiles of equal size are generated.}
 \item{method}{Character. One of `"best"`, `"row"`, `"col"`, or `"both"` (default `"best"`).
 Specifies how the balanced tiles should be split:
 \describe{
-  \item{"best"}{Automatically chooses the split direction that minimizes imbalance.}
+  \item{"best"}{Automatically chooses the split direction that balances node weights and avoids overly skinny tiles.}
   \item{"row"}{Always splits by rows.}
   \item{"col"}{Always splits by columns.}
   \item{"both"}{Splits along both dimensions, favoring the longer dimension.}

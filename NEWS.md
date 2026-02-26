@@ -11,6 +11,7 @@
 * The geographic distance for lat/long is now corrected for the latitude of the source cell, not just the radius transformation to degrees.
 * A new function (`tiling()`) is added for making raster tiles using raster or matrix data.
 * The `NaN` pixels are now directly handled within C++ code.
+* Expanded the test suite with additional C++-focused coverage, including edge cases and thread-consistency checks for core workflows.
 
 # Version 0.2.0
 * Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.

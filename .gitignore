@@ -9,3 +9,4 @@ src/*.so
 src/*.dll
 .vscode/
 .vscode/*
+.DS_Store

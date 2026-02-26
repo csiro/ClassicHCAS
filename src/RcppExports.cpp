@@ -84,12 +84,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// tiling_cpp
+IntegerMatrix tiling_cpp(const NumericMatrix& x, const int n_tiles, const std::string method, const bool exact);
+RcppExport SEXP _ClassicHCAS_tiling_cpp(SEXP xSEXP, SEXP n_tilesSEXP, SEXP methodSEXP, SEXP exactSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_tiles(n_tilesSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const bool >::type exact(exactSEXP);
+    rcpp_result_gen = Rcpp::wrap(tiling_cpp(x, n_tiles, method, exact));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
     {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
     {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
+    {"_ClassicHCAS_tiling_cpp", (DL_FUNC) &_ClassicHCAS_tiling_cpp, 4},
     {NULL, NULL, 0}
 };
 

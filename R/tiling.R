@@ -14,7 +14,7 @@
 #' @param method Character. One of `"best"`, `"row"`, `"col"`, or `"both"` (default `"best"`).
 #'   Specifies how the balanced tiles should be split:
 #'   \describe{
-#'     \item{"best"}{Automatically chooses the split direction that minimizes imbalance.}
+#'     \item{"best"}{Automatically chooses the split direction that balances node weights and avoids overly skinny tiles.}
 #'     \item{"row"}{Always splits by rows.}
 #'     \item{"col"}{Always splits by columns.}
 #'     \item{"both"}{Splits along both dimensions, favoring the longer dimension.}
@@ -74,6 +74,8 @@ tiling <- function(
 ) {
     # define the choice of splitting
     method <- match.arg(method[1], choices = c("best", "row", "col", "both"))
+    n_tiles <- as.integer(n_tiles[1])
+    if (is.na(n_tiles) || n_tiles < 1) stop("'n_tiles' must be a positive integer.")
 
     equi_tiles <- function(r, n, sp = FALSE) {
         nc <- if (n %% 2 == 1) 1 else floor(sqrt(n / 2))
@@ -98,7 +100,7 @@ tiling <- function(
                 )
             )
         } else {
-            stop("Equal-siezed tiles only works with rasters.")
+            stop("Equal-sized tiles only works with rasters.")
         }
     }
 
@@ -119,122 +121,12 @@ tiling <- function(
         x <- ifelse(x > 0, 1, 0)
     }
 
-    # find the best splitting point
-    split_point <- function(x, byrow = TRUE, diff = FALSE) {
-        dimsum <- if (byrow) rowSums(x, na.rm = TRUE) else colSums(x, na.rm = TRUE)
-        ave <- sum(dimsum, na.rm = TRUE) / 2
-        cs <- cumsum(dimsum) - ave
-        pt <- which.min(abs(cs))
-        # just return the difference in points?
-        if (diff) {
-            return(
-                abs(
-                    sum(dimsum[1:pt], na.rm = TRUE) - sum(dimsum[(pt+1):length(dimsum)], na.rm = TRUE)
-                )
-            )
-        }
-
-        return(
-            pt
-        )
-    }
-    # split by row or column
-    by_rows <- function(x, by = "best") {
-        if (by == "best") {
-            brow <- split_point(x = x, byrow = TRUE, diff = TRUE)
-            bcol <- split_point(x = x, byrow = FALSE, diff = TRUE)
-            # if difference in node stats are higher in by-column, then choose by-rows
-            return(
-                ifelse(bcol >= brow, TRUE, FALSE)
-            )
-        } else if (by == "row") {
-            return(TRUE)
-        } else if (by == "col") {
-            return(FALSE)
-        } else {
-            return(
-                ifelse(nrow(x) >= ncol(x), TRUE, FALSE)
-            )
-        }
-    }
-    # filter the matrix based on lookup
-    filter_mat <- function(mat, lookup, i) {
-        r1 <- lookup[i, "r1"]
-        r2 <- lookup[i, "r2"]
-        c1 <- lookup[i, "c1"]
-        c2 <- lookup[i, "c2"]
-        return(
-            mat[r1:r2, c1:c2, drop = FALSE]
-        )
-    }
-    # calculate the sums
-    sum_mat <- function(mat, lookup, i) {
-        r1 <- lookup[i, "r1"]
-        r2 <- lookup[i, "r2"]
-        c1 <- lookup[i, "c1"]
-        c2 <- lookup[i, "c2"]
-        return(
-            sum(mat[r1:r2, c1:c2], na.rm = TRUE)
-        )
-    }
-
-    n_rows <- nrow(x)
-    n_cols <- ncol(x)
-    result <- matrix(1, n_rows, n_cols)
-
-    total_sum <- sum(x, na.rm = TRUE)
-    target_sum <- total_sum / n_tiles
-
-    # initial row/col id
-    row_start <- 1
-    col_start <- 1
-    row_end <- n_rows
-    col_end <- n_cols
-    id <- 1
-
-    lookup <- data.frame(
-        id = 1,
-        r1 = row_start,
-        r2 = row_end,
-        c1 = col_start,
-        c2 = col_end,
-        wt = total_sum
+    result <- tiling_cpp(
+        x = x,
+        n_tiles = n_tiles,
+        method = method,
+        exact = exact
     )
-
-    # find the splits
-    while (max(lookup$wt) > target_sum && ifelse(exact, nrow(lookup) < n_tiles, TRUE)) {
-        r <- which.max(lookup$wt)
-        sub_mat <- filter_mat(x, lookup, r)
-        split_row <- by_rows(sub_mat, by = method)
-        # update look up table
-        if (split_row) {
-            id <- id + 1
-            pnt <- split_point(x = sub_mat, byrow = TRUE)
-            new_end_row <- (lookup[r, "r1"] + pnt - 1)
-            row_start <- min(new_end_row + 1, n_rows)
-            row_end <- lookup[r, "r2"] # first update this
-            col_start <- lookup[r, "c1"]
-            col_end <- lookup[r, "c2"]
-            lookup[r, "r2"] <- new_end_row
-            lookup[nrow(lookup) + 1, ] <- c(id, row_start, row_end, col_start, col_end, 0)
-            lookup[nrow(lookup), "wt"] <- sum_mat(x, lookup, nrow(lookup))
-            lookup[r, "wt"] <- sum_mat(x, lookup, r)
-        } else {
-            id <- id + 1
-            pnt <- split_point(x = sub_mat, byrow = FALSE)
-            new_end_col <- (lookup[r, "c1"] + pnt - 1)
-            row_start <- lookup[r, "r1"]
-            row_end <- lookup[r, "r2"]
-            col_start <- min(new_end_col + 1, n_cols)
-            col_end <- lookup[r, "c2"]
-            lookup[r, "c2"] <- new_end_col
-            lookup[nrow(lookup) + 1, ] <- c(id, row_start, row_end, col_start, col_end, 0)
-            lookup[nrow(lookup), "wt"] <- sum_mat(x, lookup, nrow(lookup))
-            lookup[r, "wt"] <- sum_mat(x, lookup, r)
-        }
-
-        result[row_start:row_end, col_start:col_end] <- id
-    }
 
     # get the ext and make it a polygon
     if (any(methods::is(data, "SpatRaster"))) {
@@ -250,7 +142,6 @@ tiling <- function(
     outpoly <- terra::as.polygons(
         terra::rast(result, extent = extent)
     )
-
 
     if (spatial) {
         if (any(methods::is(data, "SpatRaster"))) {
@@ -278,4 +169,3 @@ tiling <- function(
 
     return(out)
 }
-

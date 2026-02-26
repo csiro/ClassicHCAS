@@ -95,7 +95,9 @@ Rcpp::IntegerVector density_cpp(
         omp_set_num_threads(num_threads);
     #endif
     
-    #pragma omp parallel for schedule(static)
+    // Dynamic scheduling improves load balancing when NA-heavy regions
+    // make per-cell work uneven across contiguous raster chunks.
+    #pragma omp parallel for schedule(dynamic, 256)
     for (int i = 0; i < nr; i++) {
         const auto row = raster.row(i);
         
@@ -115,8 +117,7 @@ Rcpp::IntegerVector density_cpp(
         }
         // Find number of samples within the radius
         int count = radius_Count(sample_x, sample_y, query_x, query_y, r2, cos_scale, geo);
-        
-        #pragma omp critical
+
         out[i] = count;
     }
     

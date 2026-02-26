@@ -17,3 +17,7 @@ norm_cpp <- function(x, trim_size = 400L, offset = 0L) {
     .Call(`_ClassicHCAS_norm_cpp`, x, trim_size, offset)
 }
 
+tiling_cpp <- function(x, n_tiles, method = "best", exact = TRUE) {
+    .Call(`_ClassicHCAS_tiling_cpp`, x, n_tiles, method, exact)
+}
+
