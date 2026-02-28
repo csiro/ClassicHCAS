@@ -34,26 +34,26 @@ Diagram here:
 ```
 
 
-## Histogram calculation
+## Reference density calculation
 
 
 ```{r, warning=FALSE, message=FALSE, fig.width=5, fig.height=4}
-# histo <- ClassicHCAS::histogram(
+# ref_density <- ClassicHCAS::ref_density(
 #   data = full_data,
 #   radius_km = 1000,
 #   bin_width = 0.03
 # )
 # 
-# plot(histo)
+# plot(ref_density)
 
 ```
 
 
-## Histogram normalisation
+## Reference density normalisation
 
 
 ```{r, fig.width=5, fig.height=4}
-# norm <- ClassicHCAS::normalise(x = histo)
+# norm <- ClassicHCAS::normalise(x = ref_density)
 # 
 # plot(norm)
 

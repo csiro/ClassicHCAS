@@ -51,7 +51,7 @@ inline int radius_Count(
 
 
 // [[Rcpp::export]]
-Rcpp::IntegerVector density_cpp(
+Rcpp::IntegerVector radial_count_cpp(
     const Rcpp::NumericMatrix &rast,
     const Rcpp::NumericMatrix &xy,
     const double radius_km = 200.0,

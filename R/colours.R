@@ -13,21 +13,21 @@ hcas_color <- function(n = 10) {
 }
 
 
-#' The HCAS histogram colors
+#' The HCAS reference density colors
 #'
 #' @param n Integer. Number of color codes to return.
 #'
 #' @return a charterer vector of color codes
 #' @export
-histo_color <- function(n = 10) {
-    histcols <- grDevices::colorRampPalette(
+ref_density_color <- function(n = 10) {
+    ref_cols <- grDevices::colorRampPalette(
         c("#ffffff", "#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb",
           "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"
         )
     )
 
     return(
-        histcols(n)
+        ref_cols(n)
     )
 }
 

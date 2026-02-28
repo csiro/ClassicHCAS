@@ -100,7 +100,7 @@ Rcpp::NumericMatrix norm_cpp(
         }
     }
 
-    // update the [0,0] point in the histogram
+    // update the [0,0] point in the reference density
     new_mat(0, 0) = global_max;
 
     // transpose the matrix to get x as RS and y as ENV

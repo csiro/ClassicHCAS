@@ -1,11 +1,12 @@
 # Version 1.0.0
-* The order of input data has completely changed and both `histogram()` and `benchmark()` functions require data with **x**, **y**, **predicted**, and **observed** remote sensing variable order.
-* Complete re-write of the main C++ functions (for `histogram()`, `benchmark()`, and `proximity()`) using vectorised operations, resulting in significant speed improvement.
+* Renamed the reference density function to `ref_density()`, renamed the radial counting function (from `proximity()`) to `radial_count()`, and changed the reference density object class to `reference_density`.
+* The order of input data has completely changed and both `ref_density()` and `benchmark()` functions require data with **x**, **y**, **predicted**, and **observed** remote sensing variable order.
+* Complete re-write of the main C++ functions (for `ref_density()`, `benchmark()`, and `radial_count()`) using vectorised operations, resulting in significant speed improvement (~10x).
 * The feature space distance calculations are now changed from `double` to `float32`, for performance improvement with no loss of accuracy.
-* The Eigen C++ library is adapted as the main matrix library.
+* The Eigen C++ library is adapted as the main matrix engine.
 * The dependency on KDtrees is dropped while keeping or even improving the speed.
-* The histogram now performs only one-way pairwise distance calculations. As a result, the raw histogram values are exactly halved compared to before. This has no impact on the normalised histogram or the final output.
-* The "corner value” in histogram (previously calculated as the count of values) is no longer computed, since it is simply equal to the number of samples.
+* The reference density now performs only one-way pairwise distance calculations. As a result, the raw reference density values are exactly halved compared to before. This has no impact on the normalised reference density or the final output.
+* The "corner value" in the reference density (previously calculated as the count of values) is no longer computed, since it is simply equal to the number of samples.
 * The `calibrate()` function no longer performs interpolation. The output is now fully fitted using a monotonic spline.
 * A fast spatial distance calculation is implemented (no difference for projected CRS with 0.01 meters accuracy).
 * The geographic distance for lat/long is now corrected for the latitude of the source cell, not just the radius transformation to degrees.
@@ -14,11 +15,11 @@
 * Expanded the test suite with additional C++-focused coverage, including edge cases and thread-consistency checks for core workflows.
 
 # Version 0.2.0
-* Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `histogram` and `benchmark` functions.
+* Added `drop_features` parameter to fully exclude specific remote sensing variables from both the `ref_density` and `benchmark` functions.
 * Added a condition to ensure that `k_obs`  is less than or equal to `k_pred`.
-* A new histogram normalisation method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
-* The zero-zero point (reference self-count) in the raw histogram is now excluded prior to normalisation.
-* The `histogram` function arguments have changed to `data` and `samples`.
+* A new reference density normalisation method has been implemented in R using the `legacy = FALSE` argument to mitigate edge effects.
+* The zero-zero point (reference self-count) in the raw reference density is now excluded prior to normalisation.
+* The `ref_density` function arguments have changed to `data` and `samples`.
 
 # Version 0.1.6
 * Added a `scale_factor` parameter to allow user-defined correction of geographic CRS distance calculations, enhancing flexibility in handling distance conversions (previously set to a default value only).

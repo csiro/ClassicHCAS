@@ -1,4 +1,4 @@
-#' Number of samples within a proximity (radial search)
+#' Number of samples within a radius
 #'
 #' This function calculates the number of samples (x, y coordinates) within a specified radius
 #' for each pixel in a raster map.
@@ -45,14 +45,14 @@
 #'
 #'
 #' }
-proximity <- function(
+radial_count <- function(
         x,
         samples_xy,
         radius_km = 200,
         num_threads = -1,
         ...) {
 
-    # check samples and histograms
+    # check samples
     if (.is_mat(samples_xy)) {
         samples_xy <- .check_mat(samples_xy)
     } else {
@@ -78,7 +78,7 @@ proximity <- function(
             )
         },
         error = function(cond) {
-            stop("Sample density calculation failed!\n", cond)
+            stop("Radial count calculation failed!\n", cond)
         }
     )
 
@@ -87,20 +87,19 @@ proximity <- function(
     )
 }
 
-
-# wrapper function for density_cpp
+# wrapper function for radial_count_cpp
 proxy_count <- function(model, newdata, ...) {
     nr <- nrow(newdata)
 
     tryCatch(
         {
-            pcount <- density_cpp(
+            pcount <- radial_count_cpp(
                 rast = as.matrix(newdata),
                 ...
             )
         },
         error = function(cond) {
-            message("Error: the proximity C++ function faild, returning -2!")
+            message("Error: the radial_count C++ function faild, returning -2!")
             # return error values -0.02
             return(
                 rep(-2, nr)

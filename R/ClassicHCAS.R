@@ -5,7 +5,7 @@
 #' It integrates multiple RS data layers to provide a comprehensive assessment of
 #' habitat quality.
 #'
-#' @seealso \code{\link{benchmark}} and \code{\link{histogram}}.
+#' @seealso \code{\link{benchmark}} and \code{\link{ref_density}}.
 #'
 #' @references The Habitat Condition Assessment System (HCAS)...
 #'

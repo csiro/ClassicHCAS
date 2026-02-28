@@ -4,7 +4,7 @@
 #' attempt to distribute the data values evenly across tiles, while rectangular tiles simply
 #' divide the raster into equal-sized grids. This function helps creating tiles for running
 #' \code{benchmark} function over multiple tiles or systems (e.g. in a cluster). The output
-#' of the \code{\link{proximity}} function can be used to balance the run time over each tile.
+#' of the \code{\link{radial_count}} function can be used to balance the run time over each tile.
 #'
 #' @param data A `SpatRaster` object or a numeric matrix. For balanced tiling, either a matrix
 #' or raster can be used. For rectangular tiling, a raster is required.

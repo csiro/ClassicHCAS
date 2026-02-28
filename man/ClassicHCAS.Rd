@@ -14,7 +14,7 @@ habitat quality.
 The Habitat Condition Assessment System (HCAS)...
 }
 \seealso{
-\code{\link{benchmark}} and \code{\link{histogram}}.
+\code{\link{benchmark}} and \code{\link{ref_density}}.
 }
 \author{
 Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood

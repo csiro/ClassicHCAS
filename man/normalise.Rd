@@ -2,7 +2,7 @@
 % Please edit documentation in R/normalise.R
 \name{normalise}
 \alias{normalise}
-\title{Clean and normalise HCAS histogram}
+\title{Clean and normalise HCAS reference density}
 \usage{
 normalise(
   x,
@@ -14,17 +14,19 @@ normalise(
 )
 }
 \arguments{
-\item{x}{An HCAS histo object or a matrix representing the HCAS histogram (see \code{\link{histogram}}).}
+\item{x}{An HCAS \code{reference_density} object or a matrix representing the
+reference density surface (see \code{\link{ref_density}}).}
 
-\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{histogram} is
-a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
-The bin width must be consistent between the histogram creation and the benchmarking step to
-ensure condition is accurately calculated.}
+\item{bin_width}{Numeric. Specifies the bin width of the reference density. If
+\code{x} is a \strong{reference_density} object, this value can be read from
+its attributes and may be left \code{NULL}. The bin width must be consistent
+between the reference density creation and the benchmarking step to ensure
+condition is accurately calculated.}
 
-\item{trim_size}{Integer. Defines the number of rows and columns in the trimmed histogram. The default
+\item{trim_size}{Integer. Defines the number of rows and columns in the trimmed reference density. The default
 is 400, and it is generally advisable to retain this default setting.}
 
-\item{offset}{Integer. Specifies the number of histogram bins to ignore during normalization. This value
+\item{offset}{Integer. Specifies the number of reference density bins to ignore during normalization. This value
 will be stored as an attribute in the output object.}
 
 \item{legacy}{Logical. Whether to use the legacy C++ code for normalisation (for backward
@@ -34,10 +36,11 @@ issue without any speed compromise.}
 \item{filename}{Char (optional). The output file name for the .text file.}
 }
 \value{
-A histo object (also matrix, array)
+A \code{reference_density} object (also matrix, array)
 }
 \description{
-This process includes trimming the histogram to remove noise and normalising its values.
+This process includes trimming the reference density surface to remove noise and
+normalising its values.
 }
 \examples{
 \donttest{
@@ -48,5 +51,5 @@ library(ClassicHCAS)
 }
 }
 \seealso{
-\code{\link{histogram}}, and \code{\link{benchmark}}
+\code{\link{ref_density}}, and \code{\link{benchmark}}
 }

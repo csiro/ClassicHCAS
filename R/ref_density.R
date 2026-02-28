@@ -1,10 +1,11 @@
-#' The HCAS reference density surface
+#' Reference density surface
 #'
-#' The HCAS reference density surface calculation (also known as 2D histogram) is based on pair-point densities. It is an integral part of HCAS,
-#' designed to learn the expected observed remote sensing (RS) values from the
-#' predicted RS values across a wide range of reference sites. Note that the reference
-#' sites used for the \code{histogram} do not need to be the same as those used in
-#' the \code{\link{benchmark}} function. See more in details.
+#' The HCAS reference density surface calculation is based on pair-point densities.
+#' It is an integral part of HCAS, designed to
+#' learn the expected observed remote sensing (RS) values from the predicted RS
+#' values across a wide range of reference sites. Note that the reference sites
+#' used for \code{ref_density} do not need to be the same as those used in the
+#' \code{\link{benchmark}} function. See more in details.
 #'
 #' Ensure that the order of remote sensing variables is consistent between predicted and observed inputs
 #' (for both raster and matrix formats). The RS variable values must be centered and scaled
@@ -40,14 +41,14 @@
 #' of the reference points used for the observed and predicted RS value extraction if \code{data} is a
 #' raster object. If \code{data} argument is matrix, this will be ignored.
 #' @param radius_km Numeric. Specifies the search radius in kilometers for considering reference samples
-#' when creating the histogram. See details section for more information on distance calculation.
-#' @param bin_width Numeric. Specifies the bin width of the histogram. Finding the optimal bin width
+#' when creating the reference density surface. See details section for more information on distance calculation.
+#' @param bin_width Numeric. Specifies the bin width of the reference density surface. Finding the optimal bin width
 #' may require some experimentation to achieve the best results. The bin width is added as an attribute
 #' to the output object, ensuring consistency and accuracy in subsequent benchmarking steps.
-#' @param bin_num Integer. Specifies the number of bins for the histogram. It is generally recommended
+#' @param bin_num Integer. Specifies the number of bins for the reference density surface. It is generally recommended
 #' to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 #' \code{bin_num}.
-#' @param drop_features Integer vector. Completely remove the RS variable from the histogram generation. For
+#' @param drop_features Integer vector. Completely remove the RS variable from the reference density calculation. For
 #' consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
 #' you have a specific reason not to.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
@@ -57,7 +58,7 @@
 #'
 #' @seealso \code{\link{normalise}}, and \code{\link{benchmark}}
 #'
-#' @return A histo object (matrix, array)
+#' @return A \code{reference_density} object (also matrix, array)
 #' @export
 #'
 #' @examples
@@ -67,7 +68,7 @@
 #'
 #'
 #' }
-histogram <- function(
+ref_density <- function(
         data,
         samples = NULL,
         radius_km = 1000,
@@ -137,10 +138,10 @@ histogram <- function(
         modelled[, drop_features] <- 0
     }
 
-    # run histo calculate in C++
+    # run reference density calculation in C++
     tryCatch(
         {
-            out_table <- histo_cpp(
+            out_table <- ref_density_cpp(
                 rs_vals = observed,
                 pr_vals = modelled,
                 xy_vals = samples_xy,
@@ -152,11 +153,11 @@ histogram <- function(
             )
         },
         error = function(cond) {
-            stop("Histogram calculation failed!\n", cond)
+            stop("Reference density calculation failed!\n", cond)
         }
     )
 
-    # write down the histogram
+    # write down the reference density surface
     if (nchar(filename) > 0) {
         filename <- ifelse(grepl(".txt", filename), filename, paste0(filename, ".txt"))
         tryCatch(
@@ -171,12 +172,12 @@ histogram <- function(
                 )
             },
             error = function(cond) {
-                stop("Writing histogram file failed!\n", cond)
+                stop("Writing reference density file failed!\n", cond)
             }
         )
     }
 
-    class(out_table) <- c("matrix", "array", "histo")
+    class(out_table) <- c("reference_density", "matrix", "array")
     attr(out_table, "bin.width") <- bin_width
 
     return(out_table)
@@ -184,23 +185,23 @@ histogram <- function(
 
 
 #' @export
-#' @method print histo
-print.histo <- function(x, ...) {
+#' @method print reference_density
+print.reference_density <- function(x, ...) {
     print(class(x), ...)
     i <- which(names(attributes(x)) == "class")
     print(attributes(x)[-i])
 }
 
 #' @export
-#' @method plot histo
-plot.histo <- function(x, ...) {
+#' @method plot reference_density
+plot.reference_density <- function(x, ...) {
     is_norm <- "offset" %in% names(attributes(x))
     if (is_norm) {
         x <- apply(t(x), 2, rev)
-        message("For aesthetic, the normalised histogram plot is reversed and transposed.")
+        message("For aesthetic, the normalised reference density plot is reversed and transposed.")
     }
     terra::plot(
-        terra::rast(x), col = histo_color(150), ...
+        terra::rast(x), col = ref_density_color(150), ...
     )
 }
 

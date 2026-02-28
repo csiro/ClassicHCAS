@@ -87,9 +87,9 @@ std::vector<int> combined_Search(
 }
 
 
-// HCAS Cauchy weighted condition calculation using histogram values and env distances
+// HCAS Cauchy weighted condition calculation using reference density values and env distances
 inline Condition get_Condition(
-    const std::vector<double> &prob_values, // histo probability values
+    const std::vector<double> &prob_values, // reference density probability values
     const std::vector<double> &pred_dists,  // the predicted/modelled distance
     double prob_max,                        // max probability value of the 20 records
     const double confidence,                // the confidence value
@@ -129,21 +129,21 @@ inline Condition get_Condition(
 }
 
 
-// get the probability value from histogram
-inline double get_Prob(const RowMajorMatrix<double>& histo,
-                       const float dist_pre,
-                       const float dist_obs,
-                       const float w_bin,
-                       const int n_bin,
-                       const int offset)
+// get the probability value from the reference density table
+inline double get_prob_value(const RowMajorMatrix<double>& ref_density,
+                             const float dist_pre,
+                             const float dist_obs,
+                             const float w_bin,
+                             const int n_bin,
+                             const int offset)
 {
-    if (w_bin <= 0.0f || histo.rows() == 0 || histo.cols() == 0) {
+    if (w_bin <= 0.0f || ref_density.rows() == 0 || ref_density.cols() == 0) {
         return 0.0;
     }
 
     const float inverse_w_bin = 1.0f / w_bin;
-    const int max_i = std::min(n_bin - 1, static_cast<int>(histo.rows()) - 1);
-    const int max_j = std::min(n_bin - 1, static_cast<int>(histo.cols()) - 1);
+    const int max_i = std::min(n_bin - 1, static_cast<int>(ref_density.rows()) - 1);
+    const int max_j = std::min(n_bin - 1, static_cast<int>(ref_density.cols()) - 1);
 
     // static_cast over std::floor??
     int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_i);
@@ -152,6 +152,6 @@ inline double get_Prob(const RowMajorMatrix<double>& histo,
     ii = std::max(ii - offset, 0);
     jj = std::max(jj - offset, 0);
 
-    return histo(ii, jj);
+    return ref_density(ii, jj);
 }
 

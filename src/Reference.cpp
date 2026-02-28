@@ -38,7 +38,7 @@ inline int64_t distance_sq(
 
 
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix histo_cpp(
+Rcpp::IntegerMatrix ref_density_cpp(
     const Rcpp::NumericMatrix &rs_vals,
     const Rcpp::NumericMatrix &pr_vals,
     const Rcpp::NumericMatrix &xy_vals,
@@ -54,9 +54,9 @@ Rcpp::IntegerMatrix histo_cpp(
     // Get xy in double for calculating cos in degrees
     RowMajorMatrix<double> xy = get_XY(xy_vals);
     // define the output matrix;
-    RowMajorMatrix<uint64_t> histo_matrix(bin_num, bin_num);
+    RowMajorMatrix<uint64_t> ref_density_matrix(bin_num, bin_num);
     // Matrix MUST be initialised with zero
-    histo_matrix.setZero();
+    ref_density_matrix.setZero();
 
     const int nr = rs.rows();
 
@@ -125,14 +125,14 @@ Rcpp::IntegerMatrix histo_cpp(
                 float32_t rsdist = (rs.row(i) - rs.row(j)).template lpNorm<1>();
                 float32_t prdist = (pr.row(i) - pr.row(j)).template lpNorm<1>();
 
-                // now update the hist with the distances
+                // now update the reference density table with the distances
                 // calculate the row and column; must be floor to correctly get bin number
                 int jj = std::floor(rsdist * bwi); // they are both float32_t
                 int ii = std::floor(prdist * bwi);
                 // for now, ignore the values overshooting; they'll be mostly noise
                 if (ii < bin_num && jj < bin_num) {
                     #pragma omp atomic
-                    histo_matrix(ii, jj)++;
+                    ref_density_matrix(ii, jj)++;
                 }
             }
         }
@@ -145,10 +145,9 @@ Rcpp::IntegerMatrix histo_cpp(
         int ix = bin_num - 1 - i; // compute the reversed row index directly
         for (int j = 0; j < bin_num; ++j)
         {
-            matrix(i, j) = histo_matrix(j, ix); // transpose and reverse in one step
+            matrix(i, j) = ref_density_matrix(j, ix); // transpose and reverse in one step
         }
     }
 
     return matrix;
 }
-

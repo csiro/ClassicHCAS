@@ -34,14 +34,14 @@
 #' Note that the default parameters are tailored for Australia and may not be suitable for other
 #' regions.
 #'
-#' @inheritParams histogram
+#' @inheritParams ref_density
 #' @param samples A matrix or data.frame containing x, y, predicted-RS, and observed-RS values
 #' (in that specific order) for benchmark samples (also known as reference sites). If the
 #' \code{data} argument is a SpatRaster, you can provide only the x and y coordinates of the
 #' benchmark samples. In this case, the corresponding values will be extracted from the raster
 #' layers. Consider extra time for sample value extraction in this case.
-#' @param histogram A matrix or \strong{histo} object of normalised HCAS histogram
-#' see \code{\link{histogram}} and \code{\link{normalise}}).
+#' @param ref_density A matrix or \strong{reference_density} object of normalised HCAS
+#' reference density (see \code{\link{ref_density}} and \code{\link{normalise}}).
 #' @param xy_stats A vector, mean and standard deviation of coordinates for centre and
 #' scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y).
 #' This argument helps achieving consistent results when running benchmarking over multiple tiles.
@@ -51,27 +51,27 @@
 #' See details section for more information on distance calculation.
 #' @param k_pred Integer. Number of nearest predicted RS samples to take.
 #' @param k_obs Integer. Number of nearest observed RS sample to takes.
-#' @param bin_width Numeric. Specifies the bin width of the histogram. If \code{histogram} is
-#' a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
-#' The bin width must be consistent between the histogram creation and the benchmarking step to
+#' @param bin_width Numeric. Specifies the bin width of the reference density. If \code{ref_density} is
+#' a \strong{reference_density} object, this value can be read from its attributes and may be left \code{NULL}.
+#' The bin width must be consistent between the reference density creation and the benchmarking step to
 #' ensure condition is accurately calculated.
-#' @param interpolate Logical. Whether to interpolate the histogram for a smoother result.
-#' @param offset Integer. Specifies the number of histogram bins that were ignored during
-#' normalisation (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+#' @param interpolate Logical. Whether to interpolate the reference density for a smoother result.
+#' @param offset Integer. Specifies the number of reference density bins that were ignored during
+#' normalisation (see \code{\link{normalise}}). If \code{ref_density} is a \strong{reference_density} object,
 #' this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
-#' the \code{offset} must be consistent between the histogram normalisation and the benchmarking
+#' the \code{offset} must be consistent between the reference density normalisation and the benchmarking
 #' step to ensure condition is accurately calculated.
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
 #' @param exclude_slef Logical. To exclude a benchmark point from assessing itself.
 #' @param drop_features Integer vector. Completely remove the RS variable from the benchmarking process. For
-#' consistency, it is recommended to exclude the same variables used in the histogram step; unless
+#' consistency, it is recommended to exclude the same variables used in the reference density step; unless
 #' you have a specific reason not to.
 #' @param make_su Logical. To make the uncertainty map or not.
 #' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
 #' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
 #'
-#' @seealso \code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
+#' @seealso \code{\link{ref_density}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 #'
 #' @return A matrix or SpatRaster, depending on the inputs.
 #' @export
@@ -86,7 +86,7 @@
 benchmark <- function(
         data,
         samples,
-        histogram,
+        ref_density,
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
@@ -105,34 +105,34 @@ benchmark <- function(
 
     # check k_pred and k_obs
     if (k_pred < k_obs) stop("'k_obs' must be smaller or equal to 'k_pred'.")
-    # check samples and histograms
+    # check samples and reference density
     samples <- if (.is_mat(samples)) .check_mat(samples) else stop("'samples' must be a matrix or convertible to one.")
-    histogram <- if (.is_mat(histogram)) .check_mat(histogram) else stop("'histogram' must be a matrix or convertible to one.")
-    if (nrow(histogram) != ncol(histogram)) warning("Historgram dimensions are not equal!\n")
+    ref_density <- if (.is_mat(ref_density)) .check_mat(ref_density) else stop("'ref_density' must be a matrix or convertible to one.")
+    if (nrow(ref_density) != ncol(ref_density)) warning("Reference density dimensions are not equal!\n")
 
-    if (methods::is(histogram, "histo")) {
-        # check for histo bin_width consistency
+    if (methods::is(ref_density, "reference_density")) {
+        # check for reference density bin_width consistency
         if (is.null(bin_width)) {
-            bin_width <- attributes(histogram)$bin.width
+            bin_width <- attributes(ref_density)$bin.width
         } else {
-            if (bin_width != attributes(histogram)$bin.width) {
-                warning("Provided 'bin_width' differs from histogram attribute.")
+            if (bin_width != attributes(ref_density)$bin.width) {
+                warning("Provided 'bin_width' differs from reference density attribute.")
             }
         }
-        # check for histo offset consistency
+        # check for reference density offset consistency
         if (is.null(offset)) {
-            offset <- attributes(histogram)$offset
+            offset <- attributes(ref_density)$offset
         } else {
-            if (offset != attributes(histogram)$offset) {
-                warning("Provided 'offset' differs from histogram attribute.")
+            if (offset != attributes(ref_density)$offset) {
+                warning("Provided 'offset' differs from reference density attribute.")
             }
         }
     }
 
-    # interpolate histogram
+    # interpolate reference density
     if (interpolate) {
-        histogram <- terra::as.matrix(
-            terra::disagg(terra::rast(histogram), fact = 2, method = "bilinear"),
+        ref_density <- terra::as.matrix(
+            terra::disagg(terra::rast(ref_density), fact = 2, method = "bilinear"),
             wide = TRUE
         )
         # update the binwidth and offset
@@ -140,7 +140,7 @@ benchmark <- function(
         offset <- offset * 2
     }
     # get the bin number after interpolation
-    bin_num <- min(dim(histogram))
+    bin_num <- min(dim(ref_density))
 
     exclude_var <- NULL
     # drop features from calculation if requested
@@ -166,7 +166,7 @@ benchmark <- function(
                     model = list(),
                     newdata = data, # rast_stack arg
                     sample_vals = samples,
-                    histogram = histogram,
+                    ref_density = ref_density,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     radius_km = radius_km,
@@ -214,7 +214,7 @@ benchmark <- function(
                     model = list(),
                     fun = benchmarking,
                     sample_vals = samples,
-                    histogram = histogram,
+                    ref_density = ref_density,
                     xy_stats = xy_stats,
                     xy_penalty = xy_penalty,
                     radius_km = radius_km,

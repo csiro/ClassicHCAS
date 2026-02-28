@@ -7,7 +7,7 @@
 benchmark(
   data,
   samples,
-  histogram,
+  ref_density,
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
   radius_km = 200,
@@ -38,8 +38,8 @@ correct order. For more see the details section.}
 benchmark samples. In this case, the corresponding values will be extracted from the raster
 layers. Consider extra time for sample value extraction in this case.}
 
-\item{histogram}{A matrix or \strong{histo} object of normalised HCAS histogram
-see \code{\link{histogram}} and \code{\link{normalise}}).}
+\item{ref_density}{A matrix or \strong{reference_density} object of normalised HCAS
+reference density (see \code{\link{ref_density}} and \code{\link{normalise}}).}
 
 \item{xy_stats}{A vector, mean and standard deviation of coordinates for centre and
 scaling the coordinate to use as a penalty. The order should be: mean(x), mean(y), sd(x), sd(y).
@@ -55,17 +55,17 @@ See details section for more information on distance calculation.}
 
 \item{k_obs}{Integer. Number of nearest observed RS sample to takes.}
 
-\item{bin_width}{Numeric. Specifies the bin width of the histogram. If \code{histogram} is
-a \strong{histo} object, this value can be read from its attributes and may be left \code{NULL}.
-The bin width must be consistent between the histogram creation and the benchmarking step to
+\item{bin_width}{Numeric. Specifies the bin width of the reference density. If \code{ref_density} is
+a \strong{reference_density} object, this value can be read from its attributes and may be left \code{NULL}.
+The bin width must be consistent between the reference density creation and the benchmarking step to
 ensure condition is accurately calculated.}
 
-\item{interpolate}{Logical. Whether to interpolate the histogram for a smoother result.}
+\item{interpolate}{Logical. Whether to interpolate the reference density for a smoother result.}
 
-\item{offset}{Integer. Specifies the number of histogram bins that were ignored during
-normalisation (see \code{\link{normalise}}). If \code{histogram} is a \strong{histo} object,
+\item{offset}{Integer. Specifies the number of reference density bins that were ignored during
+normalisation (see \code{\link{normalise}}). If \code{ref_density} is a \strong{reference_density} object,
 this value can be read from its attributes and may be set \code{NULL}. Similar to bin-width,
-the \code{offset} must be consistent between the histogram normalisation and the benchmarking
+the \code{offset} must be consistent between the reference density normalisation and the benchmarking
 step to ensure condition is accurately calculated.}
 
 \item{confidence}{Numeric. The confidence value for LDC methods. See details below..}
@@ -75,7 +75,7 @@ step to ensure condition is accurately calculated.}
 \item{exclude_slef}{Logical. To exclude a benchmark point from assessing itself.}
 
 \item{drop_features}{Integer vector. Completely remove the RS variable from the benchmarking process. For
-consistency, it is recommended to exclude the same variables used in the histogram step; unless
+consistency, it is recommended to exclude the same variables used in the reference density step; unless
 you have a specific reason not to.}
 
 \item{make_su}{Logical. To make the uncertainty map or not.}
@@ -135,5 +135,5 @@ library(ClassicHCAS)
 }
 }
 \seealso{
-\code{\link{histogram}}, \code{\link{normalise}}, and \code{\link{calibrate}}
+\code{\link{ref_density}}, \code{\link{normalise}}, and \code{\link{calibrate}}
 }

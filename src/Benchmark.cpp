@@ -26,16 +26,16 @@ static constexpr double DEG_2_RAD = M_PI / 180.0;
 Rcpp::NumericMatrix bench_cpp(
     const Rcpp::NumericMatrix &raster_vals, // a raster stack to read everything at once: x,y,rs,env
     const Rcpp::NumericMatrix &sample_vals, // extraction of values of raster using smaples xy: x,y,RS,ENV
-    const Rcpp::NumericMatrix &histogram,   // cleaned histogram
+    const Rcpp::NumericMatrix &ref_density, // cleaned reference density
     const Rcpp::NumericVector &xy_stats,    // mean(x), mean(y), sd(x), sd(y); ORDER MATTERS
     double xy_penalty = 0.0,                // penalising env nearest neighbour searching for geographic distance
     bool geographic = false,                // geographic/unprojected crs?
     double radius_km = 200,                 // radius in kilometers to consider ref points
     int k_env = 50,                         // number of ENV nn to select
     int k_rs = 20,                          // number of RS/Prob values to select
-    double bin_width = 0.05,                // histogram bin width
-    int bin_num = 400,                      // number of bins in histogram
-    int offset = 0,                         // offset of histogram
+    double bin_width = 0.05,                // reference density bin width
+    int bin_num = 400,                      // number of bins in reference density
+    int offset = 0,                         // offset of reference density
     double confidence = 0.5,                // the LDC confidence index; default 0.5
     double lambda = 2.0,                    // the lambda of the Cauchy weighting
     bool exclude_slef = true,               // whether to exclude a benchmark sample from assessing itself
@@ -61,8 +61,8 @@ Rcpp::NumericMatrix bench_cpp(
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float32_t> raster = as_Matrix<float32_t>(raster_vals);
     RowMajorMatrix<float32_t> samples = as_Matrix<float32_t>(sample_vals);
-    // Keep histo as double; not much processing cost with histo query for now...
-    RowMajorMatrix<double> histo = as_Matrix<double>(histogram);
+    // Keep ref_density as double; not much processing cost with table query for now...
+    RowMajorMatrix<double> refdens = as_Matrix<double>(ref_density);
     // Get xy in double for calculating cos in degrees
     RowMajorMatrix<double> raster_xy = get_XY(raster_vals);
 
@@ -157,9 +157,9 @@ Rcpp::NumericMatrix bench_cpp(
 
             // rs and env distance of nearest env neighbours
             std::vector<double> prdist_vect;
-            std::vector<double> histo_vect;
+            std::vector<double> prob_vect;
             prdist_vect.reserve(knn_env.size());
-            histo_vect.reserve(knn_env.size());
+            prob_vect.reserve(knn_env.size());
 
             // 'j' is the original index into the full 'samples' matrix
             for (const auto& j : knn_env)
@@ -179,11 +179,11 @@ Rcpp::NumericMatrix bench_cpp(
                 }
 
                 prdist_vect.push_back(static_cast<double>(prdist));
-                histo_vect.push_back(get_Prob(histo, prdist, rsdist, binwidth, bin_num, offset));
+                prob_vect.push_back(get_prob_value(refdens, prdist, rsdist, binwidth, bin_num, offset));
             }
 
             // Not enough candidates for this cell (e.g., sparse/edge tiles).
-            if (histo_vect.empty())
+            if (prob_vect.empty())
             {
                 Condition nan_cond {
                     std::numeric_limits<double>::quiet_NaN(),
@@ -194,8 +194,8 @@ Rcpp::NumericMatrix bench_cpp(
             }
 
             // descending sort prob values for selecting the 20 highest values
-            // the histo_vect itself will also be sorted
-            std::vector<int> sorted_index = qsort_index(histo_vect, true);
+            // the probability vector itself will also be sorted
+            std::vector<int> sorted_index = qsort_index(prob_vect, true);
 
             const int n_keep = std::min(k_rs, static_cast<int>(sorted_index.size()));
             std::vector<double> pr_dist(n_keep);     // ENV distances
@@ -206,7 +206,7 @@ Rcpp::NumericMatrix bench_cpp(
             {
                 int id = sorted_index[k];
                 pr_dist[k] = prdist_vect[id];
-                prob_sorted[k] = histo_vect[k]; // histo_vect is already sorted by qsort_index; just get first 20
+                prob_sorted[k] = prob_vect[k]; // prob_vect is already sorted by qsort_index; just get first 20
             }
 
             // calculate the Cauchy weighting condition

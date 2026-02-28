@@ -12,14 +12,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bench_cpp
-Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& histogram, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, bool make_su, int num_threads);
-RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP histogramSEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
+Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, bool make_su, int num_threads);
+RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type raster_vals(raster_valsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type sample_vals(sample_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type histogram(histogramSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type ref_density(ref_densitySEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type xy_stats(xy_statsSEXP);
     Rcpp::traits::input_parameter< double >::type xy_penalty(xy_penaltySEXP);
     Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
@@ -34,40 +34,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type exclude_slef(exclude_slefSEXP);
     Rcpp::traits::input_parameter< bool >::type make_su(make_suSEXP);
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, histogram, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
-// density_cpp
-Rcpp::IntegerVector density_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, bool geographic, int num_threads);
-RcppExport SEXP _ClassicHCAS_density_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rast(rastSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy(xySEXP);
-    Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
-    Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
-    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(density_cpp(rast, xy, radius_km, geographic, num_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
-// histo_cpp
-Rcpp::IntegerMatrix histo_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy_vals, const double radius_km, const double bin_width, const int bin_num, const bool geographic, int num_threads);
-RcppExport SEXP _ClassicHCAS_histo_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xy_valsSEXP, SEXP radius_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rs_vals(rs_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type pr_vals(pr_valsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy_vals(xy_valsSEXP);
-    Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
-    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
-    Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
-    Rcpp::traits::input_parameter< const bool >::type geographic(geographicSEXP);
-    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(histo_cpp(rs_vals, pr_vals, xy_vals, radius_km, bin_width, bin_num, geographic, num_threads));
+    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, make_su, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -81,6 +48,39 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type trim_size(trim_sizeSEXP);
     Rcpp::traits::input_parameter< const int >::type offset(offsetSEXP);
     rcpp_result_gen = Rcpp::wrap(norm_cpp(x, trim_size, offset));
+    return rcpp_result_gen;
+END_RCPP
+}
+// radial_count_cpp
+Rcpp::IntegerVector radial_count_cpp(const Rcpp::NumericMatrix& rast, const Rcpp::NumericMatrix& xy, const double radius_km, bool geographic, int num_threads);
+RcppExport SEXP _ClassicHCAS_radial_count_cpp(SEXP rastSEXP, SEXP xySEXP, SEXP radius_kmSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rast(rastSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy(xySEXP);
+    Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
+    Rcpp::traits::input_parameter< bool >::type geographic(geographicSEXP);
+    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(radial_count_cpp(rast, xy, radius_km, geographic, num_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ref_density_cpp
+Rcpp::IntegerMatrix ref_density_cpp(const Rcpp::NumericMatrix& rs_vals, const Rcpp::NumericMatrix& pr_vals, const Rcpp::NumericMatrix& xy_vals, const double radius_km, const double bin_width, const int bin_num, const bool geographic, int num_threads);
+RcppExport SEXP _ClassicHCAS_ref_density_cpp(SEXP rs_valsSEXP, SEXP pr_valsSEXP, SEXP xy_valsSEXP, SEXP radius_kmSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP geographicSEXP, SEXP num_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type rs_vals(rs_valsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type pr_vals(pr_valsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type xy_vals(xy_valsSEXP);
+    Rcpp::traits::input_parameter< const double >::type radius_km(radius_kmSEXP);
+    Rcpp::traits::input_parameter< const double >::type bin_width(bin_widthSEXP);
+    Rcpp::traits::input_parameter< const int >::type bin_num(bin_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type geographic(geographicSEXP);
+    Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(ref_density_cpp(rs_vals, pr_vals, xy_vals, radius_km, bin_width, bin_num, geographic, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -101,9 +101,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 17},
-    {"_ClassicHCAS_density_cpp", (DL_FUNC) &_ClassicHCAS_density_cpp, 5},
-    {"_ClassicHCAS_histo_cpp", (DL_FUNC) &_ClassicHCAS_histo_cpp, 8},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
+    {"_ClassicHCAS_radial_count_cpp", (DL_FUNC) &_ClassicHCAS_radial_count_cpp, 5},
+    {"_ClassicHCAS_ref_density_cpp", (DL_FUNC) &_ClassicHCAS_ref_density_cpp, 8},
     {"_ClassicHCAS_tiling_cpp", (DL_FUNC) &_ClassicHCAS_tiling_cpp, 4},
     {NULL, NULL, 0}
 };

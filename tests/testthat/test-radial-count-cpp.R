@@ -1,4 +1,4 @@
-test_that("proximity returns sensible counts on a small projected raster", {
+test_that("radial_count returns sensible counts on a small projected raster", {
     skip_if_not_installed("terra")
 
     r <- terra::rast(nrows = 3, ncols = 3, xmin = 0, xmax = 3, ymin = 0, ymax = 3)
@@ -13,7 +13,7 @@ test_that("proximity returns sensible counts on a small projected raster", {
         byrow = TRUE
     )
 
-    out <- proximity(
+    out <- radial_count(
         x = r,
         samples_xy = samples_xy,
         radius_km = 0.0004,
@@ -30,7 +30,7 @@ test_that("proximity returns sensible counts on a small projected raster", {
 })
 
 
-test_that("proximity is stable across thread counts", {
+test_that("radial_count is stable across thread counts", {
     skip_if_not_installed("terra")
 
     set.seed(42)
@@ -42,14 +42,14 @@ test_that("proximity is stable across thread counts", {
         runif(200, min = 0, max = 20)
     )
 
-    out_single <- proximity(
+    out_single <- radial_count(
         x = r,
         samples_xy = samples_xy,
         radius_km = 0.002,
         num_threads = 1L
     )
 
-    out_multi <- proximity(
+    out_multi <- radial_count(
         x = r,
         samples_xy = samples_xy,
         radius_km = 0.002,
