@@ -1,8 +1,7 @@
 # Version 1.0.0
 * Renamed the reference density function to `ref_density()`, renamed the radial counting function (from `proximity()`) to `radial_count()`, and changed the reference density object class to `reference_density`.
 * The order of input data has completely changed and both `ref_density()` and `benchmark()` functions require data with **x**, **y**, **predicted**, and **observed** remote sensing variable order.
-* Complete re-write of the main C++ functions (for `ref_density()`, `benchmark()`, and `radial_count()`) using vectorised operations, resulting in significant speed improvement (~10x).
-* The feature space distance calculations are now changed from `double` to `float32`, for performance improvement with no loss of accuracy.
+* Complete re-write of the main C++ functions (for `ref_density()`, `benchmark()`, and `radial_count()`) using vectorised operations, including changing feature space distance calculations from `double` to `float32`, resulting in significant speed improvement (~10x) with no loss of accuracy.
 * The Eigen C++ library is adapted as the main matrix engine.
 * The dependency on KDtrees is dropped while keeping or even improving the speed.
 * The reference density now performs only one-way pairwise distance calculations. As a result, the raw reference density values are exactly halved compared to before. This has no impact on the normalised reference density or the final output.
