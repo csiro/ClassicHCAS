@@ -112,9 +112,9 @@ ref_density <- function(
     obs_layers <- mod_layers + num_layers
 
     # get the correct columns for the C++ code
-    samples_xy <- data_vals[, 1:2]
-    modelled <- data_vals[, mod_layers]
-    observed <- data_vals[, obs_layers]
+    samples_xy <- data_vals[, 1:2, drop = FALSE]
+    modelled <- data_vals[, mod_layers, drop = FALSE]
+    observed <- data_vals[, obs_layers, drop = FALSE]
 
     # some error checking
     if(any(dim(modelled) != dim(observed)))

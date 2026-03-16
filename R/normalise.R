@@ -39,6 +39,10 @@ normalise <- function(
         legacy = FALSE,
         filename = "") {
 
+    if (!.is_mat(x)) {
+        stop("'x' must be a matrix or a 'reference_density' object.")
+    }
+
     # check bin_width and get it from reference density object
     if (methods::is(x, "reference_density")) {
         if (is.null(bin_width)) {
@@ -49,6 +53,9 @@ normalise <- function(
             }
         }
     }
+
+    # drop the custom class so terra and Rcpp see a plain matrix
+    x <- .check_mat(unclass(x), name = "x")
 
     # force offset to be above zero
     offset <- max(0, offset)

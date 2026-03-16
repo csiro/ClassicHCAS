@@ -22,6 +22,8 @@ cover the full range of values, including the minimum and maximum of the raw con
 
 \item{y_values}{Numeric vector of calibrated target condition value corresponding to \code{x_values}.}
 
+\item{interpolate}{Deprecated and unused. Retained for backward compatibility.}
+
 \item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
 \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
 }

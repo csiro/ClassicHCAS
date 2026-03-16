@@ -10,7 +10,6 @@
 #' @references The Habitat Condition Assessment System (HCAS)...
 #'
 #' @name ClassicHCAS
-#' @docType _PACKAGE
 #' @author Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 #' @import Rcpp
 NULL

@@ -107,7 +107,7 @@ tiling <- function(
     # get data and make sure there's no NA
     if (any(methods::is(data, "SpatRaster"))) {
         x <- terra::as.matrix(data, wide = TRUE)
-    } else if (any(is(data, "matrix"))) {
+    } else if (is.matrix(data)) {
         x <- data
     } else {
         stop("'data' must be a matrix or SpatRaster!")
