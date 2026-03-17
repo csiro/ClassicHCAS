@@ -2,7 +2,7 @@ Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
 Version: 1.0.0
-Date: 2026-02-27
+Date: 2026-02-28
 Author: Roozbeh Valavi, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 Maintainer: <roozbeh.valavi@csiro.au>
 URL: https://github.com/csiro/ClassicHCAS
@@ -19,11 +19,11 @@ Imports:
   scales,
   terra (>= 1.7.71)
 Suggests:
-    methods,
-    knitr,
-    rmarkdown,
-    tinytest,
-    testthat (>= 3.0.0)
+  methods,
+  knitr,
+  rmarkdown,
+  tinytest,
+  testthat (>= 3.0.0)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Config/testthat/edition: 3
