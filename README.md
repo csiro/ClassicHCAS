@@ -4,15 +4,13 @@
 status](https://github.com/csiro/ClassicHCAS/workflows/R-CMD-check/badge.svg)](https://github.com/csiro/ClassicHCAS/actions)
 ![maintenance-status](https://img.shields.io/badge/maintenance-active-brightgreen.svg)
 
-## What Is ClassicHCAS?
+## What is ClassicHCAS?
 
-`ClassicHCAS` is the R implementation of the Habitat Condition Assessment System (HCAS), a CSIRO method for estimating habitat condition from remote sensing data and reference ecosystem samples.
-
-HCAS compares the relationship between predicted and observed remote sensing variables at reference sites with the same relationship at target locations. Sites that behave more like the reference system receive higher habitat condition scores.
+`ClassicHCAS` is the R implementation of the Habitat Condition Assessment System (HCAS), a CSIRO method for estimating habitat condition from remote sensing data and reference ecosystem samples. HCAS compares the relationship between predicted and observed remote sensing variables at reference sites with the same relationship at target locations. Sites that behave more like the reference system receive higher habitat condition scores.
 
 This package consolidates the original HCAS toolset into a single R package and uses `Rcpp` for the computationally intensive steps.
 
-## What The Package Does
+## What the package does
 
 `ClassicHCAS` supports the main HCAS workflow:
 
@@ -26,7 +24,7 @@ It also includes operational helpers:
 - `radial_count()` counts nearby reference samples for each raster cell.
 - `tiling()` creates balanced or rectangular tiles for large processing runs.
 
-## Expected Inputs
+## Expected inputs
 
 Most functions accept either:
 
@@ -46,7 +44,7 @@ remotes::install_github("csiro/ClassicHCAS")
 
 Building from source requires a working toolchain. On Windows this usually means [Rtools](https://cran.r-project.org/bin/windows/Rtools/). On macOS, OpenMP support may be needed for faster parallel execution.
 
-## Typical Workflow
+## Typical workflow
 
 ```r
 library(ClassicHCAS)
@@ -67,10 +65,11 @@ condition <- benchmark(
 
 condition_calibrated <- calibrate(
   condition,
-  x_values = c(0, 0.2, 0.7, 1)
+  x_values = c(0, 0.001, 0.03, 0.038),
+  y_values = c(0, 0.2, 0.8, 1)
 )
 ```
 
-## What HCAS Means In Practice
+## What HCAS means in practice
 
-At a high level, HCAS is a reference-based habitat condition method. It uses relatively intact sites to learn the expected relationship between modelled and observed remote sensing signals, then measures how closely other locations follow that reference pattern. The result is a spatially explicit condition surface that can be used in habitat assessment, monitoring, and large-area reporting.
+At a high level, HCAS is a reference-based habitat condition estimation method. It uses relatively intact sites to learn the expected relationship between modelled and observed remote sensing signals, then measures how closely other locations follow that reference pattern. The result is a spatially explicit condition surface that can be used in habitat assessment, monitoring, and large-area reporting.
