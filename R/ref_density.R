@@ -85,7 +85,7 @@ ref_density <- function(
     if (.is_mat(data)) {
         data_vals <- .check_mat(data)
         keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(data_vals, "data"))
-        data_vals <- .subset_hcas_mat(data_vals, keep_features)
+        data_vals <- .subset_rs_mat(data_vals, keep_features)
     } else if (.is_rast(data)) {
         # check terra is available
         .check_pkgs("terra")
@@ -101,7 +101,7 @@ ref_density <- function(
         if (terra::nlyr(data) %% 2) stop("Odd number of layers! The number of observed and prediced RS must be equal!")
 
         keep_features <- .keep_rs_features(drop_features, terra::nlyr(data) / 2L)
-        data <- .subset_hcas_rast(data, keep_features)
+        data <- .subset_rs_rast(data, keep_features)
 
         # extract values
         data_ext <- terra::extract(data, samples, ID = FALSE)
@@ -203,4 +203,3 @@ plot.reference_density <- function(x, ...) {
         terra::rast(x), col = palettes(150, "ref_density"), ...
     )
 }
-

@@ -131,7 +131,7 @@
 
 
 # subset x, y, predicted..., observed... matrix input to the selected RS features
-.subset_hcas_mat <- function(x, keep_features) {
+.subset_rs_mat <- function(x, keep_features) {
     n_vars <- .num_rs_vars_mat(x)
 
     if (length(keep_features) == n_vars) {
@@ -144,7 +144,7 @@
 
 
 # subset predicted..., observed... raster layers to the selected RS features
-.subset_hcas_rast <- function(x, keep_features) {
+.subset_rs_rast <- function(x, keep_features) {
     n_vars <- terra::nlyr(x) / 2L
 
     if (length(keep_features) == n_vars) {

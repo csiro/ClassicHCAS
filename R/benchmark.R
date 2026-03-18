@@ -152,8 +152,8 @@ benchmark <- function(
         }
 
         keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(samples, "samples"))
-        samples <- .subset_hcas_mat(samples, keep_features)
-        data <- .subset_hcas_mat(data, keep_features)
+        samples <- .subset_rs_mat(samples, keep_features)
+        data <- .subset_rs_mat(data, keep_features)
 
         tryCatch(
             {
@@ -197,8 +197,8 @@ benchmark <- function(
         }
 
         keep_features <- .keep_rs_features(drop_features, terra::nlyr(data) / 2L)
-        samples <- .subset_hcas_mat(samples, keep_features)
-        data <- .subset_hcas_rast(data, keep_features)
+        samples <- .subset_rs_mat(samples, keep_features)
+        data <- .subset_rs_rast(data, keep_features)
 
         tryCatch(
             {
