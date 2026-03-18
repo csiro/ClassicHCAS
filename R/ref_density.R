@@ -84,6 +84,8 @@ ref_density <- function(
     # check for data variables
     if (.is_mat(data)) {
         data_vals <- .check_mat(data)
+        keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(data_vals, "data"))
+        data_vals <- .subset_hcas_mat(data_vals, keep_features)
     } else if (.is_rast(data)) {
         # check terra is available
         .check_pkgs("terra")
@@ -106,11 +108,6 @@ ref_density <- function(
         data_vals <- as.matrix(cbind(samples, data_ext))
     }  else {
         stop("The 'predicted' must be raster or a matrix, or convertiable object to these classes.")
-    }
-
-    if (.is_mat(data)) {
-        keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(data_vals, "data"))
-        data_vals <- .subset_hcas_mat(data_vals, keep_features)
     }
 
     # number of observed RS vars
