@@ -64,7 +64,8 @@
 #' @param confidence Numeric. The confidence value for LDC methods. See details below..
 #' @param lambda Numeric. The lambda param for LDC Cauchy weighting...
 #' @param exclude_slef Logical. To exclude a benchmark point from assessing itself.
-#' @param drop_features Integer vector. Completely remove the RS variable from the benchmarking process. For
+#' @param drop_features Integer vector. Completely remove RS variables from the benchmarking process.
+#' Positions are 1-based within the RS feature set, not the full input column order. For
 #' consistency, it is recommended to exclude the same variables used in the reference density step; unless
 #' you have a specific reason not to.
 #' @param make_su Logical. To make the uncertainty map or not.
@@ -142,13 +143,6 @@ benchmark <- function(
     # get the bin number after interpolation
     bin_num <- min(dim(ref_density))
 
-    exclude_var <- NULL
-    # drop features from calculation if requested
-    if (length(drop_features)) {
-        n_vars <- (ncol(samples) - 2) / 2
-        exclude_var <- c(drop_features + 2, drop_features + 2 + n_vars)
-    }
-
     if (.is_mat(data)) {
         # check and convert to matrix
         data <- .check_mat(data)
@@ -157,8 +151,9 @@ benchmark <- function(
             stop("Samples must include all raster values (matching column count with 'data').")
         }
 
-        # remove the features from the reference samples as well
-        if (!is.null(exclude_var)) samples[, exclude_var] <- 0
+        keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(samples, "samples"))
+        samples <- .subset_hcas_mat(samples, keep_features)
+        data <- .subset_hcas_mat(data, keep_features)
 
         tryCatch(
             {
@@ -179,7 +174,6 @@ benchmark <- function(
                     confidence = confidence,
                     lambda = lambda,
                     exclude_slef = exclude_slef,
-                    drop = exclude_var,
                     make_su = make_su,
                     num_threads = num_threads
                 )
@@ -197,15 +191,14 @@ benchmark <- function(
         # sample extraction if needed
         if (ncol(samples) == 2) {
             cat("Extracting sample values...\n")
-            samples <- cbind(samples, as.matrix(terra::extract(data, samples)))
+            samples <- cbind(samples, as.matrix(terra::extract(data, samples, ID = FALSE)))
         } else if ((ncol(samples) - 2) != terra::nlyr(data)) {
             stop("Sample feature count does not match number of raster layers.")
         }
 
-        # remove the features from the reference samples as well
-        if (length(drop_features)) {
-            samples[, exclude_var] <- 0
-        }
+        keep_features <- .keep_rs_features(drop_features, terra::nlyr(data) / 2L)
+        samples <- .subset_hcas_mat(samples, keep_features)
+        data <- .subset_hcas_rast(data, keep_features)
 
         tryCatch(
             {
@@ -227,7 +220,6 @@ benchmark <- function(
                     confidence = confidence,
                     lambda = lambda,
                     exclude_slef = exclude_slef,
-                    drop = exclude_var,
                     make_su = make_su,
                     num_threads = num_threads,
                     ...
@@ -249,15 +241,12 @@ benchmark <- function(
 
 
 # a function to handling predicting with terra
-benchmarking <- function(model, newdata, make_su, drop = NULL, ...){
+benchmarking <- function(model, newdata, make_su, ...){
     nr <- nrow(newdata)
     nc <- make_su + 1
     col_names <- c("condition", "su")[1:nc]
 
     dat <- as.matrix(newdata)
-
-    # if drop_features are provided exclude them from features
-    if (length(drop)) dat[, drop] <- 0
 
     tryCatch(
         {

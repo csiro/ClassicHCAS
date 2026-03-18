@@ -48,7 +48,8 @@
 #' @param bin_num Integer. Specifies the number of bins for the reference density surface. It is generally recommended
 #' to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 #' \code{bin_num}.
-#' @param drop_features Integer vector. Completely remove the RS variable from the reference density calculation. For
+#' @param drop_features Integer vector. Completely remove RS variables from the reference density calculation.
+#' Positions are 1-based within the RS feature set, not the full input column order. For
 #' consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
 #' you have a specific reason not to.
 #' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
@@ -97,6 +98,9 @@ ref_density <- function(
         data <- .check_rast(data)
         if (terra::nlyr(data) %% 2) stop("Odd number of layers! The number of observed and prediced RS must be equal!")
 
+        keep_features <- .keep_rs_features(drop_features, terra::nlyr(data) / 2L)
+        data <- .subset_hcas_rast(data, keep_features)
+
         # extract values
         data_ext <- terra::extract(data, samples, ID = FALSE)
         data_vals <- as.matrix(cbind(samples, data_ext))
@@ -104,9 +108,13 @@ ref_density <- function(
         stop("The 'predicted' must be raster or a matrix, or convertiable object to these classes.")
     }
 
+    if (.is_mat(data)) {
+        keep_features <- .keep_rs_features(drop_features, .num_rs_vars_mat(data_vals, "data"))
+        data_vals <- .subset_hcas_mat(data_vals, keep_features)
+    }
 
     # number of observed RS vars
-    num_layers <- (ncol(data_vals) - 2) / 2
+    num_layers <- .num_rs_vars_mat(data_vals, "data")
     # id of obs and mod for saving
     mod_layers <- seq_len(num_layers) + 2
     obs_layers <- mod_layers + num_layers
@@ -130,12 +138,6 @@ ref_density <- function(
         warning("The names\\order of observed and modelled datasets doesn't match!\n")
         cat("Observed:", colnames(observed), "\n")
         cat("Modelled:", colnames(modelled), "\n")
-    }
-
-    # drop features from calculation if requested
-    if (length(drop_features)) {
-        observed[, drop_features] <- 0
-        modelled[, drop_features] <- 0
     }
 
     # run reference density calculation in C++

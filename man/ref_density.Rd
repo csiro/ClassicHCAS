@@ -37,7 +37,8 @@ to the output object, ensuring consistency and accuracy in subsequent benchmarki
 to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
 \code{bin_num}.}
 
-\item{drop_features}{Integer vector. Completely remove the RS variable from the reference density calculation. For
+\item{drop_features}{Integer vector. Completely remove RS variables from the reference density calculation.
+Positions are 1-based within the RS feature set, not the full input column order. For
 consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
 you have a specific reason not to.}
 

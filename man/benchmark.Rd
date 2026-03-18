@@ -74,7 +74,8 @@ step to ensure condition is accurately calculated.}
 
 \item{exclude_slef}{Logical. To exclude a benchmark point from assessing itself.}
 
-\item{drop_features}{Integer vector. Completely remove the RS variable from the benchmarking process. For
+\item{drop_features}{Integer vector. Completely remove RS variables from the benchmarking process.
+Positions are 1-based within the RS feature set, not the full input column order. For
 consistency, it is recommended to exclude the same variables used in the reference density step; unless
 you have a specific reason not to.}
 

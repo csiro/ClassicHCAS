@@ -87,3 +87,70 @@
         }
     }
 }
+
+
+# get the number of RS variables from x, y, predicted..., observed... matrix input
+.num_rs_vars_mat <- function(x, name = "x") {
+    n_vars <- (ncol(x) - 2L) / 2L
+
+    if (ncol(x) < 4L || n_vars != as.integer(n_vars)) {
+        stop(
+            sprintf(
+                "'%s' must contain x, y, predicted RS, and observed RS columns with matching feature counts.",
+                name
+            )
+        )
+    }
+
+    as.integer(n_vars)
+}
+
+
+# validate 1-based RS feature indices and return features to keep
+.keep_rs_features <- function(drop_features, n_vars) {
+    if (!length(drop_features)) {
+        return(seq_len(n_vars))
+    }
+
+    if (!is.numeric(drop_features) || anyNA(drop_features)) {
+        stop("'drop_features' must be an integer vector of RS feature positions.")
+    }
+
+    drop_features_int <- as.integer(drop_features)
+    if (any(drop_features != drop_features_int)) {
+        stop("'drop_features' must contain whole-number RS feature positions.")
+    }
+
+    drop_features_int <- sort(unique(drop_features_int))
+    if (any(drop_features_int < 1L | drop_features_int > n_vars)) {
+        stop(sprintf("'drop_features' must be between 1 and %d.", n_vars))
+    }
+
+    setdiff(seq_len(n_vars), drop_features_int)
+}
+
+
+# subset x, y, predicted..., observed... matrix input to the selected RS features
+.subset_hcas_mat <- function(x, keep_features) {
+    n_vars <- .num_rs_vars_mat(x)
+
+    if (length(keep_features) == n_vars) {
+        return(x)
+    }
+
+    keep_cols <- c(1L, 2L, keep_features + 2L, keep_features + 2L + n_vars)
+    x[, keep_cols, drop = FALSE]
+}
+
+
+# subset predicted..., observed... raster layers to the selected RS features
+.subset_hcas_rast <- function(x, keep_features) {
+    n_vars <- terra::nlyr(x) / 2L
+
+    if (length(keep_features) == n_vars) {
+        return(x)
+    }
+
+    keep_layers <- c(keep_features, keep_features + n_vars)
+    x[[keep_layers]]
+}
