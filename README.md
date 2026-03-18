@@ -78,7 +78,7 @@ For the Australian national application of HCAS, including the official project 
 
 - <https://research.csiro.au/biodiversity-knowledge/projects/hcas/>
 
-That page is specifically about the Australian national application of HCAS. CSIRO describes it as Australia's first consistent, repeatable, and cost-efficient national habitat condition assessment, monitoring, and reporting capability built on Earth observation products. It is intended to support management prioritisation, national environmental reporting, and analysis of natural and non-natural influences on habitat condition across continental Australia.
+That page is specifically about the Australian national application of HCAS. This is Australia's first consistent, repeatable, and cost-efficient national habitat condition assessment, monitoring, and reporting capability built on Earth observation products. It is intended to support management prioritisation, national environmental reporting, and analysis of natural and non-natural influences on habitat condition across continental Australia.
 
 If you are citing the current Australian data collection referenced on that page, use the HCAS 3.3 citation:
 
