@@ -1,33 +1,24 @@
-#' The HCAS colors
+#' ClassicHCAS palettes
 #'
 #' @param n Integer. Number of color codes to return.
+#' @param name Character. Palette name. One of `"hcas"` or `"ref_density"`.
 #'
-#' @return a charterer vector of color codes
+#' @return A character vector of color codes.
 #' @export
-hcas_color <- function(n = 10) {
-    hcas_pal <- grDevices::colorRampPalette(c("#430E59", "#CCCC66", "#184F0F"))
+palettes <- function(n = 10, name = c("hcas", "ref_density")) {
+    name <- match.arg(name)
 
-    return(
-        hcas_pal(n)
-    )
-}
-
-
-#' The HCAS reference density colors
-#'
-#' @param n Integer. Number of color codes to return.
-#'
-#' @return a charterer vector of color codes
-#' @export
-ref_density_color <- function(n = 10) {
-    ref_cols <- grDevices::colorRampPalette(
-        c("#ffffff", "#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb",
-          "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"
+    palette_fn <- switch(
+        name,
+        hcas = grDevices::colorRampPalette(c("#430E59", "#CCCC66", "#184F0F")),
+        ref_density = grDevices::colorRampPalette(
+            c(
+                "#ffffff", "#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb",
+                "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"
+            )
         )
     )
 
-    return(
-        ref_cols(n)
-    )
+    palette_fn(n)
 }
 

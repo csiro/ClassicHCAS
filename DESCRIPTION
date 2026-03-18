@@ -1,8 +1,8 @@
 Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
-Version: 1.0.0
-Date: 2026-02-28
+Version: 1.1.0
+Date: 2026-03-18
 Author: Roozbeh Valavi, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
 Maintainer: <roozbeh.valavi@csiro.au>
 URL: https://github.com/csiro/ClassicHCAS

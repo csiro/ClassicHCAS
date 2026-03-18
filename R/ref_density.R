@@ -201,7 +201,7 @@ plot.reference_density <- function(x, ...) {
         message("For aesthetic, the normalised reference density plot is reversed and transposed.")
     }
     terra::plot(
-        terra::rast(x), col = ref_density_color(150), ...
+        terra::rast(x), col = palettes(150, "ref_density"), ...
     )
 }
 

@@ -1,3 +1,6 @@
+# Version 1.1.0
+* Consolidated package colour helpers into a single `palettes()` function and removed `hcas_color()` and `ref_density_color()`.
+
 # Version 1.0.0
 * Renamed the reference density function to `ref_density()`, renamed the radial counting function (from `proximity()`) to `radial_count()`, and changed the reference density object class to `reference_density`.
 * The order of input data has completely changed and both `ref_density()` and `benchmark()` functions require data with **x**, **y**, **predicted**, and **observed** remote sensing variable order.
