@@ -68,7 +68,7 @@ normalise <- function(
     out <- if (legacy) {
         norm_cpp(x, trim_size = trim_size, offset = offset)
     } else {
-        norm_r(x, trim_size = trim_size, offset = offset)
+        .norm_r(x, trim_size = trim_size, offset = offset)
     }
 
     # write down the reference density surface
@@ -104,7 +104,7 @@ normalise <- function(
 }
 
 # the new normalisation function that doesn't remove the edges
-norm_r <- function(x, trim_size = 400, offset = 0) {
+.norm_r <- function(x, trim_size = 400, offset = 0) {
     nr <- nrow(x)
     nc <- ncol(x)
 

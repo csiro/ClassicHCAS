@@ -69,7 +69,7 @@ radial_count <- function(
             output <- terra::interpolate(
                 object = x[[1]],
                 model = list(),
-                fun = proxy_count,
+                fun = .proxy_count,
                 xy = samples_xy[, 1:2],
                 radius_km = radius_km,
                 geographic = .is_lonlat(x),
@@ -88,7 +88,7 @@ radial_count <- function(
 }
 
 # wrapper function for radial_count_cpp
-proxy_count <- function(model, newdata, ...) {
+.proxy_count <- function(model, newdata, ...) {
     nr <- nrow(newdata)
 
     tryCatch(

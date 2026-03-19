@@ -157,7 +157,7 @@ benchmark <- function(
 
         tryCatch(
             {
-                output <- benchmarking(
+                output <- .benchmarking(
                     model = list(),
                     newdata = data, # rast_stack arg
                     sample_vals = samples,
@@ -179,7 +179,7 @@ benchmark <- function(
                 )
             },
             error = function(cond) {
-                stop("HCAS benchmarking failed!\n", cond)
+                stop("HCAS benchmarking C++ function failed!\n", cond)
             }
         )
     } else if (.is_rast(data)) {
@@ -205,7 +205,7 @@ benchmark <- function(
                 output <- terra::interpolate(
                     object = data,
                     model = list(),
-                    fun = benchmarking,
+                    fun = .benchmarking,
                     sample_vals = samples,
                     ref_density = ref_density,
                     xy_stats = xy_stats,
@@ -226,7 +226,7 @@ benchmark <- function(
                 )
             },
             error = function(cond) {
-                stop("HCAS benchmarking failed!\n", cond)
+                stop("HCAS benchmarking C++ function failed!\n", cond)
             }
         )
 
@@ -241,7 +241,7 @@ benchmark <- function(
 
 
 # a function to handling predicting with terra
-benchmarking <- function(model, newdata, make_su, ...){
+.benchmarking <- function(model, newdata, make_su, ...){
     nr <- nrow(newdata)
     nc <- make_su + 1
     col_names <- c("condition", "su")[1:nc]
