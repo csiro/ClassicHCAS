@@ -1,0 +1,4 @@
+CXX_STD = CXX17
+PKG_CPPFLAGS = -I/opt/homebrew/opt/libomp/include
+PKG_CXXFLAGS = -Xclang -fopenmp
+PKG_LIBS = /opt/homebrew/opt/libomp/lib/libomp.dylib

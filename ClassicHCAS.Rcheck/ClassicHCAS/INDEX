@@ -1,0 +1,10 @@
+benchmark               Condition benchmarking of target points
+calibrate               Calibrate habitat condition output
+ClassicHCAS             ClassicHCAS: The Classic Habitat Condition
+                        Assessment System (HCAS)
+normalise               Clean and normalise HCAS reference density
+palettes                ClassicHCAS palettes
+radial_count            Number of samples within a radius
+ref_density             Reference density surface
+tiling                  Generate raster tiles using raster or matrix
+                        data

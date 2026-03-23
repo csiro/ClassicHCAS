@@ -1,0 +1,40 @@
+#!/bin/sh
+
+set -eu
+
+pkg_cppflags=""
+pkg_cxxflags='$(SHLIB_OPENMP_CXXFLAGS)'
+pkg_libs='$(SHLIB_OPENMP_CXXFLAGS)'
+
+case "$(uname -s)" in
+  Darwin)
+    pkg_cxxflags=""
+    pkg_libs=""
+    libomp_prefix=""
+
+    if command -v brew >/dev/null 2>&1; then
+      libomp_prefix="$(brew --prefix libomp 2>/dev/null || true)"
+    fi
+
+    if [ -z "${libomp_prefix}" ]; then
+      for prefix in /opt/homebrew/opt/libomp /usr/local/opt/libomp; do
+        if [ -f "${prefix}/include/omp.h" ] && [ -f "${prefix}/lib/libomp.dylib" ]; then
+          libomp_prefix="${prefix}"
+          break
+        fi
+      done
+    fi
+
+    if [ -n "${libomp_prefix}" ] && [ -f "${libomp_prefix}/include/omp.h" ] && [ -f "${libomp_prefix}/lib/libomp.dylib" ]; then
+      pkg_cppflags="-I${libomp_prefix}/include"
+      pkg_cxxflags="-Xclang -fopenmp"
+      pkg_libs="${libomp_prefix}/lib/libomp.dylib"
+    fi
+    ;;
+esac
+
+sed \
+  -e "s|@PKG_CPPFLAGS@|${pkg_cppflags}|g" \
+  -e "s|@PKG_CXXFLAGS@|${pkg_cxxflags}|g" \
+  -e "s|@PKG_LIBS@|${pkg_libs}|g" \
+  src/Makevars.in > src/Makevars
