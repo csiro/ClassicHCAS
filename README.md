@@ -85,3 +85,6 @@ If you are citing the current Australian data collection referenced on that page
 - Valavi R, Levick SR, Lehmann EA, Liu N, Giljohann KM, Williams KJ, Collings S, Johnson S, Botha EJ, Munroe SEM, Van Niel TG, Newnham G, Paget M, Malley C, Carlile P, Gunawardana D, Lyon P, Richards AE, Tetreault Campbell S and Ferrier S (2025c). *HCAS 3.3 (1988-2024) base model estimate of habitat condition (90m grid), National Connectivity Index 2.0 (NCI) and annual time series for continental Australia*. Data collection 65549. CSIRO, Canberra, Australia. Citation text from the CSIRO HCAS project page: <https://research.csiro.au/biodiversity-knowledge/projects/hcas/>
 
 For the latest Australian release status, product guides, and download links, use the CSIRO project page above as the canonical source.
+
+## Citation
+A manuscript describing `ClassicHCAS` and the underlying method will be made available as a preprint soon.
