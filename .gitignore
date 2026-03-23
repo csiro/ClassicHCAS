@@ -11,3 +11,6 @@ src/Makevars
 .vscode/
 .vscode/*
 .DS_Store
+
+ClassicHCAS_*.tar.gz
+*.Rcheck/
