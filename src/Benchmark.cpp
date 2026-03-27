@@ -1,8 +1,6 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
-// [[Rcpp::depends(RcppEigen)]]
 #include <Rcpp.h>
-#include <RcppEigen.h>
 #include <cmath>
 #include <vector>
 #include <limits>

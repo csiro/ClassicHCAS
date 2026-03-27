@@ -1,7 +1,6 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
 #include <Rcpp.h>
-#include <RcppEigen.h>
 #include <vector>
 #include <cmath>
 #include <cstdint>
