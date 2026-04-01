@@ -133,7 +133,11 @@ benchmark <- function(
     # interpolate reference density
     if (interpolate) {
         ref_density <- terra::as.matrix(
-            terra::disagg(terra::rast(ref_density), fact = 2, method = "bilinear"),
+            terra::disagg(
+                terra::rast(.check_mat(unclass(ref_density), name = "ref_density")),
+                fact = 2,
+                method = "bilinear"
+            ),
             wide = TRUE
         )
         # update the binwidth and offset

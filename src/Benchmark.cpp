@@ -1,5 +1,9 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 #include <Rcpp.h>
 #include <cmath>
 #include <vector>
@@ -241,3 +245,7 @@ Rcpp::NumericMatrix bench_cpp(
 
     return out_mat;
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif

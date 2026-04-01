@@ -47,3 +47,17 @@ test_that("normalise handles reference_density objects and normalises rows", {
   expect_equal(rowSums(out), rep(1, 4), tolerance = 1e-8)
   expect_true(file.exists(paste0(outfile, ".txt")))
 })
+
+test_that("plot.reference_density handles custom class objects", {
+  skip_if_not_installed("terra")
+
+  x <- matrix(seq_len(36), nrow = 6)
+  class(x) <- c("reference_density", "matrix", "array")
+  attr(x, "bin.width") <- 0.5
+
+  plot_file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(plot_file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+
+  expect_no_error(plot(x))
+})

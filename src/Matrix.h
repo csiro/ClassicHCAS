@@ -1,7 +1,8 @@
 #ifndef MATRIX_T
 #define MATRIX_T
 
-#include "RcppEigenQuiet.h"
+#include <Rcpp.h>
+#include <RcppEigen.h>
 
 // Generic row-major matrix type
 template <typename T>

@@ -1,5 +1,9 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins("cpp11")]]
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 #include <Rcpp.h>
 #include <vector>
 #include <cmath>
@@ -122,3 +126,7 @@ Rcpp::IntegerVector radial_count_cpp(
     
     return Rcpp::wrap(out);
 }
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
