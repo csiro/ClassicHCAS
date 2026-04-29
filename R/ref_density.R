@@ -16,9 +16,9 @@
 #' geographic or projected coordinates. In geographic mode, coordinates are
 #' stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
 #'
-#'     distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+#' \deqn{distance^2 \approx dlat^2 + (dlon \times \cos(lat_1))^2}
 #'
-#' where cos(lat₁) is derived from the query latitude. This avoids floating-
+#' where \eqn{\cos(lat_1)} is derived from the query latitude. This avoids floating-
 #' point overhead and provides substantial performance gains but introduces
 #' distortion at larger distances. For applications requiring higher accuracy,
 #' especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
