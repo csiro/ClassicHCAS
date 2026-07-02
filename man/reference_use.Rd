@@ -11,8 +11,8 @@ reference_use(
   xy_stats = c(0, 0, 1, 1),
   xy_penalty = 0,
   radius_km = 200,
-  k1 = 50,
-  k2 = 20,
+  k1 = 70,
+  k2 = 10,
   bin_width = NULL,
   interpolate = TRUE,
   offset = 0,
@@ -23,7 +23,7 @@ reference_use(
   num_threads = -1,
   weighted_max = FALSE,
   kernel = c("Gaussian", "Cauchy"),
-  boost = 10
+  boost = k2
 )
 }
 \arguments{
@@ -76,7 +76,7 @@ this value is read from its \code{offset} attribute when \code{offset = NULL}.}
 \item{confidence}{Numeric between 0 and 1. Weight given to the selected
 maximum probability component relative to the distance-weighted mean
 probability when computing raw condition. Ignored when \code{boost} is not
-\code{NULL} or \code{NA}; the default is \code{boost = 10}.}
+\code{NULL} or \code{NA}; the default is \code{boost = k2}.}
 
 \item{lambda}{Positive numeric. Distance-scale bandwidth for the selected
 \code{kernel}. Both kernels treat \code{lambda} in predicted RS L1 distance
@@ -106,8 +106,8 @@ predicted RS L1 distances: \code{"Gaussian"} (default) or \code{"Cauchy"}.
 Lower-case \code{"gaussian"} and \code{"cauchy"} are also accepted.}
 
 \item{boost}{\code{NULL}, \code{NA}, or one positive finite numeric factor.
-The default \code{10} multiplies the kernel weight of the
-highest-probability retained site by ten and returns the resulting weighted
+The default \code{k2} multiplies the kernel weight of the
+highest-probability retained site by \code{k2} and returns the resulting weighted
 mean instead of the LDC blend. \code{confidence} is ignored in this mode.
 Use \code{NULL} or \code{NA} for the unboosted LDC blend.}
 }
@@ -141,7 +141,7 @@ The returned columns represent:
   \item{\code{"condition"}}{Attribute each retained site's use according to
   its contribution to the condition estimator. The
   distance-weighted mean component uses normalised weights from the selected
-  \code{kernel}. With \code{boost} (the default is \code{10}), attribution
+  \code{kernel}. With \code{boost} (the default is \code{k2}), attribution
   uses boosted normalised kernel weights. Set \code{boost = NULL} or
   \code{boost = NA} to use the LDC attribution, where the LDC component is
   assigned to the site with the selected maximum probability contribution,

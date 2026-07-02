@@ -88,8 +88,8 @@ hcas_inspection <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
-        k1 = 50,
-        k2 = 20,
+        k1 = 70,
+        k2 = 10,
         bin_width = NULL,
         interpolate = TRUE,
         offset = 0,
@@ -401,7 +401,7 @@ hcas_inspection <- function(
                 shiny::plotOutput("density_plot", width = "100%", height = "300px")
             ),
             shiny::mainPanel(
-                leaflet::leafletOutput("map", height = 850)
+                leaflet::leafletOutput("map", height = 1000)
             )
         )
     )
@@ -643,19 +643,33 @@ hcas_inspection <- function(
             )
         }, bg = "grey96")
 
+        # Render the base map once so it appears immediately, before any Run,
+        # and is never torn down. Markers are updated in place via leafletProxy.
         output$map <- leaflet::renderLeaflet({
-            submit_count <- input$submit
-            result <- if (!is.null(submit_count) && submit_count > 0) {
-                tryCatch(
-                    inspected(),
-                    error = function(cond) NULL
-                )
-            } else {
-                NULL
-            }
-
-            .inspection_leaflet_map(result = result, bounds = map_bounds)
+            .inspection_leaflet_map(result = NULL, bounds = map_bounds)
         })
+
+        shiny::observeEvent(input$submit, {
+            result <- tryCatch(inspected(), error = function(cond) NULL)
+            proxy <- leaflet::leafletProxy("map", session = session) |>
+                leaflet::clearGroup("target_preview") |>
+                leaflet::clearGroup("nearby") |>
+                leaflet::clearGroup("selected") |>
+                leaflet::clearGroup("target")
+            if (!is.null(result)) {
+                proxy <- .inspection_leaflet_result_markers(proxy, result)
+                zoom_bounds <- .inspection_result_bounds(result)
+                if (!is.null(zoom_bounds)) {
+                    leaflet::flyToBounds(
+                        proxy,
+                        lng1 = zoom_bounds[1],
+                        lat1 = zoom_bounds[2],
+                        lng2 = zoom_bounds[3],
+                        lat2 = zoom_bounds[4]
+                    )
+                }
+            }
+        }, ignoreInit = TRUE)
     }
 
     app <- shiny::shinyApp(ui = ui, server = server)
@@ -757,27 +771,12 @@ hcas_inspection <- function(
 
 
 .inspection_raster_default_xy <- function(data) {
-    block <- terra::blocks(data)
-
-    terra::readStart(data)
-    on.exit(terra::readStop(data), add = TRUE)
-
-    for (i in seq_len(block$n)) {
-        values <- terra::readValues(
-            data,
-            row = block$row[i],
-            nrows = block$nrows[i],
-            mat = TRUE
-        )
-        complete <- which(stats::complete.cases(values))
-        if (length(complete)) {
-            first_cell <- (block$row[i] - 1L) * terra::ncol(data) + 1L
-            cell <- first_cell + complete[1] - 1L
-            return(unname(terra::xyFromCell(data, cell)[1, ]))
-        }
-    }
-
-    stop("'data' raster must contain at least one cell with complete values.")
+    # Start at the centre of the raster extent. The point need not fall on a
+    # populated cell; the map renders there and the user can move it elsewhere.
+    c(
+        (terra::xmin(data) + terra::xmax(data)) / 2,
+        (terra::ymin(data) + terra::ymax(data)) / 2
+    )
 }
 
 
@@ -883,29 +882,46 @@ hcas_inspection <- function(
 }
 
 
+# lon/lat bounding box (lng1, lat1, lng2, lat2) of the inspected target and its
+# nearby/selected reference samples, used to zoom the map in on Run.
+.inspection_result_bounds <- function(result) {
+    xs <- c(result$target$x, result$nearby$x, result$selected$x)
+    ys <- c(result$target$y, result$nearby$y, result$selected$y)
+    xs <- xs[is.finite(xs)]
+    ys <- ys[is.finite(ys)]
+    if (!length(xs) || !length(ys)) {
+        return(NULL)
+    }
+
+    bounds <- c(min(xs), min(ys), max(xs), max(ys))
+    # Pad a single-point (or single-line) extent so the map does not over-zoom.
+    if (bounds[1] == bounds[3]) {
+        bounds[c(1, 3)] <- bounds[c(1, 3)] + c(-0.05, 0.05)
+    }
+    if (bounds[2] == bounds[4]) {
+        bounds[c(2, 4)] <- bounds[c(2, 4)] + c(-0.05, 0.05)
+    }
+
+    bounds
+}
+
+
 .inspection_leaflet_map <- function(result = NULL, bounds = NULL) {
     map <- leaflet::leaflet()
     map <- leaflet::addTiles(map)
     map <- leaflet::addProviderTiles(map, "Esri.WorldImagery")
 
     if (!is.null(bounds)) {
+        # Open at the raster extent. Strip names: leaflet serialises a named
+        # scalar to a JSON object ({"lng1": 133}) instead of a bare number,
+        # which breaks fitBounds.
+        bounds <- unname(bounds[c("lng1", "lat1", "lng2", "lat2")])
         map <- leaflet::fitBounds(
             map,
-            lng1 = bounds["lng1"],
-            lat1 = bounds["lat1"],
-            lng2 = bounds["lng2"],
-            lat2 = bounds["lat2"]
-        )
-        map <- leaflet::addRectangles(
-            map,
-            lng1 = bounds["lng1"],
-            lat1 = bounds["lat1"],
-            lng2 = bounds["lng2"],
-            lat2 = bounds["lat2"],
-            color = "#ffffff",
-            opacity = 0.8,
-            weight = 1,
-            fill = FALSE
+            lng1 = bounds[1],
+            lat1 = bounds[2],
+            lng2 = bounds[3],
+            lat2 = bounds[4]
         )
     }
 

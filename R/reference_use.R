@@ -20,7 +20,7 @@
 #'   \item{\code{"condition"}}{Attribute each retained site's use according to
 #'   its contribution to the condition estimator. The
 #'   distance-weighted mean component uses normalised weights from the selected
-#'   \code{kernel}. With \code{boost} (the default is \code{10}), attribution
+#'   \code{kernel}. With \code{boost} (the default is \code{k2}), attribution
 #'   uses boosted normalised kernel weights. Set \code{boost = NULL} or
 #'   \code{boost = NA} to use the LDC attribution, where the LDC component is
 #'   assigned to the site with the selected maximum probability contribution,
@@ -101,8 +101,8 @@ reference_use <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
-        k1 = 50,
-        k2 = 20,
+        k1 = 70,
+        k2 = 10,
         bin_width = NULL,
         interpolate = TRUE,
         offset = 0,
@@ -113,7 +113,7 @@ reference_use <- function(
         num_threads = -1,
         weighted_max = FALSE,
         kernel = c("Gaussian", "Cauchy"),
-        boost = 10) {
+        boost = k2) {
 
     kernel <- .check_kernel(kernel)
     boost <- .check_boost(boost)

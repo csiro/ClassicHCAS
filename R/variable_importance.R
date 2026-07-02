@@ -16,7 +16,7 @@
 #' is weighted with the same selected distance kernel on predicted RS
 #' distance used by \code{benchmark()}, so the diagnostic reports on the
 #' reference set and weights that benchmarking actually uses. With
-#' \code{boost} (the default is \code{10}), the kernel weight of the retained
+#' \code{boost} (the default is \code{k2}), the kernel weight of the retained
 #' reference with the highest reference-density probability is multiplied by
 #' that factor before signal and noise are computed. Set \code{boost = NULL} or
 #' \code{boost = NA} to use the ordinary unboosted kernel weights.
@@ -100,9 +100,10 @@
 #' contribution), or \code{"share"} (per-cell departure partition summing to one
 #' across variables). See Details.
 #' @param boost \code{NULL}, \code{NA}, or one positive finite numeric factor.
-#' The default \code{10} multiplies the kernel weight of the
-#' highest-probability retained reference by ten before signal and noise are
-#' computed. Use \code{NULL} or \code{NA} for ordinary unboosted kernel weights.
+#' The default \code{k2} multiplies the kernel weight of the
+#' highest-probability retained reference by \code{k2} before signal and noise
+#' are computed. Use \code{NULL} or \code{NA} for ordinary unboosted kernel
+#' weights.
 #'
 #' @return When \code{data} is a matrix, a numeric matrix with one row per
 #' target cell and one column per RS variable. When \code{data} is a raster, a
@@ -153,8 +154,8 @@ variable_importance <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
-        k1 = 50,
-        k2 = 20,
+        k1 = 70,
+        k2 = 10,
         bin_width = NULL,
         interpolate = TRUE,
         offset = 0,
@@ -165,7 +166,7 @@ variable_importance <- function(
         drop_features = NULL,
         num_threads = -1,
         kernel = c("Gaussian", "Cauchy"),
-        boost = 10,
+        boost = k2,
         ...) {
 
     legacy_k <- intersect(names(list(...)), c("k_pred", "k_obs"))

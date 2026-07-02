@@ -94,12 +94,14 @@ In geographic coordinates, radius searches use a fast integer approximation.
 Coordinates are stored in micro-degrees (\code{degree * 1000000}) and distance
 is approximated by:
 
-\deqn{distance^2 \approx dlat^2 + (dlon \times \cos(lat_1))^2}
+\deqn{distance^2 \approx (\Delta \mathrm{lat})^2 + (\Delta \mathrm{lon} \times \cos(\mathrm{lat}_1))^2}{distance^2 ~= (Delta lat)^2 + ((Delta lon) * cos(lat_1))^2}
 
-where \eqn{\cos(lat_1)} is derived from the query latitude. This is efficient
-for large analyses but introduces distortion over large areas. For high
-accuracy at broad regional or continental radii, use a projected coordinate
-reference system so distances can be evaluated in metres.
+where \eqn{\Delta \mathrm{lat}}{Delta lat} and \eqn{\Delta \mathrm{lon}}{Delta lon}
+are coordinate differences, and \eqn{\cos(\mathrm{lat}_1)}{cos(lat_1)} is
+derived from the query latitude. This is efficient for large analyses but
+introduces distortion over large areas. For high accuracy at broad regional
+or continental radii, use a projected coordinate reference system so
+distances can be evaluated in metres.
 
 \code{num_threads} uses OpenMP when available. On macOS, installing OpenMP
 support with \code{brew install libomp} before installing the package may be

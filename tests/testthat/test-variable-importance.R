@@ -148,7 +148,7 @@ test_that("default boost weights the maximum-probability retained reference", {
     pd = c(2, 1),
     lambda = 1,
     eps = 0,
-    boost = 10
+    boost = 2
   )
 
   expect_equal(unname(out[1, 1]), expected, tolerance = 1e-5)

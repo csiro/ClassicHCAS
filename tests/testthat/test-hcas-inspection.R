@@ -142,7 +142,7 @@ test_that("inspection raster target snaps coordinates to cell centre", {
   expect_equal(unname(target[1, 3:4]), c(4, 8))
 })
 
-test_that("inspection raster default target uses a complete cell", {
+test_that("inspection raster default target is the extent centre", {
   skip_if_not_installed("terra")
 
   raster <- terra::rast(
@@ -155,20 +155,12 @@ test_that("inspection raster default target uses a complete cell", {
     nlyrs = 2,
     crs = "EPSG:4326"
   )
-  terra::values(raster) <- matrix(
-    c(
-      NA, NA,
-      NA, NA,
-      3, 7,
-      4, NA
-    ),
-    ncol = 2,
-    byrow = TRUE
-  )
+  # The centre need not fall on a populated cell; every cell here is empty.
+  terra::values(raster) <- NA
 
   xy <- ClassicHCAS:::.inspection_raster_default_xy(raster)
 
-  expect_equal(unname(xy), unname(as.numeric(terra::xyFromCell(raster, 3))))
+  expect_equal(unname(xy), c(1, 1))
 })
 
 test_that("inspection point evaluates an extracted raster target", {

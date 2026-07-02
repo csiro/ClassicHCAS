@@ -33,8 +33,8 @@ Rcpp::NumericMatrix bench_cpp(
     double xy_penalty = 0.0,                // penalising env nearest neighbour searching for geographic distance
     bool geographic = false,                // geographic/unprojected crs?
     double radius_km = 200,                 // radius in kilometers to consider ref points
-    int k_env = 50,                         // number of ENV nn to select
-    int k_rs = 20,                          // number of RS/Prob values to select
+    int k_env = 70,                         // number of ENV nn to select
+    int k_rs = 10,                          // number of RS/Prob values to select
     double bin_width = 0.05,                // reference density bin width
     int bin_num = 400,                      // number of bins in reference density
     int offset = 0,                         // offset of reference density

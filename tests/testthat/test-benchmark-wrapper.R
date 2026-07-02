@@ -209,10 +209,23 @@ test_that("benchmark uses the unweighted maximum without a public flag", {
 })
 
 test_that("public boost defaults require a positive finite factor", {
-  expect_identical(formals(benchmark)$boost, 10)
-  expect_identical(formals(reference_use)$boost, 10)
-  expect_identical(formals(variable_importance)$boost, 10)
-  expect_identical(formals(hcas_inspection)$boost, quote(k2))
+  public_functions <- list(
+    benchmark,
+    reference_use,
+    variable_importance,
+    hcas_inspection
+  )
+  for (fun in public_functions) {
+    expect_identical(formals(fun)$k1, 70)
+    expect_identical(formals(fun)$k2, 10)
+    expect_identical(formals(fun)$boost, quote(k2))
+  }
+  expect_identical(formals(ClassicHCAS:::bench_cpp)$k_env, 70L)
+  expect_identical(formals(ClassicHCAS:::bench_cpp)$k_rs, 10L)
+  expect_identical(formals(ClassicHCAS:::reference_use_cpp)$k_env, 70L)
+  expect_identical(formals(ClassicHCAS:::reference_use_cpp)$k_rs, 10L)
+  expect_identical(formals(ClassicHCAS:::variable_importance_cpp)$k_env, 70L)
+  expect_identical(formals(ClassicHCAS:::variable_importance_cpp)$k_rs, 10L)
   expect_true("boost" %in% names(formals(ClassicHCAS:::bench_cpp)))
   expect_true("boost" %in% names(formals(ClassicHCAS:::reference_use_cpp)))
   expect_true("boost" %in% names(formals(ClassicHCAS:::variable_importance_cpp)))

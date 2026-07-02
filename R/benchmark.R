@@ -42,7 +42,7 @@
 #' \code{1 / (1 + (distance / lambda)^2)}, the standard Cauchy shape
 #' normalised to weight one at zero.
 #'
-#' By default, \code{boost = 10} replaces the LDC blend with a boosted weighted
+#' By default, \code{boost = k2} replaces the LDC blend with a boosted weighted
 #' mean. The kernel weight of the retained site with the highest unweighted
 #' probability is multiplied by \code{boost}, and condition is the weighted mean
 #' using that adjusted weight. In this mode, \code{confidence} does not affect
@@ -75,12 +75,14 @@
 #' Coordinates are stored in micro-degrees (\code{degree * 1000000}) and distance
 #' is approximated by:
 #'
-#' \deqn{distance^2 \approx dlat^2 + (dlon \times \cos(lat_1))^2}
+#' \deqn{distance^2 \approx (\Delta \mathrm{lat})^2 + (\Delta \mathrm{lon} \times \cos(\mathrm{lat}_1))^2}{distance^2 ~= (Delta lat)^2 + ((Delta lon) * cos(lat_1))^2}
 #'
-#' where \eqn{\cos(lat_1)} is derived from the query latitude. This is efficient
-#' for large analyses but introduces distortion over large areas. For high
-#' accuracy at broad regional or continental radii, use a projected coordinate
-#' reference system so distances can be evaluated in metres.
+#' where \eqn{\Delta \mathrm{lat}}{Delta lat} and \eqn{\Delta \mathrm{lon}}{Delta lon}
+#' are coordinate differences, and \eqn{\cos(\mathrm{lat}_1)}{cos(lat_1)} is
+#' derived from the query latitude. This is efficient for large analyses but
+#' introduces distortion over large areas. For high accuracy at broad regional
+#' or continental radii, use a projected coordinate reference system so
+#' distances can be evaluated in metres.
 #'
 #' \code{num_threads} uses OpenMP when available. On macOS, installing OpenMP
 #' support with \code{brew install libomp} before installing the package may be
@@ -123,10 +125,10 @@
 #' @param confidence Numeric between 0 and 1. Weight given to the selected
 #' maximum probability component relative to the distance-weighted mean
 #' probability when computing raw condition. Ignored when \code{boost} is not
-#' \code{NULL} or \code{NA}; the default is \code{boost = 10}.
+#' \code{NULL} or \code{NA}; the default is \code{boost = k2}.
 #' @param boost \code{NULL}, \code{NA}, or one positive finite numeric factor.
-#' The default \code{10} multiplies the kernel weight of the
-#' highest-probability retained site by ten and returns the resulting weighted
+#' The default \code{k2} multiplies the kernel weight of the
+#' highest-probability retained site by \code{k2} and returns the resulting weighted
 #' mean instead of the LDC blend. \code{confidence} is ignored in this mode.
 #' Use \code{NULL} or \code{NA} for the unboosted LDC blend.
 #' @param lambda Positive numeric. Distance-scale bandwidth for the selected
@@ -207,8 +209,8 @@ benchmark <- function(
         xy_stats = c(0, 0, 1, 1),
         xy_penalty = 0.0,
         radius_km = 200,
-        k1 = 50,
-        k2 = 20,
+        k1 = 70,
+        k2 = 10,
         bin_width = NULL,
         interpolate = TRUE,
         offset = 0,
@@ -221,7 +223,7 @@ benchmark <- function(
         temporal_sigma = NULL,
         make_su = FALSE,
         num_threads = -1,
-        boost = 10,
+        boost = k2,
         ...) {
 
     kernel <- .check_kernel(kernel)
