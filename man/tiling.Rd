@@ -2,7 +2,7 @@
 % Please edit documentation in R/tiling.R
 \name{tiling}
 \alias{tiling}
-\title{Generate raster tiles using raster or matrix data}
+\title{Create raster processing tiles}
 \usage{
 tiling(
   data,
@@ -16,74 +16,84 @@ tiling(
 )
 }
 \arguments{
-\item{data}{A `SpatRaster` object or a numeric matrix. For balanced tiling, either a matrix
-or raster can be used. For rectangular tiling, a raster is required.}
+\item{data}{A \pkg{terra} \code{SpatRaster} or numeric matrix. Balanced tiling
+accepts either form; rectangular tiling requires a raster.}
 
 \item{n_tiles}{Integer. Number of tiles to generate.}
 
-\item{balanced}{Logical. If `TRUE` (default), tiles are created to balance the sum of values within each tile.
-If `FALSE`, rectangular tiles of equal size are generated.}
+\item{balanced}{Logical. If \code{TRUE}, create tiles with approximately
+balanced total weights. If \code{FALSE}, create rectangular tiles of similar
+size.}
 
-\item{method}{Character. One of `"best"`, `"row"`, `"col"`, or `"both"` (default `"best"`).
-Specifies how the balanced tiles should be split:
+\item{method}{Character. Splitting strategy for balanced tiles. One of
+\code{"best"}, \code{"row"}, \code{"col"}, or \code{"both"}:
 \describe{
-  \item{"best"}{Automatically chooses the split direction that balances node weights and avoids overly skinny tiles.}
-  \item{"row"}{Always splits by rows.}
-  \item{"col"}{Always splits by columns.}
-  \item{"both"}{Splits along both dimensions, favoring the longer dimension.}
+  \item{\code{"best"}}{Automatically chooses a split direction that balances
+  weights while avoiding very narrow tiles.}
+  \item{\code{"row"}}{Always splits by rows.}
+  \item{\code{"col"}}{Always splits by columns.}
+  \item{\code{"both"}}{Splits along both dimensions, favouring the longer
+  dimension.}
 }}
 
-\item{exact}{Logical. If `TRUE` (default), ensures exactly `n_tiles` are produced in balanced mode.}
+\item{exact}{Logical. If \code{TRUE}, force exactly \code{n_tiles} in balanced
+mode.}
 
-\item{weighted}{Logical. If `TRUE` (default), tile weights are based on the scaled data values.
-If `FALSE`, all non-zero values are treated equally.}
+\item{weighted}{Logical. If \code{TRUE}, tile weights are based on the scaled
+data values. If \code{FALSE}, all non-zero cells receive equal weight.}
 
-\item{spatial}{Logical. If `TRUE`, returns a `SpatVector` polygon of tiles.
-If `FALSE` (default), returns a matrix or data frame with tile extents.}
+\item{spatial}{Logical. If \code{TRUE}, return a \pkg{terra}
+\code{SpatVector} polygon layer. If \code{FALSE}, return tile extents.}
 
-\item{extent}{Optional. A `terra::ext` object specifying the raster extent. Required when `data` is a matrix.}
+\item{extent}{Optional \code{\link[terra]{ext}} object specifying the raster
+extent. Required when \code{data} is a matrix.}
 }
 \value{
-Either:
-\itemize{
-  \item A `SpatVector` of polygons representing tiles (if `spatial = TRUE`), or
-  \item A matrix/data.frame with columns `"xmin"`, `"xmax"`, `"ymin"`, `"ymax"` for each tile (if `spatial = FALSE`).
-}
+If \code{spatial = TRUE}, a \pkg{terra} \code{SpatVector} of tile
+polygons. Otherwise, a matrix with columns \code{xmin}, \code{xmax},
+\code{ymin}, and \code{ymax}.
 }
 \description{
-Creates either rectangular or balanced tiles for raster or matrix data. Balanced tiles
-attempt to distribute the data values evenly across tiles, while rectangular tiles simply
-divide the raster into equal-sized grids. This function helps creating tiles for running
-\code{benchmark} function over multiple tiles or systems (e.g. in a cluster). The output
-of the \code{\link{radial_count}} function can be used to balance the run time over each tile.
+Creates rectangular or value-balanced tiles for splitting large raster
+processing jobs, especially HCAS benchmarking runs, into smaller spatial
+chunks.
 }
 \details{
-- Rectangular tiling divides the raster into equal-sized tiles regardless of data values.
-- Balanced tiling attempts to split the data such that the sum of the cell values in each tile is roughly equal.
-- The splitting process recursively divides the matrix/raster along rows or columns, according to the `method`.
-- NA values are treated as zero for the purpose of balanced tiling.
+Large HCAS benchmarking jobs can be uneven because areas with many nearby
+reference samples require more work than sparse areas. \code{tiling()} can
+split a raster or matrix into tiles whose total cell weights are roughly
+balanced, making distributed or multi-node processing more even. A common
+workflow is to run \code{\link{radial_count}} first, then use the resulting
+count raster as the \code{data} argument for balanced tiling.
+
+If \code{balanced = FALSE}, the function creates simple rectangular tiles of
+similar size and ignores cell values. Rectangular tiling requires a
+\pkg{terra} \code{SpatRaster}. If \code{balanced = TRUE}, the function treats
+\code{NA} as zero, rescales non-missing values to positive weights, and
+recursively splits the raster or matrix so each tile has a similar total
+weight. If \code{weighted = FALSE}, all non-zero cells are treated equally.
 }
 \examples{
-\dontrun{
+\donttest{
 library(ClassicHCAS)
-library(terra)
 
-r <- rast(nrows=100, ncols=100)
-values(r) <- runif(ncell(r))
+r <- terra::rast(nrows = 20, ncols = 20)
+terra::values(r) <- runif(terra::ncell(r))
 
-# Balanced tiles
-tiles_poly <- ClassicHCAS::tiling(r, n_tiles = 4, balanced = TRUE, spatial = TRUE)
+# Balanced tiles from raster weights.
+balanced_tiles <- tiling(r, n_tiles = 4, balanced = TRUE)
 
-# Rectangular tiles
-tiles_rect <- ClassicHCAS::tiling(r, n_tiles = 4, balanced = FALSE)
+# Rectangular tiles.
+rectangular_tiles <- tiling(r, n_tiles = 4, balanced = FALSE)
 
-# Balanced tiles from a matrix
-mat <- as.matrix(r)
-ext <- ext(r)
-tiles_from_matrix <- ClassicHCAS::tiling(mat, n_tiles = 4, balanced = TRUE, extent = ext)
+# Balanced tiles from a matrix need an explicit extent.
+mat <- terra::as.matrix(r, wide = TRUE)
+matrix_tiles <- tiling(mat, n_tiles = 4, extent = terra::ext(r))
 }
 
 }
 \seealso{
-\code{\link[terra]{rast}}, \code{\link[terra]{as.polygons}}, \code{\link[terra]{ext}}
+\code{\link{radial_count}}, \code{\link{benchmark}},
+\code{\link[terra]{rast}}, \code{\link[terra]{as.polygons}},
+\code{\link[terra]{ext}}
 }

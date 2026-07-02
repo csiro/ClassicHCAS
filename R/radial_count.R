@@ -1,49 +1,59 @@
-#' Number of samples within a radius
+#' Count samples within a radius around each raster cell
 #'
-#' This function calculates the number of samples (x, y coordinates) within a specified radius
-#' for each pixel in a raster map.
+#' Counts how many sample points fall within a specified radius of each cell in a
+#' raster. In HCAS workflows this is mainly an operational helper for mapping
+#' local reference-sample support and for creating workload weights before
+#' tiling large benchmarking jobs.
 #'
-#' This function uses an integer-based distance checks for fast radius searches on either
-#' geographic or projected coordinates. In geographic mode, coordinates are
-#' stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+#' @details
+#' \code{radial_count()} does not calculate habitat condition. It produces a
+#' sample-density raster that can help diagnose sparse reference coverage or
+#' guide \code{\link{tiling}} so densely sampled areas with heavy computation
+#' are balanced across tiles.
+#'
+#' In geographic coordinates, radius searches use a fast integer approximation.
+#' Coordinates are stored in micro-degrees (\code{degree * 1000000}) and distance
+#' is approximated by:
 #'
 #' \deqn{distance^2 \approx dlat^2 + (dlon \times \cos(lat_1))^2}
 #'
-#' where \eqn{\cos(lat_1)} is derived from the query latitude. This avoids floating-
-#' point overhead and provides substantial performance gains but introduces
-#' distortion at larger distances. For applications requiring higher accuracy,
-#' especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
-#' use a projected coordinate system so distances in meters can be evaluated directly.
+#' where \eqn{\cos(lat_1)} is derived from the query latitude. This is efficient
+#' for large analyses but introduces distortion over large areas. For high
+#' accuracy at broad regional or continental radii, use a projected coordinate
+#' reference system so distances can be evaluated in metres.
 #'
-#' Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
-#' to take advantage of parallel processing and accelerate computations. While most systems
-#' include OpenMP by default, you may need to load the appropriate module if you're using an HPC
-#' system.
+#' \code{num_threads} uses OpenMP when available. On macOS, installing OpenMP
+#' support with \code{brew install libomp} before installing the package may be
+#' required for multi-threaded execution.
 #'
-#' \strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
-#' before installing this package.
+#' @param x A \pkg{terra} \code{SpatRaster} whose cells define the locations
+#' where sample counts are calculated. Only the first layer is used.
+#' @param samples_xy A two-column matrix or data.frame containing sample
+#' coordinates in the same coordinate reference system as \code{x}.
+#' @param radius_km Numeric. Search radius, in kilometres.
+#' @param num_threads Integer. Number of CPU threads to use. Values below 1 use
+#' all available OpenMP threads.
+#' @param ... Additional arguments passed to \code{\link[terra]{interpolate}},
+#' such as \code{filename}, \code{overwrite}, or \code{wopt}.
 #'
-#' @param x A SpatRaster representing the study area over which sample density will be calculated.
-#' @param samples_xy A matrix or data.frame containing x and y coordinates (longitude and latitude)
-#' of the reference points used for density calculation.
-#' @param radius_km Numeric. Specifies the search radius (buffer) in kilometers.
-#' @param num_threads Integer. Specifies the number of CPU threads to be used for processing. A value
-#' below 1 indicates that all available threads will be utilized. Refer to the details section for
-#' more information.
-#' @param ... Additional arguments for writing raster outputs e.g. \code{filename},
-#' \code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.
+#' @seealso \code{\link{benchmark}}, \code{\link{tiling}}
 #'
-#' @seealso \code{\link{benchmark}}
-#'
-#' @return A SpatRaster
+#' @return A \pkg{terra} \code{SpatRaster} containing sample counts.
 #' @export
 #'
 #' @examples
 #' \donttest{
 #' library(ClassicHCAS)
 #'
+#' r <- terra::rast(
+#'     nrows = 10, ncols = 10,
+#'     xmin = 0, xmax = 1, ymin = 0, ymax = 1,
+#'     crs = "EPSG:4326"
+#' )
 #'
-#'
+#' samples <- cbind(x = c(0.2, 0.8), y = c(0.2, 0.8))
+#' counts <- radial_count(r, samples, radius_km = 50, num_threads = 1)
+#' counts
 #' }
 radial_count <- function(
         x,

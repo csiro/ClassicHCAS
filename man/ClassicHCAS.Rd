@@ -4,17 +4,55 @@
 \alias{ClassicHCAS}
 \title{ClassicHCAS: The Classic Habitat Condition Assessment System (HCAS)}
 \description{
-The HCAS evaluates habitat condition by comparing observed and predicted
-remote sensing (RS) variables using reference ecosystem samples.
-It integrates multiple RS data layers to provide a comprehensive assessment of
-habitat quality.
+ClassicHCAS implements the core Habitat Condition Assessment System workflow
+for estimating habitat condition from Earth observation and environmental
+data. HCAS compares observed remote-sensing (RS) variables with predicted
+reference-condition RS variables. Locations whose observed signal is close to
+the expected reference signal, relative to high-integrity reference samples,
+receive higher condition scores.
+}
+\details{
+The package is data-agnostic: users supply their own observed RS variables,
+predicted reference-condition RS variables, and reference or benchmark samples.
+The expected RS variables are usually produced outside this package by
+modelling high-integrity reference ecosystems as a function of abiotic
+environmental covariates such as climate, soils, water availability, and
+landform.
+
+The main ClassicHCAS workflow is:
+\enumerate{
+  \item Use \code{\link{ref_density}} to build a reference density surface
+  from pairwise predicted and observed RS distances among reference samples.
+  \item Use \code{\link{normalise}} to trim and normalise that surface so it
+  can be used as a probability surface during benchmarking.
+  \item Use \code{\link{benchmark}} to estimate unscaled condition for target
+  locations or rasters by comparing them with nearby, environmentally similar
+  reference samples.
+  \item Use \code{\link{calibrate}} to transform unscaled condition values to
+  an interpretable 0-1 condition scale.
+}
+
+Operational helpers include \code{\link{radial_count}}, for mapping local
+reference-sample support, \code{\link{tiling}}, for splitting large raster
+jobs into balanced processing tiles, and \code{\link{palettes}}, for package
+plotting colours.
 }
 \references{
-The Habitat Condition Assessment System (HCAS)...
+Harwood, T. D., Donohue, R. J., Williams, K. J., Ferrier, S.,
+McVicar, T. R., Newell, G., and White, M. (2016). Habitat Condition
+Assessment System: A new way to assess the condition of natural habitats for
+terrestrial biodiversity across whole regions using remote sensing data.
+\emph{Methods in Ecology and Evolution}, 7(9), 1050-1059.
+
+Williams, K. J., Harwood, T. D., Lehmann, E. A., Ware, C., Lyon, P.,
+Bakar, S., Schmidt, R. K., Mokany, K., Van Niel, T. G., Richards, A. E.,
+Dickson, F., McVicar, R., and Ferrier, S. (2021). Habitat Condition
+Assessment System (HCAS version 2.1). CSIRO Publishing.
 }
 \seealso{
-\code{\link{benchmark}} and \code{\link{ref_density}}.
+\code{\link{ref_density}}, \code{\link{normalise}},
+\code{\link{benchmark}}, and \code{\link{calibrate}}.
 }
 \author{
-Roozbeh Valavi, Chris Ware, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
+Roozbeh Valavi, Kristen Williams, Eric Lehmann, Simon Collings, Tom Harwood, Mike Birchall, and Simon Ferrier
 }

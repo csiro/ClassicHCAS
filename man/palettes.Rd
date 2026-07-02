@@ -2,18 +2,29 @@
 % Please edit documentation in R/colours.R
 \name{palettes}
 \alias{palettes}
-\title{ClassicHCAS palettes}
+\title{ClassicHCAS colour palettes}
 \usage{
 palettes(n = 10, name = c("hcas", "ref_density"))
 }
 \arguments{
-\item{n}{Integer. Number of color codes to return.}
+\item{n}{Integer. Number of colour codes to return.}
 
-\item{name}{Character. Palette name. One of `"hcas"` or `"ref_density"`.}
+\item{name}{Character. Palette name. One of \code{"hcas"} or
+\code{"ref_density"}.}
 }
 \value{
-A character vector of color codes.
+A character vector of hexadecimal colour codes.
 }
 \description{
-ClassicHCAS palettes
+Returns colour palettes used by ClassicHCAS plots.
+}
+\details{
+The \code{"hcas"} palette is intended for habitat condition maps, with low
+condition shown in purple, intermediate values in yellow, and high condition
+in green. The \code{"ref_density"} palette is intended for raw or normalised
+reference density surfaces.
+}
+\examples{
+palettes(5)
+palettes(5, "ref_density")
 }

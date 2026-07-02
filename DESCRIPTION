@@ -1,19 +1,20 @@
 Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
-Version: 1.1.0
-Date: 2026-04-29
+Version: 2.0.0
+Date: 2026-07-02
 Authors@R: c(
     person(given = "Roozbeh", family = "Valavi",
            email = "roozbeh.valavi@csiro.au", role = c("aut", "cre")),
-    person(given = "Eric", family = "Lehmann", role = "aut"),
     person(given = "Kristen", family = "Williams", role = "aut"),
-    person(given = "Mike", family = "Birchall", role = "aut"),
+    person(given = "Eric", family = "Lehmann", role = "aut"),
     person(given = "Simon", family = "Collings", role = "aut"),
-    person(given = "Simon", family = "Ferrier", role = "aut"),
-    person(given = "Tom", family = "Harwood", role = "aut"))
+    person(given = "Tom", family = "Harwood", role = "aut"),
+    person(given = "Mike", family = "Birchall", role = "aut"),
+    person(given = "Simon", family = "Ferrier", role = "aut"))
 URL: https://github.com/csiro/ClassicHCAS
 BugReports: https://github.com/csiro/ClassicHCAS/issues
+Maintainer: Roozbeh Valavi <roozbeh.valavi@csiro.au>
 Description: The HCAS evaluates habitat condition by comparing observed and 
   predicted remote sensing variables using reference ecosystem samples.
 License: GPL (>= 3)
@@ -26,9 +27,13 @@ Imports:
   scales,
   terra (>= 1.7.71)
 Suggests:
+  ggplot2,
+  leaflet,
   methods,
   knitr,
   rmarkdown,
+  shiny,
+  shinyWidgets,
   tinytest,
   testthat (>= 3.0.0)
 RoxygenNote: 7.3.3

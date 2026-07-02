@@ -39,11 +39,27 @@ Rcpp::NumericMatrix bench_cpp(
     int bin_num = 400,                      // number of bins in reference density
     int offset = 0,                         // offset of reference density
     double confidence = 0.5,                // the LDC confidence index; default 0.5
-    double lambda = 2.0,                    // the lambda of the Cauchy weighting
+    double lambda = 1.0,                    // distance-kernel bandwidth
     bool exclude_slef = true,               // whether to exclude a benchmark sample from assessing itself
+    Rcpp::Nullable<Rcpp::NumericVector> temporal_weights = R_NilValue, // Gaussian weights for reference years
     bool make_su = false,                   // whether to produce SU map
-    int num_threads = -1)                   // -1 or 0 utilises all available threads
+    int num_threads = -1,                   // -1 or 0 utilises all available threads
+    std::string kernel = "gaussian",        // distance weighting kernel
+    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue) // optional maximum-probability weight multiplier
 {
+    double boost_factor = std::numeric_limits<double>::quiet_NaN();
+    if (boost.isNotNull()) {
+        Rcpp::NumericVector boost_value(boost);
+        if (boost_value.size() != 1) {
+            Rcpp::stop("'boost' must be NULL, NA, or one finite number greater than zero.");
+        }
+        if (!std::isnan(boost_value[0])) {
+            if (!std::isfinite(boost_value[0]) || boost_value[0] <= 0.0) {
+                Rcpp::stop("'boost' must be NULL, NA, or one finite number greater than zero.");
+            }
+            boost_factor = boost_value[0];
+        }
+    }
     if (xy_stats.size() != 4) {
         Rcpp::stop("'xy_stats' must contain exactly four values: mean(x), mean(y), sd(x), sd(y).");
     }
@@ -59,6 +75,18 @@ Rcpp::NumericMatrix bench_cpp(
     if (bin_width <= 0.0) {
         Rcpp::stop("'bin_width' must be > 0.");
     }
+    if (!std::isfinite(confidence) || confidence < 0.0 || confidence > 1.0) {
+        Rcpp::stop("'confidence' must be a finite number between 0 and 1.");
+    }
+    if (!std::isfinite(lambda) || lambda <= 0.0) {
+        Rcpp::stop("'lambda' must be a finite number greater than zero.");
+    }
+    kernel = canonical_distance_kernel(kernel);
+    if (kernel.empty()) {
+        Rcpp::stop("'kernel' must be 'Gaussian'/'gaussian' or 'Cauchy'/'cauchy'.");
+    }
+    const DistanceKernel kernel_method =
+        distance_kernel_from_string(kernel);
 
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float32_t> raster = as_Matrix<float32_t>(raster_vals);
@@ -73,8 +101,44 @@ Rcpp::NumericMatrix bench_cpp(
 
     const int nr = raster.rows();
     const int ns = samples.rows();
-    int nvar = (samples.cols() - 2) / 2; // number of RS vars
+    if (raster.cols() < 4 || (raster.cols() - 2) % 2 != 0) {
+        Rcpp::stop("'raster_vals' must contain x, y, predicted RS, and observed RS columns.");
+    }
+    const int nvar = (raster.cols() - 2) / 2; // number of RS vars
     int ndim = nvar + 2; // number of multi-variate space REM + XY
+
+    const bool temporal = temporal_weights.isNotNull();
+    std::vector<double> year_weights(1, 1.0);
+    if (temporal) {
+        Rcpp::NumericVector weights(temporal_weights);
+        if (weights.size() < 1) {
+            Rcpp::stop("'temporal_weights' must contain at least one value.");
+        }
+
+        year_weights.resize(weights.size());
+        bool any_positive = false;
+        for (R_xlen_t i = 0; i < weights.size(); ++i) {
+            if (!std::isfinite(weights[i]) || weights[i] < 0.0) {
+                Rcpp::stop("'temporal_weights' must contain finite, non-negative values.");
+            }
+            year_weights[i] = weights[i];
+            any_positive = any_positive || weights[i] > 0.0;
+        }
+        if (!any_positive) {
+            Rcpp::stop("'temporal_weights' must contain at least one positive value.");
+        }
+    }
+
+    const int n_years = static_cast<int>(year_weights.size());
+    const int obs_start = 2 + nvar;
+    const int expected_sample_cols = 2 + nvar + nvar * n_years;
+    if (samples.cols() != expected_sample_cols) {
+        Rcpp::stop(
+            temporal
+                ? "'sample_vals' columns do not match the target features and temporal weights."
+                : "'sample_vals' must contain x, y, predicted RS, and observed RS columns matching 'raster_vals'."
+        );
+    }
 
     double scale;
     int64_t r2;
@@ -147,7 +211,7 @@ Rcpp::NumericMatrix bench_cpp(
 
             int64_t cos_scale = 0;
             if (geographic) {
-                // Calcualte only 1 cos() for efficiency
+                // Calculate only 1 cos() for efficiency
                 cos_scale = static_cast<int64_t>(std::cos(raster_xy(i, 1) * DEG_2_RAD) * 1000000);
             }
 
@@ -166,11 +230,6 @@ Rcpp::NumericMatrix bench_cpp(
             // 'j' is the original index into the full 'samples' matrix
             for (const auto& j : knn_env)
             {
-                // Get the OBS part of the sample row for RS distance calculation
-                const auto sub_obs_row = samples.row(j).rightCols(nvar);
-                // Vectorised L1 distance over all columns for RS (OBS)
-                float32_t rsdist = (cell_obs - sub_obs_row).template lpNorm<1>();
-
                 // The xy coordinates should be ignored for REM dist, so only middleCols(2, nvar)
                 const auto sub_rem_row = samples.row(j).middleCols(2, nvar);
                 float32_t prdist = (cell_rem.rightCols(nvar) - sub_rem_row).template lpNorm<1>();
@@ -180,8 +239,34 @@ Rcpp::NumericMatrix bench_cpp(
                     continue;
                 }
 
+                double selected_prob = 0.0;
+                double selected_score = -std::numeric_limits<double>::infinity();
+
+                for (int year = 0; year < n_years; ++year)
+                {
+                    const auto sub_obs_row = samples.row(j).segment(
+                        obs_start + year * nvar,
+                        nvar
+                    );
+                    float32_t rsdist = (cell_obs - sub_obs_row).template lpNorm<1>();
+                    double raw_prob = get_prob_value(
+                        refdens,
+                        prdist,
+                        rsdist,
+                        binwidth,
+                        bin_num,
+                        offset
+                    );
+                    double weighted_score = raw_prob * year_weights[year];
+
+                    if (weighted_score > selected_score) {
+                        selected_score = weighted_score;
+                        selected_prob = weighted_score;
+                    }
+                }
+
                 prdist_vect.push_back(static_cast<double>(prdist));
-                prob_vect.push_back(get_prob_value(refdens, prdist, rsdist, binwidth, bin_num, offset));
+                prob_vect.push_back(selected_prob);
             }
 
             // Not enough candidates for this cell (e.g., sparse/edge tiles).
@@ -211,8 +296,15 @@ Rcpp::NumericMatrix bench_cpp(
                 prob_sorted[k] = prob_vect[k]; // prob_vect is already sorted by qsort_index; just get first 20
             }
 
-            // calculate the Cauchy weighting condition
-            Condition wcond = get_Condition(prob_sorted, pr_dist, prob_sorted[0], confidence, lambda);
+            // Calculate the selected distance-kernel-weighted condition.
+            Condition wcond = get_Condition(
+                prob_sorted,
+                pr_dist,
+                confidence,
+                lambda,
+                kernel_method,
+                boost_factor
+            );
             condition_vect[i] = wcond;
         }
     }
@@ -229,7 +321,7 @@ Rcpp::NumericMatrix bench_cpp(
         for (const auto& cval : condition_vect)
         {
             out_mat(i, 0) = cval.hc;
-            out_mat(i, 1) = (cval.su > 0.0) ? std::log(cval.su) : NA_REAL;
+            out_mat(i, 1) = std::isfinite(cval.log_su) ? cval.log_su : NA_REAL;
             i++;
         }
     }
