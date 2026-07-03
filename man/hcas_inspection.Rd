@@ -22,6 +22,8 @@ hcas_inspection(
   drop_features = NULL,
   num_threads = -1,
   crs = NULL,
+  background = NULL,
+  background_colors = NULL,
   launch = interactive(),
   kernel = c("Gaussian", "Cauchy"),
   boost = k2,
@@ -98,6 +100,21 @@ all available OpenMP threads.}
 \code{\link[terra]{vect}}, such as \code{"EPSG:3577"}. Required for the map
 when matrix/data.frame coordinates are projected or when raster coordinates
 are projected and the raster has no CRS.}
+
+\item{background}{Optional background raster drawn beneath the sample
+markers, given as a file path to a GeoTIFF or a \pkg{terra}
+\code{SpatRaster}. The map renderer reads web mercator directly, so a
+single-band Cloud-Optimized GeoTIFF (COG) already in \code{"EPSG:3857"} or
+\code{"EPSG:4326"} is served unchanged and its internal overviews stream for
+fast, overview-accelerated rendering. Any other input is reduced to its
+first layer, reprojected to \code{"EPSG:3857"} when needed, and written to a
+temporary COG with overviews. Requires the suggested package \pkg{leafem}.}
+
+\item{background_colors}{Optional character vector of colours (for example
+hexadecimal codes such as \code{c("#430E59", "#CCCC66", "#184F0F")}) used as
+the continuous colour ramp for \code{background}. Defaults to the
+\code{"hcas"} palette from \code{\link{palettes}}. Ignored when
+\code{background} is \code{NULL}.}
 
 \item{launch}{Logical. If \code{TRUE}, run the application with
 \code{\link[shiny]{runApp}}. If \code{FALSE}, return the application object

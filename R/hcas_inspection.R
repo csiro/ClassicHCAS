@@ -48,6 +48,19 @@
 #' \code{\link[terra]{vect}}, such as \code{"EPSG:3577"}. Required for the map
 #' when matrix/data.frame coordinates are projected or when raster coordinates
 #' are projected and the raster has no CRS.
+#' @param background Optional background raster drawn beneath the sample
+#' markers, given as a file path to a GeoTIFF or a \pkg{terra}
+#' \code{SpatRaster}. The map renderer reads web mercator directly, so a
+#' single-band Cloud-Optimized GeoTIFF (COG) already in \code{"EPSG:3857"} or
+#' \code{"EPSG:4326"} is served unchanged and its internal overviews stream for
+#' fast, overview-accelerated rendering. Any other input is reduced to its
+#' first layer, reprojected to \code{"EPSG:3857"} when needed, and written to a
+#' temporary COG with overviews. Requires the suggested package \pkg{leafem}.
+#' @param background_colors Optional character vector of colours (for example
+#' hexadecimal codes such as \code{c("#430E59", "#CCCC66", "#184F0F")}) used as
+#' the continuous colour ramp for \code{background}. Defaults to the
+#' \code{"hcas"} palette from \code{\link{palettes}}. Ignored when
+#' \code{background} is \code{NULL}.
 #' @param launch Logical. If \code{TRUE}, run the application with
 #' \code{\link[shiny]{runApp}}. If \code{FALSE}, return the application object
 #' without running it, which is useful for testing or custom deployment.
@@ -99,6 +112,8 @@ hcas_inspection <- function(
         drop_features = NULL,
         num_threads = -1,
         crs = NULL,
+        background = NULL,
+        background_colors = NULL,
         launch = interactive(),
         kernel = c("Gaussian", "Cauchy"),
         boost = k2,
@@ -113,6 +128,9 @@ hcas_inspection <- function(
             paste(required[!available], collapse = ", "),
             "."
         )
+    }
+    if (!is.null(background) && !requireNamespace("leafem", quietly = TRUE)) {
+        stop("The 'background' map requires the suggested package 'leafem'.")
     }
 
     raster_data <- .is_rast(data)
@@ -155,6 +173,9 @@ hcas_inspection <- function(
         .num_rs_vars_mat(data, "data")
     }
     .num_rs_vars_mat(samples, "samples")
+
+    background_file <- .inspection_background_cog(background)
+    background_colors <- .inspection_background_colors(background_colors)
 
     if (length(k1) != 1L || !is.finite(k1) || k1 < 1) {
         stop("'k1' must be one finite number greater than or equal to one.")
@@ -646,7 +667,12 @@ hcas_inspection <- function(
         # Render the base map once so it appears immediately, before any Run,
         # and is never torn down. Markers are updated in place via leafletProxy.
         output$map <- leaflet::renderLeaflet({
-            .inspection_leaflet_map(result = NULL, bounds = map_bounds)
+            .inspection_leaflet_map(
+                result = NULL,
+                bounds = map_bounds,
+                background = background_file,
+                background_colors = background_colors
+            )
         })
 
         shiny::observeEvent(input$submit, {
@@ -906,10 +932,107 @@ hcas_inspection <- function(
 }
 
 
-.inspection_leaflet_map <- function(result = NULL, bounds = NULL) {
+# georaster-layer-for-leaflet renders EPSG:3857 and EPSG:4326 natively.
+.inspection_is_webmercator <- function(r) {
+    isTRUE(terra::same.crs(r, "EPSG:3857")) ||
+        isTRUE(terra::same.crs(r, "EPSG:4326"))
+}
+
+
+# Normalise the 'background' argument to a single-band Cloud-Optimized GeoTIFF
+# in web mercator that is served to leafem::addGeotiff() via url = (not file =).
+# The url = path performs no gdal_translate/gdalwarp, so internal overviews are
+# preserved and streamed. A single-band EPSG:3857/4326 file on disk is served
+# as-is; anything else is reduced to its first layer, reprojected to EPSG:3857
+# when needed, and written to a COG with overviews under the session tempdir.
+.inspection_background_cog <- function(background) {
+    if (is.null(background)) {
+        return(NULL)
+    }
+    if (is.character(background)) {
+        if (length(background) != 1L || !nzchar(background)) {
+            stop("'background' must be a single file path or a terra SpatRaster.")
+        }
+        if (!file.exists(background)) {
+            stop("'background' file does not exist: ", background)
+        }
+        r <- terra::rast(background)
+        if (terra::nlyr(r) == 1L && .inspection_is_webmercator(r)) {
+            return(background)
+        }
+    } else if (.is_rast(background)) {
+        r <- .check_rast(background, name = "background")
+    } else {
+        stop("'background' must be a file path or a terra SpatRaster.")
+    }
+    if (terra::nlyr(r) > 1L) {
+        r <- r[[1L]]
+    }
+    if (!.inspection_is_webmercator(r)) {
+        r <- terra::project(r, "EPSG:3857")
+    }
+    dir <- file.path(tempdir(), "hcas_background")
+    dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+    path <- file.path(dir, "background.tif")
+    terra::writeRaster(
+        r, path, filetype = "COG",
+        gdal = c("OVERVIEWS=AUTO", "COMPRESS=DEFLATE"), overwrite = TRUE
+    )
+    path
+}
+
+
+# Validate the optional colour ramp for the background raster.
+.inspection_background_colors <- function(colors) {
+    if (is.null(colors)) {
+        return(NULL)
+    }
+    if (!is.character(colors) || !length(colors)) {
+        stop(
+            "'background_colors' must be a character vector of colours, ",
+            "e.g. c(\"#430E59\", \"#CCCC66\", \"#184F0F\")."
+        )
+    }
+    valid <- tryCatch({
+        grDevices::col2rgb(colors)
+        TRUE
+    }, error = function(cond) FALSE)
+    if (!valid) {
+        stop("'background_colors' contains invalid colour codes.")
+    }
+    colors
+}
+
+
+.inspection_leaflet_map <- function(result = NULL, bounds = NULL,
+                                    background = NULL,
+                                    background_colors = NULL) {
     map <- leaflet::leaflet()
     map <- leaflet::addTiles(map)
     map <- leaflet::addProviderTiles(map, "Esri.WorldImagery")
+
+    if (!is.null(background)) {
+        palette <- if (is.null(background_colors)) palettes() else background_colors
+        # Serve the COG over url = (not file =): the url = path skips leafem's
+        # gdal_translate/gdalwarp, so the internal overviews survive and stream.
+        # group/layerId must be set explicitly here because leafem derives them
+        # from `file`, which is NULL on the url = path. autozoom = FALSE leaves
+        # the view to fitBounds() below; bands = 1 renders one thematic layer.
+        shiny::addResourcePath("hcas_background", dirname(background))
+        map <- leafem::addGeotiff(
+            map,
+            url = paste0("hcas_background/", basename(background)),
+            group = "background",
+            layerId = "background",
+            bands = 1,
+            opacity = 0.8,
+            autozoom = FALSE,
+            colorOptions = leafem::colorOptions(
+                palette = palette,
+                na.color = "transparent"
+            )
+        )
+    }
 
     if (!is.null(bounds)) {
         # Open at the raster extent. Strip names: leaflet serialises a named

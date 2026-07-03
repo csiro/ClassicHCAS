@@ -28,6 +28,7 @@ Imports:
   terra (>= 1.7.71)
 Suggests:
   ggplot2,
+  leafem,
   leaflet,
   methods,
   knitr,
