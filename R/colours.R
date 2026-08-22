@@ -1,10 +1,23 @@
-#' ClassicHCAS palettes
+#' ClassicHCAS colour palettes
 #'
-#' @param n Integer. Number of color codes to return.
-#' @param name Character. Palette name. One of `"hcas"` or `"ref_density"`.
+#' Returns colour palettes used by ClassicHCAS plots.
 #'
-#' @return A character vector of color codes.
+#' @details
+#' The \code{"hcas"} palette is intended for habitat condition maps, with low
+#' condition shown in purple, intermediate values in yellow, and high condition
+#' in green. The \code{"ref_density"} palette is intended for raw or normalised
+#' reference density surfaces.
+#'
+#' @param n Integer. Number of colour codes to return.
+#' @param name Character. Palette name. One of \code{"hcas"} or
+#' \code{"ref_density"}.
+#'
+#' @return A character vector of hexadecimal colour codes.
 #' @export
+#'
+#' @examples
+#' palettes(5)
+#' palettes(5, "ref_density")
 palettes <- function(n = 10, name = c("hcas", "ref_density")) {
     name <- match.arg(name)
 
@@ -21,4 +34,3 @@ palettes <- function(n = 10, name = c("hcas", "ref_density")) {
 
     palette_fn(n)
 }
-

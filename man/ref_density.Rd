@@ -2,7 +2,7 @@
 % Please edit documentation in R/ref_density.R
 \name{ref_density}
 \alias{ref_density}
-\title{Reference density surface}
+\title{Build an HCAS reference density surface}
 \usage{
 ref_density(
   data,
@@ -16,81 +16,118 @@ ref_density(
 )
 }
 \arguments{
-\item{data}{A matrix, SpatRaster (from the \pkg{terra} package), or data.frame containing the input data.
-The data \strong{must} be organised in the following order: \strong{x}, \strong{y}, \strong{predicted-RS},
-\strong{observed-RS} variables. If using a SpatRaster, the \strong{x} and \strong{y} are not required.
-If using a matrix or data.frame, ensure that the variables are in the
-correct order. For more see the details section.}
+\item{data}{A matrix, data.frame, or \pkg{terra} \code{SpatRaster} containing
+input RS data. Matrix and data.frame inputs must be organised as \code{x},
+\code{y}, predicted RS variables, then observed RS variables. Raster inputs
+must contain predicted RS layers followed by observed RS layers in the same
+variable order;}
 
-\item{samples}{A matrix or data.frame containing the x and y coordinates (longitude and latitude)
-of the reference points used for the observed and predicted RS value extraction if \code{data} is a
-raster object. If \code{data} argument is matrix, this will be ignored.}
+\item{samples}{A two-column matrix or data.frame of sample coordinates used
+to extract predicted and observed RS values when \code{data} is a raster.
+Ignored for matrix or data.frame inputs.}
 
-\item{radius_km}{Numeric. Specifies the search radius in kilometers for considering reference samples
-when creating the reference density surface. See details section for more information on distance calculation.}
+\item{radius_km}{Numeric. Search radius, in kilometres, for deciding which
+reference-sample pairs contribute to the density surface.}
 
-\item{bin_width}{Numeric. Specifies the bin width of the reference density surface. Finding the optimal bin width
-may require some experimentation to achieve the best results. The bin width is added as an attribute
-to the output object, ensuring consistency and accuracy in subsequent benchmarking steps.}
+\item{bin_width}{Numeric. Width of each predicted-distance and
+observed-distance bin. Smaller values increase resolution but can produce a
+sparse surface; larger values smooth more aggressively. The value is stored
+as a \code{bin.width} attribute on the output.}
 
-\item{bin_num}{Integer. Specifies the number of bins for the reference density surface. It is generally recommended
-to use the default value of 650. Adjusting \code{bin_width} is often more effective than changing
-\code{bin_num}.}
+\item{bin_num}{Integer. Number of bins along each axis of the density surface.
+The default is usually adequate; tuning \code{bin_width} is generally more
+useful than changing \code{bin_num}.}
 
-\item{drop_features}{Integer vector. Completely remove RS variables from the reference density calculation.
-Positions are 1-based within the RS feature set, not the full input column order. For
-consistency, it is recommended to exclude the same variables later in the benchmarking step; unless
-you have a specific reason not to.}
+\item{drop_features}{Optional integer vector of RS variable positions to
+exclude from the density calculation. Positions are 1-based within the RS
+feature set, not within the full input column order. Use the same exclusion
+in \code{\link{benchmark}} unless there is a deliberate reason not to.}
 
-\item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
-below 1 indicates that all available threads will be utilized (default). Refer to the details section for
-more information.}
+\item{num_threads}{Integer. Number of CPU threads to use. Values below 1 use
+all available OpenMP threads.}
 
-\item{filename}{Character (optional). The name of the output file for saving the results as a .txt file.}
+\item{filename}{Optional character. File path for writing the raw density
+surface as a tab-delimited \file{.txt} file.}
 }
 \value{
-A \code{reference_density} object (also matrix, array)
+A \code{reference_density} object, which is also a matrix/array.
 }
 \description{
-The HCAS reference density surface calculation is based on pair-point densities.
-It is an integral part of HCAS, designed to
-learn the expected observed remote sensing (RS) values from the predicted RS
-values across a wide range of reference sites. Note that the reference sites
-used for \code{ref_density} do not need to be the same as those used in the
-\code{\link{benchmark}} function. See more in details.
+Builds the raw reference density, or probability, surface used by HCAS to
+describe natural variation between predicted and observed remote-sensing (RS)
+variables at reference sites.
 }
 \details{
-Ensure that the order of remote sensing variables is consistent between predicted and observed inputs
-(for both raster and matrix formats). The RS variable values must be centered and scaled
-prior to prediction. Failure to do so may result in variables with larger ranges having
-disproportionate influence in the multi-dimensional distance calculations.
+In HCAS, predicted RS values represent the expected reference-condition signal
+for a site, usually estimated from environmental covariates using
+high-integrity reference ecosystems. Observed RS values are the actual Earth
+observation summaries for the same sites. \code{ref_density()} compares
+reference samples with one another and records how predicted-distance and
+observed-distance co-vary under reference condition.
 
-This function uses an integer-based distance checks for fast radius searches on either
-geographic or projected coordinates. In geographic mode, coordinates are
-stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+For each pair of reference samples within \code{radius_km}, the function
+calculates L1 (Manhattan) distances across all retained RS variables:
 
-    distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+\deqn{d(x, y) = \sum_{j = 1}^{m} |x_j - y_j|}
 
-where cos(lat₁) is derived from the query latitude. This avoids floating-
-point overhead and provides substantial performance gains but introduces
-distortion at larger distances. For applications requiring higher accuracy,
-especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
-use a projected coordinate system so distances in meters can be evaluated directly.
+where \eqn{m} is the number of RS variables. The predicted-distance and
+observed-distance values are then added to a two-dimensional surface with
+resolution controlled by \code{bin_width} and \code{bin_num}. The resulting
+surface is a compact empirical summary of how much observed RS variation is
+expected for a given predicted RS distance among intact or near-intact
+reference samples.
 
-Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
-to take advantage of parallel processing and accelerate computations. While most systems
-include OpenMP by default, you may need to load the appropriate module if you're using an HPC
-system.
+The output of this function is raw and should normally be passed to
+\code{\link{normalise}} before use in \code{\link{benchmark}}. The
+\code{bin.width} attribute is stored on the returned object so that the same
+bin width can be reused during normalisation and benchmarking.
 
-\strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
-before installing this package.
+Matrix and data.frame inputs must be ordered as \code{x}, \code{y}, predicted
+RS variables, then observed RS variables. Raster inputs should contain the
+predicted RS layers followed by the observed RS layers in the same variable
+order; the reference coordinates are supplied separately through
+\code{samples}. Predicted and observed variables should be centred and scaled
+consistently before running this function so that no variable dominates the
+multidimensional distance calculation because of its units or numeric range.
+
+In geographic coordinates, radius searches use a fast integer approximation.
+Coordinates are stored in micro-degrees (\code{degree * 1000000}) and distance
+is approximated by:
+
+\deqn{distance^2 \approx (\Delta \mathrm{lat})^2 + (\Delta \mathrm{lon} \times \cos(\mathrm{lat}_1))^2}{distance^2 ~= (Delta lat)^2 + ((Delta lon) * cos(lat_1))^2}
+
+where \eqn{\Delta \mathrm{lat}}{Delta lat} and \eqn{\Delta \mathrm{lon}}{Delta lon}
+are coordinate differences, and \eqn{\cos(\mathrm{lat}_1)}{cos(lat_1)} is
+derived from the query latitude. This is efficient for large analyses but
+introduces distortion over large areas. For high accuracy at broad regional
+or continental radii, use a projected coordinate reference system so
+distances can be evaluated in metres.
+
+\code{num_threads} uses OpenMP when available. On macOS, installing OpenMP
+support with \code{brew install libomp} before installing the package may be
+required for multi-threaded execution.
 }
 \examples{
 \donttest{
 library(ClassicHCAS)
 
+# Matrix inputs are x, y, predicted RS variables, then observed RS variables.
+reference_data <- cbind(
+    x = c(0, 0.4, 0.8, 1.2, 1.6, 2.0),
+    y = c(0, 0.2, 0.8, 1.0, 1.4, 1.8),
+    rs1 = c(0.10, 0.12, 0.25, 0.30, 0.42, 0.50),
+    rs1 = c(0.11, 0.14, 0.22, 0.33, 0.40, 0.52)
+)
 
+rd <- ref_density(
+    reference_data,
+    radius_km = 250,
+    bin_width = 0.1,
+    bin_num = 20,
+    num_threads = 1
+)
 
+rd_norm <- normalise(rd, trim_size = 10)
 }
 }
 \seealso{

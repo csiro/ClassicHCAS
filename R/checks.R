@@ -89,6 +89,28 @@
 }
 
 
+# validate and canonicalise distance-kernel names
+.check_kernel <- function(kernel) {
+    if (length(kernel) > 1L) {
+        kernel <- kernel[[1L]]
+    }
+
+    if (!is.character(kernel) ||
+        length(kernel) != 1L ||
+        is.na(kernel) ||
+        !nzchar(kernel)) {
+        stop("'kernel' must be 'Gaussian'/'gaussian' or 'Cauchy'/'cauchy'.")
+    }
+
+    kernel <- tolower(kernel)
+    if (!(kernel %in% c("gaussian", "cauchy"))) {
+        stop("'kernel' must be 'Gaussian'/'gaussian' or 'Cauchy'/'cauchy'.")
+    }
+
+    kernel
+}
+
+
 # get the number of RS variables from x, y, predicted..., observed... matrix input
 .num_rs_vars_mat <- function(x, name = "x") {
     n_vars <- (ncol(x) - 2L) / 2L
@@ -153,4 +175,124 @@
 
     keep_layers <- c(keep_features, keep_features + n_vars)
     x[[keep_layers]]
+}
+
+
+# validate and pack a named list of yearly reference sample matrices
+.prepare_temporal_samples <- function(
+        samples,
+        assessment_year,
+        temporal_sigma,
+        drop_features = NULL) {
+
+    if (!is.list(samples) || !length(samples)) {
+        stop(
+            "When 'temporal_sigma' is specified, 'samples' must be a non-empty ",
+            "named list of yearly sample matrices."
+        )
+    }
+
+    sample_year_names <- names(samples)
+    if (is.null(sample_year_names) || any(!nzchar(sample_year_names))) {
+        stop("Temporal 'samples' must be named with their numeric years.")
+    }
+
+    sample_years <- suppressWarnings(as.numeric(sample_year_names))
+    if (any(!is.finite(sample_years)) || anyDuplicated(sample_years)) {
+        stop("Temporal sample names must be unique numeric years.")
+    }
+    if (length(assessment_year) != 1L || !is.finite(assessment_year)) {
+        stop("'assessment_year' must be one finite numeric value.")
+    }
+    if (length(temporal_sigma) != 1L ||
+        !is.finite(temporal_sigma) ||
+        temporal_sigma <= 0) {
+        stop("'temporal_sigma' must be one finite number greater than zero.")
+    }
+
+    year_order <- order(sample_years)
+    sample_years <- sample_years[year_order]
+    samples <- samples[year_order]
+    samples <- lapply(
+        seq_along(samples),
+        function(i) {
+            if (!.is_mat(samples[[i]])) {
+                stop(
+                    sprintf(
+                        "Temporal sample '%s' must be a matrix or convertible to one.",
+                        sample_year_names[year_order][i]
+                    )
+                )
+            }
+            .check_mat(samples[[i]])
+        }
+    )
+
+    n_vars <- .num_rs_vars_mat(samples[[1L]], "samples[[1]]")
+    keep_features <- .keep_rs_features(drop_features, n_vars)
+    base_xy <- samples[[1L]][, 1:2, drop = FALSE]
+    base_pred <- samples[[1L]][, 2L + seq_len(n_vars), drop = FALSE]
+
+    for (i in seq_along(samples)) {
+        current <- samples[[i]]
+        year_label <- sample_year_names[year_order][i]
+
+        if (.num_rs_vars_mat(current, sprintf("samples[['%s']]", year_label)) != n_vars ||
+            nrow(current) != nrow(samples[[1L]])) {
+            stop("All temporal sample matrices must have identical dimensions.")
+        }
+        if (!isTRUE(all.equal(
+            current[, 1:2, drop = FALSE],
+            base_xy,
+            check.attributes = FALSE
+        ))) {
+            stop("All temporal sample matrices must contain the same XY sites in the same row order.")
+        }
+        if (!isTRUE(all.equal(
+            current[, 2L + seq_len(n_vars), drop = FALSE],
+            base_pred,
+            check.attributes = FALSE
+        ))) {
+            stop("Predicted RS values must be constant across temporal sample years.")
+        }
+        if (anyNA(current)) {
+            stop(sprintf("Temporal sample year '%s' contains missing values.", year_label))
+        }
+    }
+
+    pred_cols <- 2L + keep_features
+    obs_cols <- 2L + n_vars + keep_features
+    packed <- cbind(
+        base_xy,
+        samples[[1L]][, pred_cols, drop = FALSE],
+        do.call(
+            cbind,
+            lapply(samples, function(x) x[, obs_cols, drop = FALSE])
+        )
+    )
+    temporal_weights <- exp(
+        -0.5 * ((sample_years - assessment_year) / temporal_sigma)^2
+    )
+
+    list(
+        samples = packed,
+        weights = temporal_weights,
+        years = sample_years,
+        n_vars = n_vars,
+        keep_features = keep_features
+    )
+}
+
+.check_boost <- function(boost) {
+    if (is.null(boost) ||
+        (length(boost) == 1L && isTRUE(is.na(boost)))) {
+        return(NULL)
+    }
+    if (!is.numeric(boost) ||
+        length(boost) != 1L ||
+        !is.finite(boost) ||
+        boost <= 0) {
+        stop("'boost' must be NULL, NA, or one finite number greater than zero.")
+    }
+    as.numeric(boost)
 }

@@ -2,61 +2,72 @@
 % Please edit documentation in R/radial_count.R
 \name{radial_count}
 \alias{radial_count}
-\title{Number of samples within a radius}
+\title{Count samples within a radius around each raster cell}
 \usage{
 radial_count(x, samples_xy, radius_km = 200, num_threads = -1, ...)
 }
 \arguments{
-\item{x}{A SpatRaster representing the study area over which sample density will be calculated.}
+\item{x}{A \pkg{terra} \code{SpatRaster} whose cells define the locations
+where sample counts are calculated. Only the first layer is used.}
 
-\item{samples_xy}{A matrix or data.frame containing x and y coordinates (longitude and latitude)
-of the reference points used for density calculation.}
+\item{samples_xy}{A two-column matrix or data.frame containing sample
+coordinates in the same coordinate reference system as \code{x}.}
 
-\item{radius_km}{Numeric. Specifies the search radius (buffer) in kilometers.}
+\item{radius_km}{Numeric. Search radius, in kilometres.}
 
-\item{num_threads}{Integer. Specifies the number of CPU threads to be used for processing. A value
-below 1 indicates that all available threads will be utilized. Refer to the details section for
-more information.}
+\item{num_threads}{Integer. Number of CPU threads to use. Values below 1 use
+all available OpenMP threads.}
 
-\item{...}{Additional arguments for writing raster outputs e.g. \code{filename},
-\code{overwrite}, and \code{wopt} from terra \code{\link[terra]{predict}}.}
+\item{...}{Additional arguments passed to \code{\link[terra]{interpolate}},
+such as \code{filename}, \code{overwrite}, or \code{wopt}.}
 }
 \value{
-A SpatRaster
+A \pkg{terra} \code{SpatRaster} containing sample counts.
 }
 \description{
-This function calculates the number of samples (x, y coordinates) within a specified radius
-for each pixel in a raster map.
+Counts how many sample points fall within a specified radius of each cell in a
+raster. In HCAS workflows this is mainly an operational helper for mapping
+local reference-sample support and for creating workload weights before
+tiling large benchmarking jobs.
 }
 \details{
-This function uses an integer-based distance checks for fast radius searches on either
-geographic or projected coordinates. In geographic mode, coordinates are
-stored in micro-degrees (degree * 1000_000) and the distance is approximated by:
+\code{radial_count()} does not calculate habitat condition. It produces a
+sample-density raster that can help diagnose sparse reference coverage or
+guide \code{\link{tiling}} so densely sampled areas with heavy computation
+are balanced across tiles.
 
-    distance² ≈ (dlat)² + (dlon × cos(lat₁))²
+In geographic coordinates, radius searches use a fast integer approximation.
+Coordinates are stored in micro-degrees (\code{degree * 1000000}) and distance
+is approximated by:
 
-where cos(lat₁) is derived from the query latitude. This avoids floating-
-point overhead and provides substantial performance gains but introduces
-distortion at larger distances. For applications requiring higher accuracy,
-especially beyond regional scales (more than several 100s of kilometers in \code{radius_km}),
-use a projected coordinate system so distances in meters can be evaluated directly.
+\deqn{distance^2 \approx (\Delta \mathrm{lat})^2 + (\Delta \mathrm{lon} \times \cos(\mathrm{lat}_1))^2}{distance^2 ~= (Delta lat)^2 + ((Delta lon) * cos(lat_1))^2}
 
-Ensure that \href{https://en.wikipedia.org/wiki/OpenMP}{OpenMP} is installed on your system
-to take advantage of parallel processing and accelerate computations. While most systems
-include OpenMP by default, you may need to load the appropriate module if you're using an HPC
-system.
+where \eqn{\Delta \mathrm{lat}}{Delta lat} and \eqn{\Delta \mathrm{lon}}{Delta lon}
+are coordinate differences, and \eqn{\cos(\mathrm{lat}_1)}{cos(lat_1)} is
+derived from the query latitude. This is efficient for large analyses but
+introduces distortion over large areas. For high accuracy at broad regional
+or continental radii, use a projected coordinate reference system so
+distances can be evaluated in metres.
 
-\strong{Note for macOS users:} Install OpenMP via Homebrew with \code{brew install libomp}
-before installing this package.
+\code{num_threads} uses OpenMP when available. On macOS, installing OpenMP
+support with \code{brew install libomp} before installing the package may be
+required for multi-threaded execution.
 }
 \examples{
 \donttest{
 library(ClassicHCAS)
 
+r <- terra::rast(
+    nrows = 10, ncols = 10,
+    xmin = 0, xmax = 1, ymin = 0, ymax = 1,
+    crs = "EPSG:4326"
+)
 
-
+samples <- cbind(x = c(0.2, 0.8), y = c(0.2, 0.8))
+counts <- radial_count(r, samples, radius_km = 50, num_threads = 1)
+counts
 }
 }
 \seealso{
-\code{\link{benchmark}}
+\code{\link{benchmark}}, \code{\link{tiling}}
 }

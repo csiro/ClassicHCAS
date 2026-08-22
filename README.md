@@ -3,6 +3,7 @@
 [![R build
 status](https://github.com/csiro/ClassicHCAS/workflows/R-CMD-check/badge.svg)](https://github.com/csiro/ClassicHCAS/actions)
 ![maintenance-status](https://img.shields.io/badge/maintenance-active-brightgreen.svg)
+[![GitHub](https://img.shields.io/github/r-package/v/csiro/ClassicHCAS/master?label=GitHub)](https://github.com/csiro/ClassicHCAS)
 
 ## What is ClassicHCAS?
 

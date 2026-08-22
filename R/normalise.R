@@ -1,35 +1,59 @@
-#' Clean and normalise HCAS reference density
+#' Clean and normalise an HCAS reference density surface
 #'
-#' This process includes trimming the reference density surface to remove noise and
-#' normalising its values.
+#' Trims and normalises the raw reference density surface returned by
+#' \code{\link{ref_density}} so it can be used as a probability surface in
+#' \code{\link{benchmark}}.
+#'
+#' @details
+#' The raw reference density surface is a two-dimensional surface of predicted
+#' and observed RS distances among reference samples. Before benchmarking, the
+#' surface is smoothed, trimmed to remove noisy outer bins, and normalised with
+#' respect to predicted-distance bins. This makes each predicted-distance slice
+#' comparable when \code{\link{benchmark}} asks how probable an observed
+#' departure is for a target location.
+#'
+#' \code{trim_size} controls the dimensions of the retained square surface. It
+#' should be smaller than the number of bins used in
+#' \code{\link{ref_density}}. The default is chosen for the standard HCAS
+#' workflow; smaller examples or exploratory analyses can use smaller values.
+#'
+#' \code{offset} removes bins nearest the origin before normalisation. It is
+#' useful when the near-zero distance cells contain self-overlap or other
+#' artefacts. The value is stored on the returned \code{reference_density}
+#' object and must be kept consistent in \code{\link{benchmark}}.
 #'
 #' @param x An HCAS \code{reference_density} object or a matrix representing the
-#' reference density surface (see \code{\link{ref_density}}).
-#' @param bin_width Numeric. Specifies the bin width of the reference density. If
-#' \code{x} is a \strong{reference_density} object, this value can be read from
-#' its attributes and may be left \code{NULL}. The bin width must be consistent
-#' between the reference density creation and the benchmarking step to ensure
-#' condition is accurately calculated.
-#' @param trim_size Integer. Defines the number of rows and columns in the trimmed reference density. The default
-#' is 400, and it is generally advisable to retain this default setting.
-#' @param offset Integer. Specifies the number of reference density bins to ignore during normalization. This value
-#' will be stored as an attribute in the output object.
-#' @param legacy Logical. Whether to use the legacy C++ code for normalisation (for backward
-#' compatibility) or the modern R version (default). The modern version solves the edge effect
-#' issue without any speed compromise.
-#' @param filename Char (optional). The output file name for the .text file.
+#' raw reference density surface created by \code{\link{ref_density}}.
+#' @param bin_width Numeric. Bin width used to create the reference density. If
+#' \code{x} is a \code{reference_density} object, the value is read from its
+#' \code{bin.width} attribute when \code{bin_width = NULL}. The value must match
+#' the density surface used during benchmarking.
+#' @param trim_size Integer. Number of rows and columns to keep in the trimmed
+#' reference density surface.
+#' @param offset Integer. Number of near-origin bins to ignore during
+#' normalisation. Stored as an attribute on the output.
+#' @param legacy Logical. If \code{TRUE}, use the legacy C++ normalisation code
+#' for backward compatibility. The default R implementation avoids the previous
+#' edge effect while retaining similar speed for typical use.
+#' @param filename Optional character. File path for writing the normalised
+#' surface as a tab-delimited \file{.txt} file.
 #'
 #' @seealso \code{\link{ref_density}}, and \code{\link{benchmark}}
 #'
-#' @return A \code{reference_density} object (also matrix, array)
+#' @return A \code{reference_density} object, which is also a matrix/array.
 #' @export
 #'
 #' @examples
 #' \donttest{
 #' library(ClassicHCAS)
 #'
+#' raw <- matrix(rexp(30 * 30), nrow = 30)
+#' class(raw) <- c("reference_density", "matrix", "array")
+#' attr(raw, "bin.width") <- 0.1
 #'
-#'
+#' norm <- normalise(raw, trim_size = 15)
+#' attr(norm, "bin.width")
+#' attr(norm, "offset")
 #' }
 normalise <- function(
         x,
@@ -130,4 +154,3 @@ normalise <- function(
         t(mat)
     )
 }
-

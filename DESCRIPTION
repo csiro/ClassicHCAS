@@ -1,14 +1,22 @@
 Package: ClassicHCAS
 Type: Package
 Title: The Classic Habitat Condition Assessment System (HCAS)
-Version: 1.1.0
-Date: 2026-03-18
-Author: Roozbeh Valavi, Eric Lehmann, Kristen Williams, Mike Birchall, Simon Collings, Simon Ferrier, and Tom Harwood
-Maintainer: <roozbeh.valavi@csiro.au>
+Version: 2.0.0
+Date: 2026-07-02
+Authors@R: c(
+    person(given = "Roozbeh", family = "Valavi",
+           email = "roozbeh.valavi@csiro.au", role = c("aut", "cre")),
+    person(given = "Kristen", family = "Williams", role = "aut"),
+    person(given = "Eric", family = "Lehmann", role = "aut"),
+    person(given = "Simon", family = "Collings", role = "aut"),
+    person(given = "Tom", family = "Harwood", role = "aut"),
+    person(given = "Mike", family = "Birchall", role = "aut"),
+    person(given = "Simon", family = "Ferrier", role = "aut"))
 URL: https://github.com/csiro/ClassicHCAS
 BugReports: https://github.com/csiro/ClassicHCAS/issues
+Maintainer: Roozbeh Valavi <roozbeh.valavi@csiro.au>
 Description: The HCAS evaluates habitat condition by comparing observed and 
-  predicted remote sensing variables using reference ecosystem samples (Valavi et al. 2026).
+  predicted remote sensing variables using reference ecosystem samples.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -19,12 +27,17 @@ Imports:
   scales,
   terra (>= 1.7.71)
 Suggests:
+  ggplot2,
+  leafem,
+  leaflet,
   methods,
   knitr,
   rmarkdown,
+  shiny,
+  shinyWidgets,
   tinytest,
   testthat (>= 3.0.0)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LinkingTo: 

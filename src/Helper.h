@@ -6,12 +6,13 @@
 #include <algorithm>
 #include <utility> // for std::pair
 #include "Float32_t.h" // importing float32_t
+#include "Kernel.h"
 
 // a struct to hold both condition and SU values
 struct Condition
 {
     double hc;
-    double su;
+    double log_su;
 };
 
 
@@ -87,13 +88,199 @@ std::vector<int> combined_Search(
 }
 
 
-// HCAS Cauchy weighted condition calculation using reference density values and env distances
+// get the probability value from the reference density table
+inline double get_prob_value(const RowMajorMatrix<double>& ref_density,
+                             const float dist_pre,
+                             const float dist_obs,
+                             const float w_bin,
+                             const int n_bin,
+                             const int offset)
+{
+    if (w_bin <= 0.0f || ref_density.rows() == 0 || ref_density.cols() == 0) {
+        return 0.0;
+    }
+
+    const float inverse_w_bin = 1.0f / w_bin;
+    const int max_i = std::min(n_bin - 1, static_cast<int>(ref_density.rows()) - 1);
+    const int max_j = std::min(n_bin - 1, static_cast<int>(ref_density.cols()) - 1);
+
+    // static_cast over std::floor??
+    int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_i);
+    int jj = std::min(static_cast<int>(dist_obs * inverse_w_bin), max_j);
+    // make sure there won't be negative values of i and j
+    ii = std::max(ii - offset, 0);
+    jj = std::max(jj - offset, 0);
+
+    return ref_density(ii, jj);
+}
+
+
+// HCAS distance-weighted condition calculation using reference density values
+// and predicted environmental distances.
 inline Condition get_Condition(
     const std::vector<double> &prob_values, // reference density probability values
-    const std::vector<double> &pred_dists,  // the predicted/modelled distance
-    double prob_max,                        // max probability value of the 20 records
-    const double confidence,                // the confidence value
-    const double lambda)                    // the lambda of the Cauchy weighting
+    const std::vector<double> &pred_dists,  // predicted/modelled distances
+    const double confidence,                // LDC maximum-probability blend
+    const double lambda,                    // distance-kernel bandwidth
+    const DistanceKernel kernel,            // selected distance kernel
+    const double boost)                     // optional maximum-probability weight multiplier
+{
+    const int n = static_cast<int>(prob_values.size());
+    const double DEFAULT_HC = -2.0;
+    const double NO_SUPPORT = std::numeric_limits<double>::quiet_NaN();
+
+    if (n == 0 ||
+        pred_dists.size() != prob_values.size() ||
+        !std::isfinite(lambda) ||
+        !(lambda > 0.0) ||
+        (!std::isnan(boost) && (!std::isfinite(boost) || !(boost > 0.0)))) {
+        return {DEFAULT_HC, NO_SUPPORT};
+    }
+
+    // Shift all log weights by their maximum. At least one relative weight is
+    // then exactly one, so the weighted mean cannot fail solely because every
+    // absolute kernel weight underflowed to zero.
+    double max_log_weight = -std::numeric_limits<double>::infinity();
+    for (int i = 0; i < n; ++i)
+    {
+        if (!std::isfinite(pred_dists[i]) ||
+            !std::isfinite(prob_values[i])) {
+            continue;
+        }
+
+        const double log_weight = log_distance_weight(
+            pred_dists[i],
+            lambda,
+            kernel
+        );
+        if (std::isfinite(log_weight)) {
+            max_log_weight = std::max(max_log_weight, log_weight);
+        }
+    }
+
+    if (!std::isfinite(max_log_weight)) {
+        return {DEFAULT_HC, NO_SUPPORT};
+    }
+
+    double relative_w_sum = 0.0;
+    double relative_p_sum = 0.0;
+    double prob_max = -std::numeric_limits<double>::infinity();
+    int prob_max_index = -1;
+
+    for (int i = 0; i < n; ++i)
+    {
+        if (!std::isfinite(pred_dists[i]) ||
+            !std::isfinite(prob_values[i])) {
+            continue;
+        }
+
+        const double log_weight = log_distance_weight(
+            pred_dists[i],
+            lambda,
+            kernel
+        );
+        if (!std::isfinite(log_weight)) {
+            continue;
+        }
+
+        const double relative_exponent =
+            std::min(0.0, log_weight - max_log_weight);
+        const double relative_weight = std::exp(relative_exponent);
+        const double relative_weighted_prob =
+            prob_values[i] * relative_weight;
+
+        relative_p_sum += relative_weighted_prob;
+        relative_w_sum += relative_weight;
+        if (prob_values[i] > prob_max) {
+            prob_max = prob_values[i];
+            prob_max_index = i;
+        }
+    }
+
+    if (!(relative_w_sum > 0.0)) {
+        return {DEFAULT_HC, NO_SUPPORT};
+    }
+
+    // The common absolute scale cancels from the weighted mean.
+    const double p_mean = relative_p_sum / relative_w_sum;
+    const double log_raw_scale = max_log_weight;
+    double hc =
+        (prob_max * confidence) + (p_mean * (1.0 - confidence));
+
+    if (!std::isnan(boost)) {
+        // Apply the boost in log space so large factors cannot overflow and can
+        // still revive a very small kernel weight that underflowed previously.
+        const double log_boost = std::log(boost);
+        double max_boosted_log_weight =
+            -std::numeric_limits<double>::infinity();
+        for (int i = 0; i < n; ++i) {
+            if (!std::isfinite(pred_dists[i]) ||
+                !std::isfinite(prob_values[i])) {
+                continue;
+            }
+            const double log_weight = log_distance_weight(
+                pred_dists[i],
+                lambda,
+                kernel
+            );
+            if (!std::isfinite(log_weight)) {
+                continue;
+            }
+            const double boosted_log_weight = log_weight +
+                (i == prob_max_index ? log_boost : 0.0);
+            max_boosted_log_weight = std::max(
+                max_boosted_log_weight,
+                boosted_log_weight
+            );
+        }
+
+        double boosted_p_sum = 0.0;
+        double boosted_w_sum = 0.0;
+        for (int i = 0; i < n; ++i) {
+            if (!std::isfinite(pred_dists[i]) ||
+                !std::isfinite(prob_values[i])) {
+                continue;
+            }
+            const double log_weight = log_distance_weight(
+                pred_dists[i],
+                lambda,
+                kernel
+            );
+            if (!std::isfinite(log_weight)) {
+                continue;
+            }
+            const double boosted_log_weight = log_weight +
+                (i == prob_max_index ? log_boost : 0.0);
+            const double boosted_weight = std::exp(std::min(
+                0.0,
+                boosted_log_weight - max_boosted_log_weight
+            ));
+            boosted_p_sum += prob_values[i] * boosted_weight;
+            boosted_w_sum += boosted_weight;
+        }
+        if (!(boosted_w_sum > 0.0) || !std::isfinite(boosted_w_sum)) {
+            return {DEFAULT_HC, NO_SUPPORT};
+        }
+        hc = boosted_p_sum / boosted_w_sum;
+    }
+
+    // Store support in log space so even extremely small absolute support
+    // remains representable.
+    const double log_support =
+        log_raw_scale + std::log(relative_w_sum);
+
+    return {hc, log_support};
+}
+
+
+/*
+// HCAS Cauchy weighted condition calculation using reference density values and env distances
+inline Condition get_Condition(
+        const std::vector<double> &prob_values, // reference density probability values
+        const std::vector<double> &pred_dists,  // the predicted/modelled distance
+        double prob_max,                        // max probability value of the 20 records
+        const double confidence,                // the confidence value
+        const double lambda)                    // the lambda of the Cauchy weighting
 {
     const int n = prob_values.size();
 
@@ -127,31 +314,4 @@ inline Condition get_Condition(
 
     return {hc, w_sum};
 }
-
-
-// get the probability value from the reference density table
-inline double get_prob_value(const RowMajorMatrix<double>& ref_density,
-                             const float dist_pre,
-                             const float dist_obs,
-                             const float w_bin,
-                             const int n_bin,
-                             const int offset)
-{
-    if (w_bin <= 0.0f || ref_density.rows() == 0 || ref_density.cols() == 0) {
-        return 0.0;
-    }
-
-    const float inverse_w_bin = 1.0f / w_bin;
-    const int max_i = std::min(n_bin - 1, static_cast<int>(ref_density.rows()) - 1);
-    const int max_j = std::min(n_bin - 1, static_cast<int>(ref_density.cols()) - 1);
-
-    // static_cast over std::floor??
-    int ii = std::min(static_cast<int>(dist_pre * inverse_w_bin), max_i);
-    int jj = std::min(static_cast<int>(dist_obs * inverse_w_bin), max_j);
-    // make sure there won't be negative values of i and j
-    ii = std::max(ii - offset, 0);
-    jj = std::max(jj - offset, 0);
-
-    return ref_density(ii, jj);
-}
-
+*/
