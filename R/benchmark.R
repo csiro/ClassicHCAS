@@ -32,8 +32,8 @@
 #'   If the experimental temporal mode is enabled, each retained site is queried
 #'   once per reference year, and a Gaussian year weight selects and weights the
 #'   site's most relevant year.
-#'   \item Up to \code{k2} samples with the highest reference-density
-#'   probability are retained for condition estimation.
+#'   \item Up to \code{k2} samples are retained for condition estimation using
+#'   the selection rule specified by \code{k2_method}.
 #' }
 #'
 #' The retained probability values are combined using the distance kernel
@@ -110,9 +110,15 @@
 #' benchmark samples.
 #' @param k1 Integer. First-stage filter size: the number of nearest samples to
 #' retain after the predicted RS distance search.
-#' @param k2 Integer. Second-stage filter size: the number of high-probability
-#' samples to retain from the reference density query. Must be less than or
-#' equal to \code{k1}.
+#' @param k2 Integer. Second-stage filter size: the number of samples to retain
+#' from the \code{k1} candidate set. Must be less than or equal to \code{k1}.
+#' @param k2_method Character. Second-stage reference-selection method.
+#' \code{"probability"} (default) retains the highest reference-density
+#' probabilities and preserves legacy behaviour. The experimental comparison
+#' options \code{"residual"} and \code{"observed"} retain the smallest
+#' \code{abs(observed RS distance - predicted RS distance)} and the smallest
+#' observed RS distance, respectively. This changes only which references are
+#' retained; kernel weights remain based on predicted RS distance.
 #' @param bin_width Numeric. Bin width used to create and normalise
 #' \code{ref_density}. If \code{ref_density} is a \code{reference_density}
 #' object, this value is read from its \code{bin.width} attribute when
@@ -151,8 +157,8 @@
 #' mode that has not been validated as a drop-in replacement for standard
 #' non-temporal benchmarking; \code{NULL} or \code{NA} disables it. When
 #' enabled, the selected reference-density probability is multiplied by the
-#' selected year's temporal weight before \code{k2} selection and condition
-#' estimation.
+#' selected year's temporal weight before condition estimation and, when
+#' \code{k2_method = "probability"}, \code{k2} selection.
 #' @param make_su Logical. If \code{TRUE}, return both raw condition and
 #' \code{su}, the log of the total distance-weight sum.
 #' @param kernel Character. Distance kernel applied to retained-reference
@@ -224,9 +230,11 @@ benchmark <- function(
         make_su = FALSE,
         num_threads = -1,
         boost = k2,
+        k2_method = "probability",
         ...) {
 
     kernel <- .check_kernel(kernel)
+    k2_method <- .check_k2_method(k2_method)
     dots <- list(...)
     legacy_k <- intersect(names(dots), c("k_pred", "k_obs"))
     if (length(legacy_k)) {
@@ -354,7 +362,8 @@ benchmark <- function(
                     temporal_weights = temporal_weights,
                     make_su = make_su,
                     num_threads = num_threads,
-                    kernel = kernel
+                    kernel = kernel,
+                    k2_method = k2_method
                 )
             },
             error = function(cond) {
@@ -415,6 +424,7 @@ benchmark <- function(
                     make_su = make_su,
                     num_threads = num_threads,
                     kernel = kernel,
+                    k2_method = k2_method,
                     ...
                 )
             },

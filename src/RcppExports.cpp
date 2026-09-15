@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // bench_cpp
-Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, Rcpp::Nullable<Rcpp::NumericVector> temporal_weights, bool make_su, int num_threads, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost);
-RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP temporal_weightsSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP, SEXP kernelSEXP, SEXP boostSEXP) {
+Rcpp::NumericMatrix bench_cpp(const Rcpp::NumericMatrix& raster_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, Rcpp::Nullable<Rcpp::NumericVector> temporal_weights, bool make_su, int num_threads, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost, std::string k2_method);
+RcppExport SEXP _ClassicHCAS_bench_cpp(SEXP raster_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP temporal_weightsSEXP, SEXP make_suSEXP, SEXP num_threadsSEXP, SEXP kernelSEXP, SEXP boostSEXP, SEXP k2_methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,7 +37,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type boost(boostSEXP);
-    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, temporal_weights, make_su, num_threads, kernel, boost));
+    Rcpp::traits::input_parameter< std::string >::type k2_method(k2_methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(bench_cpp(raster_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, temporal_weights, make_su, num_threads, kernel, boost, k2_method));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -88,8 +89,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // reference_use_cpp
-Rcpp::List reference_use_cpp(const Rcpp::NumericMatrix& target_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, int num_threads, bool weighted_max, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost);
-RcppExport SEXP _ClassicHCAS_reference_use_cpp(SEXP target_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP num_threadsSEXP, SEXP weighted_maxSEXP, SEXP kernelSEXP, SEXP boostSEXP) {
+Rcpp::List reference_use_cpp(const Rcpp::NumericMatrix& target_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double confidence, double lambda, bool exclude_slef, int num_threads, bool weighted_max, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost, std::string k2_method);
+RcppExport SEXP _ClassicHCAS_reference_use_cpp(SEXP target_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP confidenceSEXP, SEXP lambdaSEXP, SEXP exclude_slefSEXP, SEXP num_threadsSEXP, SEXP weighted_maxSEXP, SEXP kernelSEXP, SEXP boostSEXP, SEXP k2_methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -112,7 +113,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type weighted_max(weighted_maxSEXP);
     Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type boost(boostSEXP);
-    rcpp_result_gen = Rcpp::wrap(reference_use_cpp(target_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, num_threads, weighted_max, kernel, boost));
+    Rcpp::traits::input_parameter< std::string >::type k2_method(k2_methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(reference_use_cpp(target_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, confidence, lambda, exclude_slef, num_threads, weighted_max, kernel, boost, k2_method));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -131,8 +133,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // variable_importance_cpp
-Rcpp::NumericMatrix variable_importance_cpp(const Rcpp::NumericMatrix& target_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double lambda, double epsilon, std::string output, bool exclude_slef, int num_threads, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost);
-RcppExport SEXP _ClassicHCAS_variable_importance_cpp(SEXP target_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP lambdaSEXP, SEXP epsilonSEXP, SEXP outputSEXP, SEXP exclude_slefSEXP, SEXP num_threadsSEXP, SEXP kernelSEXP, SEXP boostSEXP) {
+Rcpp::NumericMatrix variable_importance_cpp(const Rcpp::NumericMatrix& target_vals, const Rcpp::NumericMatrix& sample_vals, const Rcpp::NumericMatrix& ref_density, const Rcpp::NumericVector& xy_stats, double xy_penalty, bool geographic, double radius_km, int k_env, int k_rs, double bin_width, int bin_num, int offset, double lambda, double epsilon, std::string output, bool exclude_slef, int num_threads, std::string kernel, Rcpp::Nullable<Rcpp::NumericVector> boost, std::string k2_method);
+RcppExport SEXP _ClassicHCAS_variable_importance_cpp(SEXP target_valsSEXP, SEXP sample_valsSEXP, SEXP ref_densitySEXP, SEXP xy_statsSEXP, SEXP xy_penaltySEXP, SEXP geographicSEXP, SEXP radius_kmSEXP, SEXP k_envSEXP, SEXP k_rsSEXP, SEXP bin_widthSEXP, SEXP bin_numSEXP, SEXP offsetSEXP, SEXP lambdaSEXP, SEXP epsilonSEXP, SEXP outputSEXP, SEXP exclude_slefSEXP, SEXP num_threadsSEXP, SEXP kernelSEXP, SEXP boostSEXP, SEXP k2_methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -155,19 +157,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type boost(boostSEXP);
-    rcpp_result_gen = Rcpp::wrap(variable_importance_cpp(target_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, lambda, epsilon, output, exclude_slef, num_threads, kernel, boost));
+    Rcpp::traits::input_parameter< std::string >::type k2_method(k2_methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(variable_importance_cpp(target_vals, sample_vals, ref_density, xy_stats, xy_penalty, geographic, radius_km, k_env, k_rs, bin_width, bin_num, offset, lambda, epsilon, output, exclude_slef, num_threads, kernel, boost, k2_method));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 20},
+    {"_ClassicHCAS_bench_cpp", (DL_FUNC) &_ClassicHCAS_bench_cpp, 21},
     {"_ClassicHCAS_norm_cpp", (DL_FUNC) &_ClassicHCAS_norm_cpp, 3},
     {"_ClassicHCAS_radial_count_cpp", (DL_FUNC) &_ClassicHCAS_radial_count_cpp, 5},
     {"_ClassicHCAS_ref_density_cpp", (DL_FUNC) &_ClassicHCAS_ref_density_cpp, 8},
-    {"_ClassicHCAS_reference_use_cpp", (DL_FUNC) &_ClassicHCAS_reference_use_cpp, 19},
+    {"_ClassicHCAS_reference_use_cpp", (DL_FUNC) &_ClassicHCAS_reference_use_cpp, 20},
     {"_ClassicHCAS_tiling_cpp", (DL_FUNC) &_ClassicHCAS_tiling_cpp, 4},
-    {"_ClassicHCAS_variable_importance_cpp", (DL_FUNC) &_ClassicHCAS_variable_importance_cpp, 19},
+    {"_ClassicHCAS_variable_importance_cpp", (DL_FUNC) &_ClassicHCAS_variable_importance_cpp, 20},
     {NULL, NULL, 0}
 };
 

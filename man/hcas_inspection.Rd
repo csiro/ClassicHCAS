@@ -27,6 +27,7 @@ hcas_inspection(
   launch = interactive(),
   kernel = c("Gaussian", "Cauchy"),
   boost = k2,
+  k2_method = "probability",
   ...
 )
 }
@@ -58,9 +59,8 @@ benchmark samples.}
 \item{k1}{Integer. First-stage filter size: the number of nearest samples to
 retain after the predicted RS distance search.}
 
-\item{k2}{Integer. Second-stage filter size: the number of high-probability
-samples to retain from the reference density query. Must be less than or
-equal to \code{k1}.}
+\item{k2}{Integer. Second-stage filter size: the number of samples to retain
+from the \code{k1} candidate set. Must be less than or equal to \code{k1}.}
 
 \item{bin_width}{Numeric. Bin width used to create and normalise
 \code{ref_density}. If \code{ref_density} is a \code{reference_density}
@@ -130,6 +130,14 @@ highest-probability retained site by \code{k2} and returns the resulting
 weighted mean instead of the LDC blend. \code{confidence} is ignored in this
 mode. Use \code{NULL} or \code{NA} for the unboosted LDC blend.}
 
+\item{k2_method}{Character. Second-stage reference-selection method.
+\code{"probability"} (default) retains the highest reference-density
+probabilities and preserves legacy behaviour. The experimental comparison
+options \code{"residual"} and \code{"observed"} retain the smallest
+\code{abs(observed RS distance - predicted RS distance)} and the smallest
+observed RS distance, respectively. This changes only which references are
+retained; kernel weights remain based on predicted RS distance.}
+
 \item{...}{Additional arguments passed to \code{\link[shiny]{runApp}} when
 \code{launch = TRUE}, such as \code{host}, \code{port}, or
 \code{launch.browser}.}
@@ -150,8 +158,8 @@ predicted and observed distances on the reference-density surface.
 The inspection tool uses the current \code{\link{benchmark}} and
 \code{\link{reference_use}} implementations. Consequently, its controls map
 directly to the current benchmarking arguments: \code{k1} is the first-stage
-predicted-distance filter, \code{k2} is the reference-density filter, and
-\code{xy_penalty} applies the optional scaled-coordinate penalty. Feature
+predicted-distance filter, \code{k2_method} controls the \code{k2} filter,
+and \code{xy_penalty} applies the optional scaled-coordinate penalty. Feature
 counts, geographic distance handling, density dimensions, and density
 metadata are inferred by ClassicHCAS rather than supplied as legacy fixed
 values.

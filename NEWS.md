@@ -1,3 +1,7 @@
+# Version 2.1.0
+
+- Added experimental `k2_method = "residual"` and `k2_method = "observed"` comparison options to `benchmark()`, `reference_use()`, `variable_importance()`, and `hcas_inspection()`. The unchanged probability-based selection remains the default, and all retained-reference kernel weights continue to use predicted RS distance.
+
 # Version 2.0.0
 
 - Added a boosted condition estimator to `benchmark()`, `reference_use()`, `variable_importance()`, and `hcas_inspection()`. The default is now `boost = k2`, with `k1 = 70` and `k2 = 10`: the highest-probability retained site's kernel weight is multiplied by the boost factor before computing condition, condition attribution, or variable-importance weights. Set `boost = NULL` or `boost = NA` to use the previous unboosted LDC/ordinary-kernel behaviour.

@@ -24,6 +24,7 @@ variable_importance(
   num_threads = -1,
   kernel = c("Gaussian", "Cauchy"),
   boost = k2,
+  k2_method = "probability",
   ...
 )
 }
@@ -58,9 +59,8 @@ benchmark samples.}
 \item{k1}{Integer. First-stage filter size: the number of nearest samples to
 retain after the predicted RS distance search.}
 
-\item{k2}{Integer. Second-stage filter size: the number of high-probability
-samples to retain from the reference density query. Must be less than or
-equal to \code{k1}.}
+\item{k2}{Integer. Second-stage filter size: the number of samples to retain
+from the \code{k1} candidate set. Must be less than or equal to \code{k1}.}
 
 \item{bin_width}{Numeric. Bin width used to create and normalise
 \code{ref_density}. If \code{ref_density} is a \code{reference_density}
@@ -109,6 +109,14 @@ highest-probability retained reference by \code{k2} before signal and noise
 are computed. Use \code{NULL} or \code{NA} for ordinary unboosted kernel
 weights.}
 
+\item{k2_method}{Character. Second-stage reference-selection method.
+\code{"probability"} (default) retains the highest reference-density
+probabilities and preserves legacy behaviour. The experimental comparison
+options \code{"residual"} and \code{"observed"} retain the smallest
+\code{abs(observed RS distance - predicted RS distance)} and the smallest
+observed RS distance, respectively. This changes only which references are
+retained; kernel weights remain based on predicted RS distance.}
+
 \item{...}{Additional arguments passed to \code{\link[terra]{interpolate}}
 when benchmarking raster outputs, such as \code{filename}, \code{overwrite},
 or \code{wopt}.}
@@ -132,8 +140,8 @@ rather than treating importance as a global property of a variable.
 \code{variable_importance()} reuses the same non-temporal three-stage
 reference selection as \code{\link{benchmark}}: candidates are restricted to
 those within \code{radius_km}, the \code{k1} nearest in predicted RS
-space (with an optional XY penalty) are retained, and the \code{k2} with
-the highest reference-density probability are kept. Each retained reference
+space (with an optional XY penalty) are retained, and \code{k2_method}
+chooses the \code{k2} that are kept. Each retained reference
 is weighted with the same selected distance kernel on predicted RS
 distance used by \code{benchmark()}, so the diagnostic reports on the
 reference set and weights that benchmarking actually uses. With

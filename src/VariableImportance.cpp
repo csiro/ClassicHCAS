@@ -85,7 +85,7 @@ std::vector<int> descending_probability_order(std::vector<double>& values)
 //
 // For each target cell the same three-stage reference selection used by
 // benchmark() is run (radius -> k_env nearest in predicted RS + optional XY
-// penalty -> k_rs highest reference-density probability). For each retained
+// penalty -> k_rs selected by the requested second-stage method). For each retained
 // reference site a selected-kernel weight is derived from predicted RS distance,
 // exactly as in get_Condition(); when boost is supplied, the maximum-probability
 // retained reference's weight is multiplied before normalisation. For every RS
@@ -126,7 +126,8 @@ Rcpp::NumericMatrix variable_importance_cpp(
     bool exclude_slef = true,
     int num_threads = -1,
     std::string kernel = "gaussian",
-    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue)
+    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue,
+    std::string k2_method = "probability")
 {
     double boost_factor = std::numeric_limits<double>::quiet_NaN();
     if (boost.isNotNull()) {
@@ -169,6 +170,11 @@ Rcpp::NumericMatrix variable_importance_cpp(
     }
     const DistanceKernel kernel_method =
         distance_kernel_from_string(kernel);
+    const K2SelectionMethod k2_selection_method =
+        k2_selection_method_from_string(k2_method);
+    if (k2_selection_method == K2SelectionMethod::Invalid) {
+        Rcpp::stop("'k2_method' must be 'probability', 'residual', or 'observed'.");
+    }
     if (!(epsilon >= 0.0) || !std::isfinite(epsilon)) {
         Rcpp::stop("'epsilon' must be a finite, non-negative number.");
     }
@@ -259,9 +265,11 @@ Rcpp::NumericMatrix variable_importance_cpp(
 
         std::vector<int> candidate_sites;
         std::vector<double> predicted_distances;
+        std::vector<double> observed_distances;
         std::vector<double> probabilities;
         candidate_sites.reserve(knn_env.size());
         predicted_distances.reserve(knn_env.size());
+        observed_distances.reserve(knn_env.size());
         probabilities.reserve(knn_env.size());
 
         for (const int site : knn_env)
@@ -288,6 +296,7 @@ Rcpp::NumericMatrix variable_importance_cpp(
 
             candidate_sites.push_back(site);
             predicted_distances.push_back(static_cast<double>(predicted_distance));
+            observed_distances.push_back(static_cast<double>(observed_distance));
             probabilities.push_back(probability);
         }
 
@@ -295,8 +304,27 @@ Rcpp::NumericMatrix variable_importance_cpp(
             continue;
         }
 
-        const std::vector<int> order = descending_probability_order(probabilities);
+        std::vector<int> order;
+        if (k2_selection_method == K2SelectionMethod::Probability) {
+            order = descending_probability_order(probabilities);
+        } else {
+            order = ascending_k2_order(
+                predicted_distances,
+                observed_distances,
+                candidate_sites,
+                k2_selection_method
+            );
+        }
         const int n_keep = std::min(k_rs, static_cast<int>(order.size()));
+        int boost_index = 0;
+        if (k2_selection_method != K2SelectionMethod::Probability) {
+            for (int k = 1; k < n_keep; ++k) {
+                if (probabilities[order[k]] >
+                    probabilities[order[boost_index]]) {
+                    boost_index = k;
+                }
+            }
+        }
 
         // Gather the retained references' distance weights and observed values.
         std::vector<double> weights(n_keep);
@@ -311,7 +339,7 @@ Rcpp::NumericMatrix variable_importance_cpp(
                 predicted_distances[candidate],
                 lambda,
                 kernel_method
-            ) + (k == 0 ? log_boost : 0.0);
+            ) + (k == boost_index ? log_boost : 0.0);
             if (std::isfinite(log_weight)) {
                 max_log_weight = std::max(max_log_weight, log_weight);
             }
@@ -328,7 +356,7 @@ Rcpp::NumericMatrix variable_importance_cpp(
                 predicted_distances[candidate],
                 lambda,
                 kernel_method
-            ) + (k == 0 ? log_boost : 0.0);
+            ) + (k == boost_index ? log_boost : 0.0);
             weights[k] = std::exp(std::min(
                 0.0,
                 log_weight - max_log_weight

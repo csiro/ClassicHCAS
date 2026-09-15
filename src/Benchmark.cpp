@@ -45,7 +45,8 @@ Rcpp::NumericMatrix bench_cpp(
     bool make_su = false,                   // whether to produce SU map
     int num_threads = -1,                   // -1 or 0 utilises all available threads
     std::string kernel = "gaussian",        // distance weighting kernel
-    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue) // optional maximum-probability weight multiplier
+    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue, // optional maximum-probability weight multiplier
+    std::string k2_method = "probability")   // second-stage reference selection method
 {
     double boost_factor = std::numeric_limits<double>::quiet_NaN();
     if (boost.isNotNull()) {
@@ -87,6 +88,11 @@ Rcpp::NumericMatrix bench_cpp(
     }
     const DistanceKernel kernel_method =
         distance_kernel_from_string(kernel);
+    const K2SelectionMethod k2_selection_method =
+        k2_selection_method_from_string(k2_method);
+    if (k2_selection_method == K2SelectionMethod::Invalid) {
+        Rcpp::stop("'k2_method' must be 'probability', 'residual', or 'observed'.");
+    }
 
     // convert all Rcpp matrices to custom C++ matrix [faster computation and avoids OpenMp conflicts]
     RowMajorMatrix<float32_t> raster = as_Matrix<float32_t>(raster_vals);
@@ -222,9 +228,13 @@ Rcpp::NumericMatrix bench_cpp(
             );
 
             // rs and env distance of nearest env neighbours
+            std::vector<int> candidate_sites;
             std::vector<double> prdist_vect;
+            std::vector<double> obsdist_vect;
             std::vector<double> prob_vect;
+            candidate_sites.reserve(knn_env.size());
             prdist_vect.reserve(knn_env.size());
+            obsdist_vect.reserve(knn_env.size());
             prob_vect.reserve(knn_env.size());
 
             // 'j' is the original index into the full 'samples' matrix
@@ -241,6 +251,8 @@ Rcpp::NumericMatrix bench_cpp(
 
                 double selected_prob = 0.0;
                 double selected_score = -std::numeric_limits<double>::infinity();
+                double selected_observed_distance =
+                    std::numeric_limits<double>::quiet_NaN();
 
                 for (int year = 0; year < n_years; ++year)
                 {
@@ -262,10 +274,14 @@ Rcpp::NumericMatrix bench_cpp(
                     if (weighted_score > selected_score) {
                         selected_score = weighted_score;
                         selected_prob = weighted_score;
+                        selected_observed_distance =
+                            static_cast<double>(rsdist);
                     }
                 }
 
+                candidate_sites.push_back(j);
                 prdist_vect.push_back(static_cast<double>(prdist));
+                obsdist_vect.push_back(selected_observed_distance);
                 prob_vect.push_back(selected_prob);
             }
 
@@ -280,9 +296,19 @@ Rcpp::NumericMatrix bench_cpp(
                 continue;
             }
 
-            // descending sort prob values for selecting the 20 highest values
-            // the probability vector itself will also be sorted
-            std::vector<int> sorted_index = qsort_index(prob_vect, true);
+            std::vector<int> sorted_index;
+            if (k2_selection_method == K2SelectionMethod::Probability) {
+                // descending sort prob values for selecting the 20 highest values
+                // the probability vector itself will also be sorted
+                sorted_index = qsort_index(prob_vect, true);
+            } else {
+                sorted_index = ascending_k2_order(
+                    prdist_vect,
+                    obsdist_vect,
+                    candidate_sites,
+                    k2_selection_method
+                );
+            }
 
             const int n_keep = std::min(k_rs, static_cast<int>(sorted_index.size()));
             std::vector<double> pr_dist(n_keep);     // ENV distances
@@ -293,7 +319,10 @@ Rcpp::NumericMatrix bench_cpp(
             {
                 int id = sorted_index[k];
                 pr_dist[k] = prdist_vect[id];
-                prob_sorted[k] = prob_vect[k]; // prob_vect is already sorted by qsort_index; just get first 20
+                prob_sorted[k] =
+                    k2_selection_method == K2SelectionMethod::Probability
+                        ? prob_vect[k] // qsort_index also sorts prob_vect
+                        : prob_vect[id];
             }
 
             // Calculate the selected distance-kernel-weighted condition.

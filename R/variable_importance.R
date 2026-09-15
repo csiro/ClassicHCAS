@@ -11,8 +11,8 @@
 #' \code{variable_importance()} reuses the same non-temporal three-stage
 #' reference selection as \code{\link{benchmark}}: candidates are restricted to
 #' those within \code{radius_km}, the \code{k1} nearest in predicted RS
-#' space (with an optional XY penalty) are retained, and the \code{k2} with
-#' the highest reference-density probability are kept. Each retained reference
+#' space (with an optional XY penalty) are retained, and \code{k2_method}
+#' chooses the \code{k2} that are kept. Each retained reference
 #' is weighted with the same selected distance kernel on predicted RS
 #' distance used by \code{benchmark()}, so the diagnostic reports on the
 #' reference set and weights that benchmarking actually uses. With
@@ -167,6 +167,7 @@ variable_importance <- function(
         num_threads = -1,
         kernel = c("Gaussian", "Cauchy"),
         boost = k2,
+        k2_method = "probability",
         ...) {
 
     legacy_k <- intersect(names(list(...)), c("k_pred", "k_obs"))
@@ -176,6 +177,7 @@ variable_importance <- function(
 
     output <- match.arg(output)
     kernel <- .check_kernel(kernel)
+    k2_method <- .check_k2_method(k2_method)
     boost <- .check_boost(boost)
     # The engine returns either the signal-to-noise importance or the raw
     # per-variable signal; "share" is the per-cell normalised signal computed
@@ -290,7 +292,8 @@ variable_importance <- function(
             exclude_slef = exclude_slef,
             num_threads = num_threads,
             kernel = kernel,
-            boost = boost
+            boost = boost,
+            k2_method = k2_method
         )
         if (output == "share") {
             result <- .importance_shares(result)
@@ -346,6 +349,7 @@ variable_importance <- function(
             num_threads = num_threads,
             kernel = kernel,
             boost = boost,
+            k2_method = k2_method,
             ...
         )
         if (output == "share") {

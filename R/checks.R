@@ -111,6 +111,24 @@
 }
 
 
+# validate and canonicalise second-stage reference-selection names
+.check_k2_method <- function(k2_method) {
+    if (!is.character(k2_method) ||
+        length(k2_method) != 1L ||
+        is.na(k2_method) ||
+        !nzchar(k2_method)) {
+        stop("'k2_method' must be 'probability', 'residual', or 'observed'.")
+    }
+
+    k2_method <- tolower(k2_method)
+    if (!(k2_method %in% c("probability", "residual", "observed"))) {
+        stop("'k2_method' must be 'probability', 'residual', or 'observed'.")
+    }
+
+    k2_method
+}
+
+
 # get the number of RS variables from x, y, predicted..., observed... matrix input
 .num_rs_vars_mat <- function(x, name = "x") {
     n_vars <- (ncol(x) - 2L) / 2L

@@ -98,7 +98,8 @@ Rcpp::List reference_use_cpp(
     int num_threads = -1,
     bool weighted_max = false,
     std::string kernel = "gaussian",
-    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue)
+    Rcpp::Nullable<Rcpp::NumericVector> boost = R_NilValue,
+    std::string k2_method = "probability")
 {
     double boost_factor = std::numeric_limits<double>::quiet_NaN();
     if (boost.isNotNull()) {
@@ -140,6 +141,11 @@ Rcpp::List reference_use_cpp(
     }
     const DistanceKernel kernel_method =
         distance_kernel_from_string(kernel);
+    const K2SelectionMethod k2_selection_method =
+        k2_selection_method_from_string(k2_method);
+    if (k2_selection_method == K2SelectionMethod::Invalid) {
+        Rcpp::stop("'k2_method' must be 'probability', 'residual', or 'observed'.");
+    }
     RowMajorMatrix<float32_t> targets = as_Matrix<float32_t>(target_vals);
     RowMajorMatrix<float32_t> samples = as_Matrix<float32_t>(sample_vals);
     RowMajorMatrix<double> refdens = as_Matrix<double>(ref_density);
@@ -229,9 +235,11 @@ Rcpp::List reference_use_cpp(
 
         std::vector<int> candidate_sites;
         std::vector<double> predicted_distances;
+        std::vector<double> observed_distances;
         std::vector<double> probabilities;
         candidate_sites.reserve(knn_env.size());
         predicted_distances.reserve(knn_env.size());
+        observed_distances.reserve(knn_env.size());
         probabilities.reserve(knn_env.size());
 
         for (const int site : knn_env)
@@ -258,6 +266,7 @@ Rcpp::List reference_use_cpp(
 
             candidate_sites.push_back(site);
             predicted_distances.push_back(static_cast<double>(predicted_distance));
+            observed_distances.push_back(static_cast<double>(observed_distance));
             probabilities.push_back(probability);
         }
 
@@ -265,7 +274,17 @@ Rcpp::List reference_use_cpp(
             continue;
         }
 
-        const std::vector<int> order = descending_probability_order(probabilities);
+        std::vector<int> order;
+        if (k2_selection_method == K2SelectionMethod::Probability) {
+            order = descending_probability_order(probabilities);
+        } else {
+            order = ascending_k2_order(
+                predicted_distances,
+                observed_distances,
+                candidate_sites,
+                k2_selection_method
+            );
+        }
         const int n_keep = std::min(k_rs, static_cast<int>(order.size()));
         std::vector<int> selected_sites(n_keep);
         std::vector<double> selected_distances(n_keep);
@@ -275,7 +294,10 @@ Rcpp::List reference_use_cpp(
             const int candidate = order[k];
             selected_sites[k] = candidate_sites[candidate];
             selected_distances[k] = predicted_distances[candidate];
-            selected_probabilities[k] = probabilities[k];
+            selected_probabilities[k] =
+                k2_selection_method == K2SelectionMethod::Probability
+                    ? probabilities[k]
+                    : probabilities[candidate];
         }
 
         for (const int site : selected_sites) {
@@ -300,6 +322,13 @@ Rcpp::List reference_use_cpp(
 
         std::vector<double> distance_weights(n_keep);
         std::vector<double> maximum_scores(n_keep);
+        int boost_index = 0;
+        for (int k = 1; k < n_keep; ++k) {
+            if (selected_probabilities[k] >
+                selected_probabilities[boost_index]) {
+                boost_index = k;
+            }
+        }
         double weight_sum = 0.0;
         double maximum_score = -std::numeric_limits<double>::infinity();
         for (int k = 0; k < n_keep; ++k) {
@@ -334,7 +363,7 @@ Rcpp::List reference_use_cpp(
                     kernel_method
                 );
                 const double boosted_log_weight = log_weight +
-                    (k == 0 ? log_boost : 0.0);
+                    (k == boost_index ? log_boost : 0.0);
                 max_boosted_log_weight = std::max(
                     max_boosted_log_weight,
                     boosted_log_weight
@@ -349,7 +378,7 @@ Rcpp::List reference_use_cpp(
                     kernel_method
                 );
                 const double boosted_log_weight = log_weight +
-                    (k == 0 ? log_boost : 0.0);
+                    (k == boost_index ? log_boost : 0.0);
                 distance_weights[k] = std::exp(std::min(
                     0.0,
                     boosted_log_weight - max_boosted_log_weight

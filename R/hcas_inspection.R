@@ -10,8 +10,8 @@
 #' The inspection tool uses the current \code{\link{benchmark}} and
 #' \code{\link{reference_use}} implementations. Consequently, its controls map
 #' directly to the current benchmarking arguments: \code{k1} is the first-stage
-#' predicted-distance filter, \code{k2} is the reference-density filter, and
-#' \code{xy_penalty} applies the optional scaled-coordinate penalty. Feature
+#' predicted-distance filter, \code{k2_method} controls the \code{k2} filter,
+#' and \code{xy_penalty} applies the optional scaled-coordinate penalty. Feature
 #' counts, geographic distance handling, density dimensions, and density
 #' metadata are inferred by ClassicHCAS rather than supplied as legacy fixed
 #' values.
@@ -117,9 +117,11 @@ hcas_inspection <- function(
         launch = interactive(),
         kernel = c("Gaussian", "Cauchy"),
         boost = k2,
+        k2_method = "probability",
         ...) {
 
     kernel <- .check_kernel(kernel)
+    k2_method <- .check_k2_method(k2_method)
     required <- c("shiny", "shinyWidgets", "leaflet", "ggplot2")
     available <- vapply(required, requireNamespace, logical(1), quietly = TRUE)
     if (!all(available)) {
@@ -175,6 +177,7 @@ hcas_inspection <- function(
     .num_rs_vars_mat(samples, "samples")
 
     background_file <- .inspection_background_cog(background)
+    background_domain <- .inspection_background_domain(background_file)
     background_colors <- .inspection_background_colors(background_colors)
 
     if (length(k1) != 1L || !is.finite(k1) || k1 < 1) {
@@ -417,6 +420,16 @@ hcas_inspection <- function(
                     selected = as.integer(k2),
                     grid = TRUE
                 ),
+                shiny::selectInput(
+                    inputId = "k2_method",
+                    label = "K2 selection method",
+                    choices = c(
+                        "Probability" = "probability",
+                        "Residual" = "residual",
+                        "Observed RS distance" = "observed"
+                    ),
+                    selected = k2_method
+                ),
                 shiny::textOutput("condition"),
                 shiny::textOutput("nearby_count"),
                 shiny::plotOutput("density_plot", width = "100%", height = "300px")
@@ -556,6 +569,7 @@ hcas_inspection <- function(
             radius_value <- as.numeric(input$radius_km)
             k1_value <- as.integer(input$k1)
             k2_value <- as.integer(input$k2)
+            k2_method_value <- input$k2_method
             kernel_value <- if (is.null(input$kernel)) {
                 NA_character_
             } else {
@@ -605,7 +619,11 @@ hcas_inspection <- function(
                 ),
                 shiny::need(k1_value >= 1L, "k1 must be greater than zero."),
                 shiny::need(k2_value >= 1L, "k2 must be greater than zero."),
-                shiny::need(k2_value <= k1_value, "k2 must be less than or equal to k1.")
+                shiny::need(k2_value <= k1_value, "k2 must be less than or equal to k1."),
+                shiny::need(
+                    k2_method_value %in% c("probability", "residual", "observed"),
+                    "Choose a valid K2 selection method."
+                )
             )
             active_confidence <- if (condition_mode == "ldc") {
                 condition_value
@@ -630,6 +648,7 @@ hcas_inspection <- function(
                 radius_km = radius_value,
                 k1 = k1_value,
                 k2 = k2_value,
+                k2_method = k2_method_value,
                 bin_width = density$bin_width,
                 offset = density$offset,
                 confidence = active_confidence,
@@ -671,7 +690,8 @@ hcas_inspection <- function(
                 result = NULL,
                 bounds = map_bounds,
                 background = background_file,
-                background_colors = background_colors
+                background_colors = background_colors,
+                background_domain = background_domain
             )
         })
 
@@ -982,6 +1002,38 @@ hcas_inspection <- function(
 }
 
 
+# Value range used as the colour-scale domain for the background raster.
+# leafem's georaster binding derives the domain from georaster.mins/maxs when
+# colorOptions$domain is NULL, but those are undefined for a COG streamed
+# lazily over url = -- leaving every pixel transparent. Supplying the domain
+# explicitly is therefore required. Prefer stored statistics; fall back to a
+# regular sample (cheap on a COG) so the whole raster is never read.
+.inspection_background_domain <- function(path) {
+    if (is.null(path)) {
+        return(NULL)
+    }
+    r <- terra::rast(path)[[1L]]
+    rng <- suppressWarnings(terra::minmax(r))
+    lo <- rng[1L]
+    hi <- rng[2L]
+    if (!is.finite(lo) || !is.finite(hi)) {
+        v <- suppressWarnings(terra::spatSample(
+            r, 10000L, method = "regular", na.rm = TRUE, values = TRUE
+        ))[[1L]]
+        v <- v[is.finite(v)]
+        if (!length(v)) {
+            return(NULL)
+        }
+        lo <- min(v)
+        hi <- max(v)
+    }
+    if (!is.finite(lo) || !is.finite(hi) || lo == hi) {
+        return(NULL)
+    }
+    c(lo, hi)
+}
+
+
 # Validate the optional colour ramp for the background raster.
 .inspection_background_colors <- function(colors) {
     if (is.null(colors)) {
@@ -1006,7 +1058,8 @@ hcas_inspection <- function(
 
 .inspection_leaflet_map <- function(result = NULL, bounds = NULL,
                                     background = NULL,
-                                    background_colors = NULL) {
+                                    background_colors = NULL,
+                                    background_domain = NULL) {
     map <- leaflet::leaflet()
     map <- leaflet::addTiles(map)
     map <- leaflet::addProviderTiles(map, "Esri.WorldImagery")
@@ -1018,19 +1071,29 @@ hcas_inspection <- function(
         # group/layerId must be set explicitly here because leafem derives them
         # from `file`, which is NULL on the url = path. autozoom = FALSE leaves
         # the view to fitBounds() below; bands = 1 renders one thematic layer.
+        # domain must be supplied: a lazily streamed COG has no georaster
+        # mins/maxs, so a NULL domain would colour every pixel transparent.
         shiny::addResourcePath("hcas_background", dirname(background))
         map <- leafem::addGeotiff(
             map,
             url = paste0("hcas_background/", basename(background)),
-            group = "background",
+            group = "Background",
             layerId = "background",
             bands = 1,
             opacity = 0.8,
             autozoom = FALSE,
             colorOptions = leafem::colorOptions(
                 palette = palette,
+                domain = background_domain,
                 na.color = "transparent"
             )
+        )
+        # Top-right toggle to switch the background raster on and off.
+        map <- leaflet::addLayersControl(
+            map,
+            overlayGroups = "Background",
+            position = "topright",
+            options = leaflet::layersControlOptions(collapsed = FALSE)
         )
     }
 
@@ -1113,7 +1176,8 @@ hcas_inspection <- function(
         num_threads,
         kernel,
         geographic,
-        crs) {
+        crs,
+        k2_method = "probability") {
 
     n_vars <- .num_rs_vars_mat(samples, "samples")
     keep_features <- .keep_rs_features(drop_features, n_vars)
@@ -1143,7 +1207,8 @@ hcas_inspection <- function(
         exclude_slef = exclude_slef,
         num_threads = num_threads,
         weighted_max = FALSE,
-        kernel = kernel
+        kernel = kernel,
+        k2_method = k2_method
     )
     condition <- bench_cpp(
         raster_vals = target_kept,
@@ -1165,7 +1230,8 @@ hcas_inspection <- function(
         temporal_weights = NULL,
         make_su = FALSE,
         num_threads = num_threads,
-        kernel = kernel
+        kernel = kernel,
+        k2_method = k2_method
     )
 
     selected_ids <- which(use$density > 0)

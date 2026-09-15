@@ -23,7 +23,8 @@ reference_use(
   num_threads = -1,
   weighted_max = FALSE,
   kernel = c("Gaussian", "Cauchy"),
-  boost = k2
+  boost = k2,
+  k2_method = "probability"
 )
 }
 \arguments{
@@ -57,9 +58,8 @@ benchmark samples.}
 \item{k1}{Integer. First-stage filter size: the number of nearest samples to
 retain after the predicted RS distance search.}
 
-\item{k2}{Integer. Second-stage filter size: the number of high-probability
-samples to retain from the reference density query. Must be less than or
-equal to \code{k1}.}
+\item{k2}{Integer. Second-stage filter size: the number of samples to retain
+from the \code{k1} candidate set. Must be less than or equal to \code{k1}.}
 
 \item{bin_width}{Numeric. Bin width used to create and normalise
 \code{ref_density}. If \code{ref_density} is a \code{reference_density}
@@ -110,6 +110,14 @@ The default \code{k2} multiplies the kernel weight of the
 highest-probability retained site by \code{k2} and returns the resulting weighted
 mean instead of the LDC blend. \code{confidence} is ignored in this mode.
 Use \code{NULL} or \code{NA} for the unboosted LDC blend.}
+
+\item{k2_method}{Character. Second-stage reference-selection method.
+\code{"probability"} (default) retains the highest reference-density
+probabilities and preserves legacy behaviour. The experimental comparison
+options \code{"residual"} and \code{"observed"} retain the smallest
+\code{abs(observed RS distance - predicted RS distance)} and the smallest
+observed RS distance, respectively. This changes only which references are
+retained; kernel weights remain based on predicted RS distance.}
 }
 \value{
 A data.frame with one row per reference site and four columns:
@@ -136,8 +144,8 @@ The returned columns represent:
   \item{\code{"predicted"}}{Count selection among the \code{k1} nearest
   reference sites in predicted feature space after the radius restriction
   and optional XY penalty.}
-  \item{\code{"density"}}{Count retention among the \code{k2} sites with
-  the highest reference-density probability.}
+  \item{\code{"density"}}{Count retention among the \code{k2} sites selected
+  by \code{k2_method}. The column name is retained for compatibility.}
   \item{\code{"condition"}}{Attribute each retained site's use according to
   its contribution to the condition estimator. The
   distance-weighted mean component uses normalised weights from the selected

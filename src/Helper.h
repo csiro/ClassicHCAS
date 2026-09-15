@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <string>
 #include <utility> // for std::pair
 #include "Float32_t.h" // importing float32_t
 #include "Kernel.h"
@@ -14,6 +15,65 @@ struct Condition
     double hc;
     double log_su;
 };
+
+
+enum class K2SelectionMethod
+{
+    Probability,
+    Residual,
+    Observed,
+    Invalid
+};
+
+
+inline K2SelectionMethod k2_selection_method_from_string(
+    const std::string& method)
+{
+    if (method == "probability") return K2SelectionMethod::Probability;
+    if (method == "residual") return K2SelectionMethod::Residual;
+    if (method == "observed") return K2SelectionMethod::Observed;
+    return K2SelectionMethod::Invalid;
+}
+
+
+// Order candidates from smallest selection metric to largest. Ties use the
+// original sample-row index, matching the deterministic index tie-break used
+// by the first-stage neighbour search.
+inline std::vector<int> ascending_k2_order(
+    const std::vector<double>& predicted_distances,
+    const std::vector<double>& observed_distances,
+    const std::vector<int>& candidate_sites,
+    const K2SelectionMethod method)
+{
+    std::vector<int> order(predicted_distances.size());
+    for (size_t i = 0; i < order.size(); ++i) {
+        order[i] = static_cast<int>(i);
+    }
+
+    const auto metric = [&](const int i) {
+        if (method == K2SelectionMethod::Residual) {
+            return std::abs(
+                observed_distances[i] - predicted_distances[i]
+            );
+        }
+        return observed_distances[i];
+    };
+
+    std::sort(order.begin(), order.end(), [&](const int a, const int b) {
+        const double a_value = metric(a);
+        const double b_value = metric(b);
+        const bool a_finite = std::isfinite(a_value);
+        const bool b_finite = std::isfinite(b_value);
+        if (a_finite != b_finite) return a_finite;
+        if (a_finite && a_value != b_value) return a_value < b_value;
+        if (candidate_sites[a] != candidate_sites[b]) {
+            return candidate_sites[a] < candidate_sites[b];
+        }
+        return a < b;
+    });
+
+    return order;
+}
 
 
 // Combine Radius Search (XY) and KNN Search (ENV)

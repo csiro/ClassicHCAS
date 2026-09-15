@@ -15,8 +15,8 @@
 #'   \item{\code{"predicted"}}{Count selection among the \code{k1} nearest
 #'   reference sites in predicted feature space after the radius restriction
 #'   and optional XY penalty.}
-#'   \item{\code{"density"}}{Count retention among the \code{k2} sites with
-#'   the highest reference-density probability.}
+#'   \item{\code{"density"}}{Count retention among the \code{k2} sites selected
+#'   by \code{k2_method}. The column name is retained for compatibility.}
 #'   \item{\code{"condition"}}{Attribute each retained site's use according to
 #'   its contribution to the condition estimator. The
 #'   distance-weighted mean component uses normalised weights from the selected
@@ -113,9 +113,11 @@ reference_use <- function(
         num_threads = -1,
         weighted_max = FALSE,
         kernel = c("Gaussian", "Cauchy"),
-        boost = k2) {
+        boost = k2,
+        k2_method = "probability") {
 
     kernel <- .check_kernel(kernel)
+    k2_method <- .check_k2_method(k2_method)
     boost <- .check_boost(boost)
     if (k1 < k2) {
         stop("'k2' must be less than or equal to 'k1'.")
@@ -216,7 +218,8 @@ reference_use <- function(
             exclude_slef = exclude_slef,
             num_threads = num_threads,
             weighted_max = weighted_max,
-            kernel = kernel
+            kernel = kernel,
+            k2_method = k2_method
         )
     } else if (.is_rast(data)) {
         data <- .check_rast(data)
@@ -258,7 +261,8 @@ reference_use <- function(
             exclude_slef = exclude_slef,
             num_threads = num_threads,
             weighted_max = weighted_max,
-            kernel = kernel
+            kernel = kernel,
+            k2_method = k2_method
         )
     } else {
         stop("'data' must be a raster, matrix, or convertible object.")
@@ -291,7 +295,8 @@ reference_use <- function(
         exclude_slef,
         num_threads,
         weighted_max,
-        kernel) {
+        kernel,
+        k2_method) {
 
     predicted <- numeric(nrow(samples))
     density <- numeric(nrow(samples))
@@ -332,7 +337,8 @@ reference_use <- function(
             exclude_slef = exclude_slef,
             num_threads = num_threads,
             weighted_max = weighted_max,
-            kernel = kernel
+            kernel = kernel,
+            k2_method = k2_method
         )
         predicted <- predicted + current$predicted
         density <- density + current$density
