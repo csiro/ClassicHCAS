@@ -18,6 +18,7 @@ Maintainer: Roozbeh Valavi <roozbeh.valavi@csiro.au>
 Description: The HCAS evaluates habitat condition by comparing observed and 
   predicted remote sensing variables using reference ecosystem samples.
 License: GPL (>= 3)
+Copyright: Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 Encoding: UTF-8
 LazyData: true
 Depends:
