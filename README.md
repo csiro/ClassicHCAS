@@ -88,4 +88,7 @@ If you are citing the current Australian data collection referenced on that page
 For the latest Australian release status, product guides, and download links, use the CSIRO project page above as the canonical source.
 
 ## Citation
-A manuscript describing `ClassicHCAS` and the underlying method will be made available as a preprint soon.
+
+For the manuscript describing `ClassicHCAS` and the underlying method, use the following reference:
+
+Valavi R, Williams KJ, Lehmann EA, Collings S, Levick S, Gilijohann K, Liu N, Johnson S, Munroe SEM, Van Niel TG, Paget M, Malley C, Lyon P, Harwood TD and Ferrier S (2026). *A scalable workflow for ecosystem condition assessment from Earth observation data*. EcoEvoRxiv [preprint]. DOI: [10.32942/X27104](https://doi.org/10.32942/X27104).
