@@ -1,0 +1,27 @@
+bibentry(
+  bibtype = "Article",
+  title = "A scalable workflow for ecosystem condition assessment from Earth observation data",
+  author = c(
+    person("Roozbeh", "Valavi"),
+    person("Kristen Jennifer", "Williams"),
+    person("Eric A", "Lehmann"),
+    person("Simon", "Collings"),
+    person("Shaun", "Levick"),
+    person("Kate", "Gilijohann"),
+    person("Ning", "Liu"),
+    person("Stephanie", "Johnson"),
+    person("Samantha EM", "Munroe"),
+    person("Thomas G", "Van Niel"),
+    person("Matthew", "Paget"),
+    person("Cassandra", "Malley"),
+    person("Peter", "Lyon"),
+    person("Thomas D", "Harwood"),
+    person("Simon", "Ferrier")
+  ),
+  year = "2026",
+  journal = "EcoEvoRxiv",
+  note = "Preprint",
+  doi = "10.32942/X27104",
+  url = "https://ecoevorxiv.org/repository/view/13239/",
+  textVersion = "Valavi R, Williams KJ, Lehmann EA, Collings S, Levick S, Gilijohann K, Liu N, Johnson S, Munroe SEM, Van Niel TG, Paget M, Malley C, Lyon P, Harwood TD and Ferrier S (2026). A scalable workflow for ecosystem condition assessment from Earth observation data. EcoEvoRxiv [preprint]. https://doi.org/10.32942/X27104"
+)

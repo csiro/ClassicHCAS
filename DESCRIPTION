@@ -15,8 +15,12 @@ Authors@R: c(
 URL: https://github.com/csiro/ClassicHCAS
 BugReports: https://github.com/csiro/ClassicHCAS/issues
 Maintainer: Roozbeh Valavi <roozbeh.valavi@csiro.au>
-Description: The HCAS evaluates habitat condition by comparing observed and 
-  predicted remote sensing variables using reference ecosystem samples.
+Description: The Habitat Condition Assessment System (HCAS) evaluates habitat
+    condition by comparing observed and predicted remote sensing variables using
+    ecologically comparable reference ecosystem samples. Provides tools to build
+    and normalise reference density surfaces, benchmark sites or rasters, and
+    calibrate outputs to a 0-1 condition scale. Methods are described in
+    Valavi et al. (2026) <doi:10.32942/X27104>.
 License: GPL (>= 3)
 Copyright: Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 Encoding: UTF-8
